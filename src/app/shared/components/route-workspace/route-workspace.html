@@ -1,0 +1,182 @@
+<div class="map-layout">
+  <section class="panel map-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Mapa de operaciones <span class="badge neutral">OpenStreetMap</span></h2>
+        <p>Ubicaciones y recorridos de tus entregas</p>
+      </div>
+      <button class="icon-button" aria-label="Centrar mapa" title="Centrar mapa" (click)="fitMap()">
+        ⌖
+      </button>
+    </div>
+    <div class="map-container">
+      <div id="delivery-map"></div>
+      <div class="map-label">
+        <span class="dot" [class.green-dot]="operations.live()"></span
+        >{{ operations.live() ? 'Actualización en vivo' : 'Ubicaciones de entrega' }}
+      </div>
+      @if (mapError()) {
+        <div class="map-error">{{ mapError() }}</div>
+      }
+    </div>
+    <div class="map-footer">
+      <div>
+        <span class="legend-line"></span>Recorrido entre paradas
+        <span class="legend-pin"></span>Pedido
+      </div>
+      <span>Conexiones referenciales, sin trazado por calles</span>
+    </div>
+  </section>
+  <section class="panel routes-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>
+          Rutas de entrega <span class="number-pill">{{ visibleRoutes().length }}</span>
+        </h2>
+        <p>Planificación de la fecha seleccionada</p>
+      </div>
+      <span class="route-symbol material-symbols-outlined" aria-hidden="true">route</span>
+    </div>
+    <div class="route-list">
+      @for (r of visibleRoutes(); track r.id) {
+        <button
+          class="route-card"
+          [class.selected]="operations.selected()?.id === r.id"
+          (click)="operations.selectRoute(r)"
+        >
+          <div>
+            <strong>Ruta #{{ operations.short(r.id).slice(0, 4) }}</strong
+            ><span class="badge" [attr.data-state]="r.estado">{{
+              operations.label(r.estado)
+            }}</span>
+          </div>
+          <p>{{ operations.zoneName(r.zonaId) }}</p>
+          <div class="route-driver">
+            <span class="mini-avatar">{{
+              operations.driver(r.repartidorId).slice(0, 2).toUpperCase()
+            }}</span
+            >{{ operations.driver(r.repartidorId) }}<span class="route-arrow">↗</span>
+          </div>
+          <div class="route-progress">
+            <span [style.width.%]="operations.routeProgress(r)"></span>
+          </div>
+          <small
+            >{{ operations.deliveredStops(r) }} de {{ r.paradas.length }} entregas
+            <span>Capacidad {{ r.capacidad }}</span></small
+          >
+        </button>
+      } @empty {
+        <div class="empty">
+          <span>⌁</span>
+          <h3>Aún no hay rutas</h3>
+          <p>Registra pedidos y genera las rutas para organizar las entregas.</p>
+        </div>
+      }
+    </div>
+    <button
+      class="route-plan"
+      (click)="operations.buildRoutes()"
+      [disabled]="operations.saving() || !operations.connected()"
+    >
+      ⌁ {{ operations.saving() ? 'Procesando…' : 'Generar rutas' }} <span>→</span>
+    </button>
+  </section>
+</div>
+@if (operations.selected() && (operations.view() === 'Resumen' || operations.view() === 'Rutas')) {
+  <section class="panel detail-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>
+          Ruta #{{ operations.short(operations.selected()!.id) }} ·
+          {{ operations.driver(operations.selected()!.repartidorId) }}
+        </h2>
+        <p>
+          {{ operations.zoneName(operations.selected()!.zonaId) }} · Paradas en orden de entrega
+        </p>
+      </div>
+      <button class="icon-button" (click)="operations.selected.set(null)" aria-label="Cerrar ruta">
+        ×
+      </button>
+    </div>
+    <div class="route-actions">
+      @if (operations.selected()!.estado === 'Planificada') {
+        <button
+          class="button primary"
+          [disabled]="operations.saving() || !operations.selected()!.paradas.length"
+          (click)="
+            operations.action(
+              operations.api.iniciarRuta(operations.selected()!.id),
+              'Ruta iniciada.'
+            )
+          "
+        >
+          Iniciar ruta</button
+        ><button
+          class="button danger"
+          [disabled]="operations.saving()"
+          (click)="
+            operations.action(
+              operations.api.cancelarRuta(operations.selected()!.id),
+              'Ruta cancelada.'
+            )
+          "
+        >
+          Cancelar ruta
+        </button>
+      }
+      @if (
+        operations.selected()!.estado === 'Planificada' ||
+        operations.selected()!.estado === 'EnCurso'
+      ) {
+        <select aria-label="Pedido pendiente para asignar" [(ngModel)]="operations.pendingId">
+          <option value="">Seleccionar pedido pendiente</option>
+          @for (p of operations.pedidos(); track p.id) {
+            @if (p.estado === 'Pendiente' && p.zonaId === operations.selected()!.zonaId) {
+              <option [value]="p.id">{{ p.clienteNombre }}</option>
+            }
+          }</select
+        ><button
+          class="button"
+          [disabled]="!operations.pendingId || operations.saving()"
+          (click)="
+            operations.action(
+              operations.api.agregarPedido(operations.selected()!.id, {
+                pedidoId: operations.pendingId,
+              }),
+              'Pedido agregado a la ruta.'
+            );
+            operations.pendingId = ''
+          "
+        >
+          Agregar pedido
+        </button>
+      }
+    </div>
+    @for (stop of operations.selected()!.paradas; track stop.pedido.id) {
+      <div class="stop">
+        <span class="stop-number">{{ stop.orden }}</span>
+        <div>
+          <strong>{{ stop.pedido.clienteNombre }}</strong>
+          <p>{{ stop.pedido.direccion }}</p>
+        </div>
+        <span class="badge" [attr.data-state]="stop.pedido.estado">{{
+          operations.label(stop.pedido.estado)
+        }}</span>
+        @if (stop.pedido.estado === 'AsignadoARuta') {
+          <button
+            class="text-button"
+            [disabled]="operations.saving()"
+            (click)="
+              operations.action(
+                operations.api.quitarPedido(operations.selected()!.id, stop.pedido.id),
+                'Pedido retirado de la ruta.'
+              )
+            "
+          >
+            Retirar
+          </button>
+        }
+      </div>
+    }
+  </section>
+}

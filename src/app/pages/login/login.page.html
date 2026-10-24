@@ -1,0 +1,71 @@
+﻿<div class="auth-screen">
+  <aside class="auth-story">
+    <a class="auth-brand" href="/login"
+      ><span class="material-symbols-outlined" aria-hidden="true">alt_route</span>RouteOS</a
+    >
+    <div class="auth-intro">
+      <p class="auth-eyebrow">CADA ENTREGA, BAJO CONTROL</p>
+      <h1>Tu operación.<br />Siempre conectada.</h1>
+      <p>Pedidos, equipos y rutas en un solo lugar. Todo listo para dar el siguiente paso.</p>
+      <div class="auth-route-art" aria-hidden="true">
+        <span class="material-symbols-outlined">inventory_2</span><i></i
+        ><span class="material-symbols-outlined">route</span><i></i
+        ><span class="material-symbols-outlined">task_alt</span>
+      </div>
+    </div>
+    <small>Centro de operaciones · Panel administrativo</small>
+  </aside>
+  <main class="auth-main">
+    <section class="auth-card">
+      <div class="auth-badge">ACCESO ADMINISTRATIVO</div>
+      <h2>Bienvenido de nuevo</h2>
+      <p class="auth-description">Ingresa con tu cuenta para gestionar las entregas.</p>
+      @if (auth.aviso()) {
+        <div class="auth-notice" role="status">{{ auth.aviso() }}</div>
+      }
+      @if (error()) {
+        <div class="auth-error" role="alert">{{ error() }}</div>
+      }
+      <form #login="ngForm" (ngSubmit)="submit()">
+        <label
+          >Nombre de usuario<input
+            name="nombreUsuario"
+            [(ngModel)]="nombreUsuario"
+            autocomplete="username"
+            required
+            maxlength="100"
+            autofocus
+            placeholder="Tu nombre de usuario"
+            [disabled]="busy()" /></label
+        ><label
+          >Contraseña
+          <div class="password-field">
+            <input
+              name="clave"
+              [(ngModel)]="clave"
+              [type]="visible() ? 'text' : 'password'"
+              autocomplete="current-password"
+              required
+              maxlength="128"
+              placeholder="Ingresa tu contraseña"
+              [disabled]="busy()"
+            /><button
+              type="button"
+              (click)="visible.set(!visible())"
+              [attr.aria-label]="visible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              {{ visible() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div></label
+        ><button class="auth-submit" [disabled]="login.invalid || busy()">
+          {{ busy() ? 'Ingresando…' : 'Ingresar al panel' }} <span>→</span>
+        </button>
+      </form>
+      <div class="auth-help">
+        <strong>¿Necesitas acceso?</strong>
+        <p>Solicita tu cuenta o el restablecimiento de tu contraseña a un administrador.</p>
+      </div>
+    </section>
+    <footer>RouteOS · Una operación más conectada.</footer>
+  </main>
+</div>

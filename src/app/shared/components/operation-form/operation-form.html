@@ -1,0 +1,174 @@
+@if (forms.modal()) {
+  <div class="modal-backdrop" (click)="!operations.saving() && forms.modal.set('')">
+    <section
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      class="modal"
+      [class.modal-map]="forms.modal() === 'Pedido' || forms.modal() === 'Zona'"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">GESTIÓN DE OPERACIONES</div>
+          <h2 id="modal-title">
+            {{
+              forms.form.id
+                ? 'Editar zona'
+                : forms.modal() === 'Zona'
+                  ? 'Nueva zona'
+                  : 'Nuevo ' + forms.modal().toLowerCase()
+            }}
+          </h2>
+        </div>
+        <button
+          class="icon-button"
+          aria-label="Cerrar formulario"
+          [disabled]="operations.saving()"
+          (click)="forms.modal.set('')"
+        >
+          ×
+        </button>
+      </div>
+      <form #entry="ngForm" (ngSubmit)="forms.save()">
+        <div class="form-body">
+          @if (operations.error()) {
+            <div class="notice error" role="alert">{{ operations.error() }}</div>
+          }
+          @if (forms.modal() === 'Pedido') {
+            <label
+              >Nombre del cliente<input
+                name="clienteNombre"
+                [(ngModel)]="forms.form.clienteNombre"
+                required
+                maxlength="150"
+                autofocus /></label
+            ><label
+              >Teléfono<input
+                name="clienteTelefono"
+                [(ngModel)]="forms.form.clienteTelefono"
+                required
+                maxlength="30"
+                type="tel" /></label
+            ><label
+              >Dirección de entrega<input
+                name="direccion"
+                [(ngModel)]="forms.form.direccion"
+                required
+                maxlength="300"
+            /></label>
+            <div class="form-row">
+              <label
+                >Fecha de entrega<input
+                  name="fechaEntrega"
+                  type="date"
+                  [(ngModel)]="forms.form.fechaEntrega"
+                  [min]="operations.today"
+                  required /></label
+              ><label
+                >Hora de entrega<input
+                  name="horaEntrega"
+                  type="time"
+                  [(ngModel)]="forms.form.horaEntrega"
+                  required
+              /></label>
+            </div>
+            <app-address-picker
+              [address]="forms.form.direccion || ''"
+              (locationChange)="forms.setDeliveryLocation($event)"
+            />
+            <label
+              >Zona<select name="zonaId" [(ngModel)]="forms.form.zonaId">
+                <option [ngValue]="undefined">Resolver automáticamente por ubicación</option>
+                @for (z of operations.zonas(); track z.id) {
+                  @if (z.activa) {
+                    <option [value]="z.id">{{ z.nombre }}</option>
+                  }
+                }
+              </select></label
+            >
+            <p class="form-hint">La ubicación debe estar dentro de una zona activa.</p>
+          }
+          @if (forms.modal() === 'Repartidor') {
+            <label
+              >Nombre completo<input
+                name="nombre"
+                [(ngModel)]="forms.form.nombre"
+                maxlength="150"
+                required
+                autofocus /></label
+            ><label
+              >Teléfono<input
+                name="telefono"
+                [(ngModel)]="forms.form.telefono"
+                maxlength="30"
+                type="tel"
+                required /></label
+            ><label
+              >Capacidad máxima de pedidos<input
+                name="capacidadMaxima"
+                type="number"
+                min="1"
+                step="1"
+                pattern="[0-9]+"
+                [(ngModel)]="forms.form.capacidadMaxima"
+                required
+            /></label>
+          }
+          @if (forms.modal() === 'Zona') {
+            <label
+              >Nombre de la zona<input
+                name="nombre"
+                [(ngModel)]="forms.form.nombre"
+                maxlength="100"
+                required
+                autofocus /></label
+            ><label
+              >Capacidad por ruta<input
+                name="maxPedidosPorRuta"
+                type="number"
+                min="1"
+                step="1"
+                pattern="[0-9]+"
+                [(ngModel)]="forms.form.maxPedidosPorRuta"
+                required
+            /></label>
+            <app-zone-map-picker
+              [points]="forms.zonePoints"
+              [disabled]="operations.saving()"
+              (pointsChange)="forms.zonePoints = $event"
+            />
+            @if (forms.form.id) {
+              <label class="checkbox"
+                ><input name="activa" type="checkbox" [(ngModel)]="forms.form.activa" />Zona
+                activa</label
+              >
+            }
+          }
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="button"
+            [disabled]="operations.saving()"
+            (click)="forms.modal.set('')"
+          >
+            Cancelar</button
+          ><button
+            type="submit"
+            class="button primary"
+            [disabled]="
+              entry.invalid ||
+              operations.saving() ||
+              !operations.connected() ||
+              (forms.modal() === 'Pedido' && !forms.hasDeliveryLocation()) ||
+              (forms.modal() === 'Zona' && forms.zonePoints.length < 3)
+            "
+          >
+            {{ operations.saving() ? 'Guardando…' : 'Guardar ' + forms.modal().toLowerCase() }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

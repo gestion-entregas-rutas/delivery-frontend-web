@@ -1,0 +1,291 @@
+<div class="flex flex-col w-full p-gutter-lg space-y-gutter-lg">
+  <!-- Header & KPI Summary Strip -->
+  <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+    <div>
+      <div class="flex items-center gap-space-xs text-outline font-caption text-caption uppercase tracking-wider mb-space-2xs">
+        <span>Cartografía & Flota</span>
+        <span>•</span>
+        <span class="text-primary font-semibold">Despacho Dinámico</span>
+      </div>
+      <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Gestión de Zonas y Monitoreo de Flota</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">Delimitación de polígonos geoespaciales, topes de capacidad CVRPTW y telemetría de repartidores en tiempo real.</p>
+    </div>
+
+    <!-- Quick Fleet KPIs -->
+    <div class="flex items-center gap-space-sm overflow-x-auto pb-1">
+      <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+        <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-[20px]">two_wheeler</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-caption text-caption text-outline">Flota Activa</span>
+          <span class="font-title-md text-title-md text-on-surface">12 / 14</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+        <div class="w-8 h-8 rounded-lg bg-status-routing/15 flex items-center justify-center text-status-routing">
+          <span class="material-symbols-outlined text-[20px]">travel_explore</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-caption text-caption text-outline">Zonas Cubiertas</span>
+          <span class="font-title-md text-title-md text-on-surface">{{ operations.zonas().length || 4 }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+        <div class="w-8 h-8 rounded-lg bg-status-delivered/15 flex items-center justify-center text-status-delivered">
+          <span class="material-symbols-outlined text-[20px]">verified</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-caption text-caption text-outline">Eficiencia Global</span>
+          <span class="font-title-md text-title-md text-on-surface">96.4%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segmented View Mode Controller & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+    <div class="inline-flex p-1 bg-surface-container-high rounded-xl self-start shadow-inner">
+      <button
+        type="button"
+        class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all cursor-pointer"
+        [ngClass]="activeTab() === 'dual' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+        (click)="activeTab.set('dual')"
+      >
+        Vista Dual (Mapa & Flota)
+      </button>
+      <button
+        type="button"
+        class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all cursor-pointer"
+        [ngClass]="activeTab() === 'zonas' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+        (click)="activeTab.set('zonas')"
+      >
+        Zonas Geográficas ({{ operations.zonas().length }})
+      </button>
+      <button
+        type="button"
+        class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all cursor-pointer"
+        [ngClass]="activeTab() === 'repartidores' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+        (click)="activeTab.set('repartidores')"
+      >
+        Repartidores en Ruta ({{ activeDriversCount() }})
+      </button>
+    </div>
+
+    <div class="flex items-center gap-space-sm">
+      <button
+        type="button"
+        class="flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-2 rounded-xl font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+        (click)="forms.open('Zona')"
+      >
+        <span class="material-symbols-outlined text-[18px]">add_location_alt</span>
+        <span>+ Nueva Zona</span>
+      </button>
+      <button
+        type="button"
+        class="flex items-center gap-1.5 bg-surface-container-lowest hover:bg-surface-container text-on-surface px-space-md py-2 rounded-xl font-label-md text-label-md shadow-xs border border-separator-hairline-light transition-colors cursor-pointer"
+        (click)="forms.open('Repartidor')"
+      >
+        <span class="material-symbols-outlined text-[18px]">person_add</span>
+        <span>+ Alta Repartidor</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Map and Coverage Workspace -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg">
+    <!-- Map Surface -->
+    <div class="lg:col-span-8 bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
+      <div class="px-space-lg py-space-sm bg-surface-container-low/70 border-b border-separator-hairline-light flex items-center justify-between">
+        <div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface">
+          <span class="material-symbols-outlined text-primary text-[18px]">map</span>
+          <span>Cartografía Operativa en Vivo</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 text-caption font-caption px-2 py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-status-delivered animate-ping"></span> GPS Telemetría Activa
+          </span>
+        </div>
+      </div>
+      <div class="p-space-sm">
+        <app-zone-coverage-map [zones]="operations.zonas()" />
+      </div>
+    </div>
+
+    <!-- Active Zones Sidebar Cards -->
+    <div class="lg:col-span-4 flex flex-col space-y-space-md">
+      <div class="flex items-center justify-between">
+        <h2 class="font-title-md text-title-md text-on-surface font-semibold">Zonas Registradas</h2>
+        <span class="font-caption text-caption px-2 py-0.5 rounded-full bg-surface-container text-outline font-semibold">
+          {{ operations.zonas().length }} Zonas
+        </span>
+      </div>
+
+      <div class="flex flex-col space-y-space-sm max-h-[460px] overflow-y-auto pr-1">
+        @for (z of operations.zonas(); track z.id) {
+          <article class="panel entity-card zone-card p-space-md rounded-xl bg-surface-container-lowest border border-separator-hairline-light shadow-xs hover:border-primary/40 transition-colors">
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold" [ngClass]="z.activa ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container text-outline'">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="z.activa ? 'bg-status-delivered' : 'bg-outline'"></span>
+                {{ z.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+              <span class="font-caption text-caption text-outline">{{ z.poligono.length }} vértices</span>
+            </div>
+            <h3 class="font-title-md text-title-md text-on-surface font-semibold mb-1">{{ z.nombre }}</h3>
+            <div class="grid grid-cols-2 gap-2 text-body-sm text-body-sm text-on-surface-variant my-2 pt-2 border-t border-separator-hairline-light">
+              <div>
+                <span class="block font-caption text-caption text-outline">Capacidad / Ruta</span>
+                <strong>{{ z.maxPedidosPorRuta }} pedidos máx</strong>
+              </div>
+              <div>
+                <span class="block font-caption text-caption text-outline">Rutas Activas</span>
+                <strong>{{ routeCount(z.id) }} rutas</strong>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="button w-full mt-2 flex items-center justify-center gap-1.5 px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors cursor-pointer"
+              (click)="forms.open('Zona', z)"
+            >
+              <span class="material-symbols-outlined text-[16px]">edit_location_alt</span>
+              <span>Editar Zona en el Mapa</span>
+            </button>
+          </article>
+        } @empty {
+          <div class="p-space-xl rounded-xl bg-surface-container-lowest border border-dashed border-separator-hairline-light text-center">
+            <span class="material-symbols-outlined text-[36px] text-outline mb-1">add_location_alt</span>
+            <h4 class="font-label-md text-label-md text-on-surface font-semibold">Define tu área de entrega</h4>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-sm">Crea la primera zona dibujando su contorno en el mapa.</p>
+            <button
+              type="button"
+              class="px-space-md py-1.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md cursor-pointer"
+              (click)="forms.open('Zona')"
+            >
+              ＋ Nueva Zona
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Drivers Roster Table (From DiseoZonaGeografica.html) -->
+  <div class="bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
+    <div class="px-space-lg py-space-md border-b border-separator-hairline-light flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+      <div class="flex items-center gap-space-sm">
+        <span class="material-symbols-outlined text-primary text-[22px]">local_shipping</span>
+        <div>
+          <h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Estado de la Flota y Asignación</h2>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Monitoreo en tiempo real de repartidores, nivel de carga y coordenadas GPS.</p>
+        </div>
+      </div>
+      <span class="font-caption text-caption px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-semibold">
+        {{ driversList().length }} Repartidores Registrados
+      </span>
+    </div>
+
+    <div class="overflow-x-auto w-full">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-container-low/70 text-outline font-label-sm text-label-sm uppercase tracking-wider select-none border-b border-separator-hairline-light">
+            <th class="py-space-md pl-space-lg pr-space-sm font-semibold">Repartidor</th>
+            <th class="py-space-md px-space-sm font-semibold">Zona Asignada</th>
+            <th class="py-space-md px-space-sm font-semibold">Estado Operativo</th>
+            <th class="py-space-md px-space-sm font-semibold">Vehículo & Batería</th>
+            <th class="py-space-md px-space-sm font-semibold">Telemetría GPS</th>
+            <th class="py-space-md px-space-sm font-semibold">Carga CVRPTW</th>
+            <th class="py-space-md pr-space-lg pl-space-sm text-right font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-separator-hairline-light font-body-sm text-body-sm">
+          @for (driver of driversList(); track driver.id) {
+            <tr class="hover:bg-surface-container-low/60 transition-colors">
+              <td class="py-space-md pl-space-lg pr-space-sm">
+                <div class="flex items-center gap-space-sm">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center">
+                    {{ driver.avatar }}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="font-label-md text-label-md text-on-surface font-semibold">{{ driver.nombre }}</span>
+                    <span class="font-caption text-caption text-outline">{{ driver.telefono }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-status-routing/10 text-status-routing font-label-sm text-label-sm font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-status-routing"></span>
+                  {{ driver.zonaNombre }}
+                </span>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <span
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-caption text-caption font-semibold"
+                  [ngClass]="driver.estado === 'EnRuta' ? 'bg-status-in-transit/15 text-status-in-transit' : 'bg-status-delivered/15 text-status-delivered'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="driver.estado === 'EnRuta' ? 'bg-status-in-transit animate-ping' : 'bg-status-delivered'"></span>
+                  {{ driver.estado === 'EnRuta' ? 'En Ruta Activa' : 'Disponible en Hub' }}
+                </span>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex items-center gap-space-xs">
+                  <span class="material-symbols-outlined text-[16px] text-outline">battery_charging_full</span>
+                  <span>{{ driver.vehiculo }} ({{ driver.bateria }}%)</span>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <span class="font-mono text-caption text-caption text-on-surface-variant">
+                  {{ driver.lat.toFixed(4) }}, {{ driver.lng.toFixed(4) }}
+                </span>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex items-center gap-space-xs">
+                  <span class="font-caption text-caption font-semibold">{{ driver.capacidadUsada }}/{{ driver.capacidadTotal }}</span>
+                  <div class="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                    <div
+                      class="h-full rounded-full"
+                      [ngClass]="driver.capacidadUsada >= driver.capacidadTotal ? 'bg-status-urgent' : 'bg-primary'"
+                      [style.width.%]="(driver.capacidadUsada / driver.capacidadTotal) * 100"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td class="py-space-md pr-space-lg pl-space-sm text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface cursor-pointer"
+                    title="Ver en Mapa"
+                    (click)="showToast('Telemetría', 'Centrando mapa en ' + driver.nombre)"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">gps_fixed</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface cursor-pointer"
+                    title="Reasignar"
+                    (click)="showToast('Reasignación', 'Ventana de zona para ' + driver.nombre)"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">alt_route</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  @if (toastVisible()) {
+    <div class="fixed top-16 right-8 z-50 flex items-center gap-space-sm bg-surface-glass-light/95 backdrop-blur-2xl border border-separator-hairline-light px-space-md py-3 rounded-2xl shadow-xl animate-fade-in">
+      <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+        <span class="material-symbols-outlined text-[20px]">info</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-label-md text-label-md text-on-surface font-semibold">{{ toastTitle() }}</span>
+        <span class="font-caption text-caption text-on-surface-variant">{{ toastMessage() }}</span>
+      </div>
+    </div>
+  }
+</div>

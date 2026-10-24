@@ -1,0 +1,339 @@
+@if (navigationOpen()) {
+  <button class="approved-nav-backdrop fixed inset-0 bg-black/30 backdrop-blur-xs z-40 lg:hidden" aria-label="Cerrar navegación" (click)="navigationOpen.set(false)"></button>
+}
+
+<aside
+  class="fixed left-0 top-0 h-screen w-64 bg-surface-glass-light backdrop-blur-2xl border-r border-separator-hairline-light z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)] transition-transform duration-200"
+  [class.translate-x-0]="navigationOpen()"
+  [class.-translate-x-full]="!navigationOpen() && false"
+>
+  <div class="flex flex-col flex-1 min-h-0">
+    <!-- macOS Traffic Light Window Controls -->
+    <div class="pt-space-md px-space-lg pb-space-sm flex items-center gap-space-xs">
+      <div class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/40"></div>
+      <div class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/40"></div>
+      <div class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/40"></div>
+    </div>
+
+    <!-- App Branding -->
+    <div class="px-space-lg pt-space-xs pb-space-md flex items-center justify-between">
+      <div class="flex items-center gap-space-sm">
+        <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">alt_route</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-title-md text-title-md text-on-surface leading-none tracking-tight">RouteOS</span>
+          <span class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mt-0.5">Logistics Core</span>
+        </div>
+      </div>
+      <span class="font-caption text-caption px-space-xs py-space-2xs rounded bg-surface-container text-on-surface-variant font-label-md">v3.4</span>
+    </div>
+
+    <!-- Quick Filter / Module Search -->
+    <div class="px-space-md mb-space-sm">
+      <div class="w-full flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm font-body-sm hover:bg-surface-container-high transition-colors">
+        <div class="flex items-center gap-space-xs flex-1">
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">search</span>
+          <input
+            class="bg-transparent outline-none w-full text-body-sm placeholder:text-outline text-on-surface"
+            aria-label="Buscar módulo"
+            placeholder="Buscar módulo..."
+            [(ngModel)]="moduleSearch"
+          />
+        </div>
+        <kbd class="font-caption text-caption bg-surface-container-lowest px-1.5 py-0.5 rounded shadow-sm text-outline border border-separator-hairline-light">⌘K</kbd>
+      </div>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="flex-1 overflow-y-auto px-space-md space-y-space-md">
+      <!-- Grupo Principal -->
+      <div class="space-y-space-2xs">
+        <div class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+          Principal
+        </div>
+        @if (matchesModule('Resumen')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Resumen'"
+            [class.text-on-primary]="operations.view() === 'Resumen'"
+            [class.text-on-surface-variant]="operations.view() !== 'Resumen'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Resumen'"
+            [class.hover:text-on-surface]="operations.view() !== 'Resumen'"
+            [attr.aria-current]="operations.view() === 'Resumen' ? 'page' : null"
+            (click)="navigate('Resumen')"
+          >
+            <span class="material-symbols-outlined text-[18px]">monitoring</span>
+            <span>Centro de Control</span>
+          </button>
+        }
+        @if (matchesModule('Pedidos')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Pedidos'"
+            [class.text-on-primary]="operations.view() === 'Pedidos'"
+            [class.text-on-surface-variant]="operations.view() !== 'Pedidos'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Pedidos'"
+            [class.hover:text-on-surface]="operations.view() !== 'Pedidos'"
+            [attr.aria-current]="operations.view() === 'Pedidos' ? 'page' : null"
+            (click)="navigate('Pedidos')"
+          >
+            <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+            <span>Registro de Pedidos</span>
+          </button>
+        }
+      </div>
+
+      <!-- Grupo Operaciones -->
+      <div class="space-y-space-2xs">
+        <div class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+          Operaciones
+        </div>
+        @if (matchesModule('Rutas')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Rutas'"
+            [class.text-on-primary]="operations.view() === 'Rutas'"
+            [class.text-on-surface-variant]="operations.view() !== 'Rutas'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Rutas'"
+            [class.hover:text-on-surface]="operations.view() !== 'Rutas'"
+            [attr.aria-current]="operations.view() === 'Rutas' ? 'page' : null"
+            (click)="navigate('Rutas')"
+          >
+            <span class="material-symbols-outlined text-[18px]">route</span>
+            <span>Armado y Optimización</span>
+          </button>
+        }
+        @if (matchesModule('Zonas')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Zonas'"
+            [class.text-on-primary]="operations.view() === 'Zonas'"
+            [class.text-on-surface-variant]="operations.view() !== 'Zonas'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Zonas'"
+            [class.hover:text-on-surface]="operations.view() !== 'Zonas'"
+            [attr.aria-current]="operations.view() === 'Zonas' ? 'page' : null"
+            (click)="navigate('Zonas')"
+          >
+            <span class="material-symbols-outlined text-[18px]">travel_explore</span>
+            <span>Zonas Geográficas</span>
+          </button>
+        }
+        @if (matchesModule('Repartidores')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Repartidores'"
+            [class.text-on-primary]="operations.view() === 'Repartidores'"
+            [class.text-on-surface-variant]="operations.view() !== 'Repartidores'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Repartidores'"
+            [class.hover:text-on-surface]="operations.view() !== 'Repartidores'"
+            [attr.aria-current]="operations.view() === 'Repartidores' ? 'page' : null"
+            (click)="navigate('Repartidores')"
+          >
+            <span class="material-symbols-outlined text-[18px]">local_shipping</span>
+            <span>Repartidores y Flota</span>
+          </button>
+        }
+      </div>
+
+      <!-- Grupo Administración & SLA -->
+      <div class="space-y-space-2xs">
+        <div class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+          Análisis & Seguridad
+        </div>
+        @if (matchesModule('Usuarios')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Usuarios'"
+            [class.text-on-primary]="operations.view() === 'Usuarios'"
+            [class.text-on-surface-variant]="operations.view() !== 'Usuarios'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Usuarios'"
+            [class.hover:text-on-surface]="operations.view() !== 'Usuarios'"
+            [attr.aria-current]="operations.view() === 'Usuarios' ? 'page' : null"
+            (click)="navigate('Usuarios')"
+          >
+            <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+            <span>Cuentas y Acceso</span>
+          </button>
+        }
+        @if (matchesModule('Credenciales')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Credenciales'"
+            [class.text-on-primary]="operations.view() === 'Credenciales'"
+            [class.text-on-surface-variant]="operations.view() !== 'Credenciales'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Credenciales'"
+            [class.hover:text-on-surface]="operations.view() !== 'Credenciales'"
+            [attr.aria-current]="operations.view() === 'Credenciales' ? 'page' : null"
+            (click)="navigate('Credenciales')"
+          >
+            <span class="material-symbols-outlined text-[18px]">lock_reset</span>
+            <span>Credenciales</span>
+          </button>
+        }
+      </div>
+    </nav>
+  </div>
+
+  <!-- Sidebar Footer / SLA Live Hub Status & User Account -->
+  <div class="p-space-md border-t border-separator-hairline-light bg-surface-glass-light/50">
+    <div class="flex items-center justify-between p-space-xs rounded-xl bg-surface-container-lowest/80 border border-separator-hairline-light">
+      <div class="flex items-center gap-space-xs">
+        <span class="relative flex h-2 w-2 ml-1">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+        </span>
+        <span class="font-label-sm text-label-sm text-on-surface font-semibold">Hub Metropolitano</span>
+      </div>
+      <span class="font-caption text-caption px-space-xs py-space-2xs rounded-full bg-surface-container text-tertiary font-bold">
+        {{ operations.live() ? '99.8% SLA' : 'Reconectar' }}
+      </span>
+    </div>
+
+    <div class="mt-space-sm pt-space-sm border-t border-separator-hairline-light flex items-center justify-between">
+      <div class="flex items-center gap-space-sm">
+        <span class="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+          {{ auth.usuario()?.nombreUsuario?.slice(0, 2)?.toUpperCase() }}
+        </span>
+        <div class="flex flex-col">
+          <span class="text-xs font-semibold text-on-surface leading-tight">{{ auth.usuario()?.nombreUsuario }}</span>
+          <small class="text-[10px] text-outline">Administrador</small>
+        </div>
+      </div>
+      <div class="flex gap-1">
+        <button
+          title="Cambiar credenciales"
+          aria-label="Cambiar credenciales"
+          class="p-1 rounded hover:bg-surface-container text-outline hover:text-on-surface transition-colors cursor-pointer"
+          (click)="changeCredentials()"
+        >
+          <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+        </button>
+        <button
+          title="Cerrar mis sesiones"
+          aria-label="Cerrar mis sesiones"
+          class="p-1 rounded hover:bg-surface-container text-outline hover:text-status-urgent transition-colors cursor-pointer"
+          [disabled]="loggingOut()"
+          (click)="logout()"
+        >
+          <span class="material-symbols-outlined text-[16px]">logout</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Shell Area -->
+<div class="pl-64 flex flex-col min-h-screen approved-shell">
+  <!-- Top Navigation Header -->
+  <header class="fixed top-0 left-64 right-0 h-14 bg-surface-glass-light backdrop-blur-2xl border-b border-separator-hairline-light z-40 flex items-center justify-between px-gutter-lg shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+    <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md">
+      <span class="text-outline hover:text-on-surface transition-colors cursor-pointer" (click)="navigate('Resumen')">RouteOS</span>
+      <span class="text-outline-variant font-normal">/</span>
+      <span class="font-label-md text-on-surface">{{ operations.view() === 'Resumen' ? 'Despacho Principal' : pageTitle() }}</span>
+      <span
+        class="inline-flex items-center gap-1 ml-space-xs px-2 py-0.5 rounded-full text-[#34C759] font-caption text-caption font-bold cursor-pointer"
+        [ngClass]="operations.live() ? 'bg-[#34C759]/15' : 'bg-status-urgent/15 text-status-urgent'"
+        (click)="operations.retryLive()"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+        {{ operations.live() ? 'Sincronizado' : 'Reconectar' }}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-space-md">
+      <!-- Operation Date Picker -->
+      <div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-on-surface text-label-md font-label-md border border-separator-hairline-light">
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span>
+        <input
+          class="bg-transparent border-0 outline-none text-label-md approved-header-date text-on-surface cursor-pointer"
+          aria-label="Fecha de operación"
+          type="date"
+          [(ngModel)]="operations.fecha"
+          (change)="operations.changeDate()"
+        />
+      </div>
+
+      <!-- Primary Action Button (Matches heading-actions .primary for spec) -->
+      @if (operations.view() !== 'Usuarios') {
+        <div class="heading-actions flex items-center">
+          <button
+            class="primary flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-1.5 rounded-lg font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+            (click)="openPrimaryAction()"
+          >
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            <span>
+              {{
+                operations.view() === 'Zonas'
+                  ? 'Nueva Zona'
+                  : operations.view() === 'Repartidores'
+                    ? 'Alta Repartidor'
+                    : 'Nuevo Pedido'
+              }}
+            </span>
+          </button>
+        </div>
+      }
+
+      <div class="h-5 w-[1px] bg-separator-hairline-light"></div>
+
+      <!-- Refresh Notifications Button -->
+      <button
+        aria-label="Actualizar datos"
+        class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors cursor-pointer"
+        (click)="operations.refresh()"
+        title="Actualizar datos"
+      >
+        <span class="material-symbols-outlined text-[20px]">sync</span>
+      </button>
+
+      <!-- User Profile Thumbnail -->
+      <div class="flex items-center gap-space-sm pl-space-xs">
+        <span class="w-8 h-8 rounded-full bg-primary text-on-primary font-bold text-xs flex items-center justify-center ring-1 ring-separator-hairline-light shadow-sm">
+          {{ auth.usuario()?.nombreUsuario?.slice(0, 2)?.toUpperCase() }}
+        </span>
+        <div class="hidden xl:flex flex-col text-left">
+          <span class="font-label-md text-label-md text-on-surface leading-tight">{{ auth.usuario()?.nombreUsuario }}</span>
+          <span class="font-caption text-caption text-outline">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Surface -->
+  <main class="flex-1 pt-14 bg-system-background">
+    <!-- Feedback Alerts -->
+    @if (operations.message()) {
+      <div class="mx-gutter-lg mt-space-md p-space-sm bg-status-delivered/10 border border-status-delivered/30 rounded-xl text-tertiary flex items-center justify-between font-label-md text-label-md shadow-xs" role="status">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          <span>{{ operations.message() }}</span>
+        </div>
+        <button class="bg-transparent border-0 text-status-delivered hover:opacity-75 cursor-pointer font-bold text-base" (click)="operations.message.set('')" aria-label="Cerrar mensaje">×</button>
+      </div>
+    }
+
+    @if (operations.error() && !forms.modal()) {
+      <div class="mx-gutter-lg mt-space-md p-space-sm bg-status-urgent/10 border border-status-urgent/30 rounded-xl text-status-urgent flex items-center justify-between font-label-md text-label-md shadow-xs" role="alert">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">error</span>
+          <span>{{ operations.error() }}</span>
+        </div>
+        <button class="px-2 py-0.5 rounded bg-status-urgent text-on-primary font-label-sm text-label-sm border-0 cursor-pointer" (click)="operations.refresh()">Reintentar</button>
+      </div>
+    }
+
+    @if (operations.view() === 'Usuarios' || operations.view() === 'Repartidores') {
+      <div class="p-gutter-lg pb-0">
+        <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">{{ pageTitle() }}</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">{{ pageDescription() }}</p>
+      </div>
+    }
+
+    <!-- Router View Slot -->
+    <router-outlet />
+  </main>
+</div>
+
+<!-- Global Modals (Pedido, Repartidor, Zona with map pickers) -->
+<app-operation-form />

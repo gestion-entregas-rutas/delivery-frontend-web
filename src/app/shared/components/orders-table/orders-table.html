@@ -1,0 +1,167 @@
+<section class="panel orders-panel">
+  <div class="panel-heading">
+    <div>
+      <h2>
+        {{ operations.view() === 'Resumen' ? 'Pedidos recientes' : 'Gestión de pedidos' }}
+        <span class="number-pill">{{ operations.total() }}</span>
+      </h2>
+      <p>Administra el estado de cada entrega</p>
+    </div>
+    @if (operations.view() === 'Resumen') {
+      <button class="text-button" (click)="operations.navigate('Pedidos')">
+        Ver todos los pedidos →
+      </button>
+    }
+  </div>
+  <div class="table-toolbar">
+    <div class="search">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span
+      ><input
+        aria-label="Buscar pedidos de la página"
+        placeholder="Buscar cliente, dirección o ID…"
+        [(ngModel)]="operations.search"
+      />
+    </div>
+    <div class="filters">
+      <select
+        aria-label="Filtrar por estado"
+        [(ngModel)]="operations.estado"
+        (change)="operations.refresh(true)"
+      >
+        <option value="">Todos los estados</option>
+        @for (s of operations.orderStates; track s) {
+          <option [value]="s">{{ operations.label(s) }}</option>
+        }</select
+      ><select
+        aria-label="Filtrar por zona"
+        [(ngModel)]="operations.zona"
+        (change)="operations.refresh(true)"
+      >
+        <option value="">Todas las zonas</option>
+        @for (z of operations.zonas(); track z.id) {
+          <option [value]="z.id">{{ z.nombre }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>PEDIDO</th>
+          <th>CLIENTE</th>
+          <th>DIRECCIÓN DE ENTREGA</th>
+          <th>HORA</th>
+          <th>ESTADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of operations.filteredPedidos(); track p.id) {
+          <tr>
+            <td>
+              <strong class="order-id">#{{ operations.short(p.id) }}</strong
+              ><small>{{ operations.zoneName(p.zonaId) }}</small>
+            </td>
+            <td>
+              <div class="client">
+                <span class="mini-avatar">{{ p.clienteNombre.slice(0, 2).toUpperCase() }}</span>
+                <div>
+                  <strong>{{ p.clienteNombre }}</strong
+                  ><small>{{ p.clienteTelefono }}</small>
+                </div>
+              </div>
+            </td>
+            <td class="address">{{ p.direccion }}</td>
+            <td>{{ p.horaEntrega.slice(0, 5) }}</td>
+            <td>
+              <span class="badge" [attr.data-state]="p.estado"
+                ><i></i>{{ operations.label(p.estado) }}</span
+              >
+            </td>
+            <td>
+              @if (p.estado === 'Pendiente') {
+                <button
+                  class="text-button danger"
+                  [disabled]="operations.saving()"
+                  (click)="
+                    operations.action(operations.api.cancelarPedido(p.id), 'Pedido cancelado.')
+                  "
+                >
+                  Cancelar
+                </button>
+              }
+              @if (p.estado === 'AsignadoARuta' && operations.canAdvance(p)) {
+                <button
+                  class="text-button"
+                  [disabled]="operations.saving()"
+                  (click)="
+                    operations.action(operations.api.marcarEnCamino(p.id), 'Pedido en camino.')
+                  "
+                >
+                  En camino
+                </button>
+              }
+              @if (p.estado === 'EnCamino') {
+                <button
+                  class="text-button"
+                  [disabled]="operations.saving()"
+                  (click)="
+                    operations.action(operations.api.registrarEntrega(p.id), 'Entrega registrada.')
+                  "
+                >
+                  Entregar
+                </button>
+              }
+              @if (p.rutaId) {
+                <button class="text-button" (click)="operations.showOrderRoute(p.rutaId)">
+                  Ver ruta ↗
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">
+              <div class="empty">
+                <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                <h3>
+                  {{ operations.loading() ? 'Cargando pedidos…' : 'Sin pedidos para mostrar' }}
+                </h3>
+                <p>
+                  {{
+                    operations.connected()
+                      ? 'Prueba con otra fecha o registra un nuevo pedido.'
+                      : 'Conecta el backend para consultar tu operación.'
+                  }}
+                </p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="table-footer">
+    <span
+      >{{ operations.filteredPedidos().length }} pedidos en esta página ·
+      {{ operations.total() }} en total</span
+    >
+    <div>
+      <button
+        aria-label="Página anterior"
+        [disabled]="operations.page() === 1 || operations.loading()"
+        (click)="operations.paginate(-1)"
+      >
+        ‹</button
+      ><span>Página {{ operations.page() }}</span
+      ><button
+        aria-label="Página siguiente"
+        [disabled]="operations.page() * 50 >= operations.total() || operations.loading()"
+        (click)="operations.paginate(1)"
+      >
+        ›
+      </button>
+    </div>
+  </div>
+</section>

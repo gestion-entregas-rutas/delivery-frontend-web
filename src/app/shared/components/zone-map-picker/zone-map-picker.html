@@ -1,0 +1,55 @@
+﻿<div class="zone-picker-heading">
+  <strong>Área de cobertura</strong
+  ><span>{{ points.length }} {{ points.length === 1 ? 'vértice' : 'vértices' }}</span>
+</div>
+<p class="zone-hint">
+  Haz clic en el mapa para marcar el contorno en orden. Arrastra los puntos para ajustarlo; el borde
+  se cierra automáticamente.
+</p>
+<div class="zone-map" role="region" aria-label="Mapa para dibujar la zona de cobertura"></div>
+<div class="zone-tools">
+  <button type="button" (click)="undo()" [disabled]="disabled || !points.length">
+    ↶ Deshacer último punto</button
+  ><button type="button" (click)="fit()" [disabled]="!points.length">⌖ Ver zona completa</button
+  ><button type="button" class="clear" (click)="clear()" [disabled]="disabled || !points.length">
+    Limpiar dibujo
+  </button>
+</div>
+@if (points.length) {
+  <div class="vertex-list" aria-label="Vértices de la zona">
+    @for (point of points; track $index) {
+      <button
+        type="button"
+        [class.selected]="selected() === $index"
+        [attr.aria-pressed]="selected() === $index"
+        [disabled]="disabled"
+        (click)="selected.set($index)"
+      >
+        Punto {{ $index + 1 }}
+      </button>
+    }
+  </div>
+}
+@if (selected() !== null) {
+  <div class="selected-point">
+    <span>Punto {{ selected()! + 1 }} seleccionado</span
+    ><button type="button" [disabled]="disabled" (click)="removeSelected()">
+      Eliminar este punto
+    </button>
+  </div>
+}
+<p class="zone-status" role="status">
+  {{
+    points.length < 3
+      ? 'Marca al menos 3 puntos para definir el área.'
+      : 'Área dibujada. Puedes seguir agregando puntos o ajustar los existentes.'
+  }}
+</p>
+@if (error()) {
+  <p class="zone-feedback" role="alert">{{ error() }}</p>
+}
+@if (tileWarning()) {
+  <p class="zone-feedback" role="status">
+    No se pudo cargar parte del mapa. Revisa tu conexión antes de ubicar la zona.
+  </p>
+}

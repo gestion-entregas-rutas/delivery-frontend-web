@@ -1,0 +1,604 @@
+<div class="flex flex-col w-full p-gutter-lg space-y-gutter-lg max-w-[1720px] mx-auto">
+  <!-- Algorithmic Header Banner / Control Bar -->
+  <section class="relative overflow-hidden rounded-2xl bg-surface-container-lowest p-space-xl shadow-xs border border-separator-hairline-light">
+    <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-space-lg">
+      <div class="flex flex-col space-y-space-2xs max-w-2xl">
+        <div class="flex items-center gap-space-xs">
+          <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-caption text-caption tracking-wider uppercase font-semibold">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            Algoritmo Heurístico v4.2 Activo
+          </span>
+          <span class="font-caption text-caption text-outline">Latencia motor: 42ms</span>
+        </div>
+        <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Armado y Optimización Inteligente de Rutas</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Orquestación combinatoria multi-vehículo con balanceo dinámico de carga, ventanas horarias críticas y re-asignación heurística continua.
+        </p>
+      </div>
+
+      <!-- Algorithm Parameters & Primary Trigger -->
+      <div class="flex flex-wrap items-center gap-space-md">
+        <!-- Mathematical Model Selector -->
+        <div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-xl shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-outline text-[18px]">tune</span>
+          <div class="flex flex-col">
+            <label for="algo-model-select" class="font-caption text-caption text-outline leading-tight">Modelo Matemático</label>
+            <select
+              id="algo-model-select"
+              class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer pr-space-sm"
+              [ngModel]="selectedModel()"
+              (ngModelChange)="selectedModel.set($event)"
+            >
+              @for (m of models; track m) {
+                <option [value]="m">{{ m }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Zone Selector (Linked with Operations Service) -->
+        <div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-xl shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-outline text-[18px]">travel_explore</span>
+          <div class="flex flex-col">
+            <label for="algo-zone-select" class="font-caption text-caption text-outline leading-tight">Filtro de Zona</label>
+            <select
+              id="algo-zone-select"
+              class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer pr-space-sm"
+              [(ngModel)]="operations.zona"
+              (change)="operations.selected.set(null); operations.refresh(true)"
+            >
+              <option value="">Todas las zonas</option>
+              @for (z of operations.zonas(); track z.id) {
+                @if (z.activa) {
+                  <option [value]="z.id">{{ z.nombre }}</option>
+                }
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Batch Count Display -->
+        <div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-xl shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-outline text-[18px]">layers</span>
+          <div class="flex flex-col">
+            <span class="font-caption text-caption text-outline leading-tight">Lote a Procesar</span>
+            <div class="flex items-center gap-1">
+              <span class="font-label-md text-label-md text-on-surface font-semibold" id="batchCountDisplay">{{ batchCount() }}</span>
+              <span class="font-caption text-caption text-on-surface-variant">pedidos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Trigger Button -->
+        <button
+          type="button"
+          class="flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary px-space-lg py-2.5 rounded-xl font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+          id="optimizeTriggerBtn"
+          [disabled]="operations.saving() || optimizingMock()"
+          (click)="triggerOptimization()"
+        >
+          <span class="material-symbols-outlined text-[20px]" [class.animate-spin]="operations.saving() || optimizingMock()">
+            {{ operations.saving() || optimizingMock() ? 'refresh' : 'bolt' }}
+          </span>
+          <span>{{ operations.saving() || optimizingMock() ? 'Ejecutando Heurística VRP...' : 'Disparar Armado Automático' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Operational Constraints & Policy Chips Bar -->
+    <div class="relative z-10 mt-space-lg pt-space-md bg-surface-container-low/60 rounded-xl p-space-md flex flex-wrap items-center justify-between gap-space-md border border-separator-hairline-light">
+      <div class="flex flex-wrap items-center gap-space-md text-on-surface-variant font-label-sm text-label-sm">
+        <span class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Reglas Operativas Vigentes:</span>
+        <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-lg bg-surface-container-lowest text-on-surface shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-primary text-[15px]">inventory</span>
+          <span>Límite Estricto: <strong>4 pedidos / repartidor</strong></span>
+          <button type="button" class="hover:text-primary transition-colors text-outline cursor-pointer" title="Ajustar límite">
+            <span class="material-symbols-outlined text-[13px]">edit</span>
+          </button>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-lg bg-surface-container-lowest text-on-surface shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-tertiary text-[15px]">scatter_plot</span>
+          <span>Zonas de Baja Densidad: <strong>Rutas 1–2 entregas autorizadas</strong></span>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-lg bg-surface-container-lowest text-on-surface shadow-2xs border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-tint-teal text-[15px]">schedule</span>
+          <span>Tolerancia de Ventana Horaria: <strong>±15 min</strong></span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-sm">
+        <span class="font-caption text-caption text-outline">Balance de Flota:</span>
+        <div class="w-28 bg-surface-container rounded-full h-2 overflow-hidden flex">
+          <div class="bg-status-delivered h-full w-[65%]" title="65% En ruta"></div>
+          <div class="bg-status-routing h-full w-[25%]" title="25% Asignado"></div>
+          <div class="bg-outline-variant h-full w-[10%]" title="10% Standby"></div>
+        </div>
+        <span class="font-label-sm text-label-sm text-on-surface font-semibold">90% Activo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dynamic Real-Time Same-Day Order Insertion Simulator -->
+  <section class="rounded-2xl bg-surface-container-lowest p-space-lg shadow-xs border border-separator-hairline-light">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-md">
+      <div class="flex items-center gap-space-sm">
+        <div class="w-8 h-8 rounded-xl bg-status-in-transit/15 flex items-center justify-center text-status-in-transit">
+          <span class="material-symbols-outlined text-[20px]">dynamic_feed</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-space-xs">
+            <h2 class="font-title-md text-title-md text-on-surface">Simulador e Inserción Dinámica de Pedidos Same-Day</h2>
+            <span class="px-space-xs py-0.5 rounded-full bg-status-in-transit/15 text-status-in-transit font-caption text-caption font-bold animate-pulse">
+              Live Feed ({{ liveEvents().length }} Nuevos)
+            </span>
+          </div>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">
+            Reoptimización heurística en caliente sin desviar compromisos garantizados ni exceder el cupo máximo de 4 pedidos.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <button
+          type="button"
+          class="px-space-md py-1.5 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1 shadow-2xs border border-separator-hairline-light cursor-pointer active:scale-95"
+          (click)="simulateInjection()"
+        >
+          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <span>Simular Inyección +1</span>
+        </button>
+        <span class="font-caption text-caption text-outline px-2">Modo Auto-Aplicación: Encendido</span>
+      </div>
+    </div>
+
+    <!-- Live Incident Cards Mosaic -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+      @for (ev of liveEvents(); track ev.id) {
+        <div class="rounded-xl bg-surface-container-low p-space-md relative overflow-hidden group hover:shadow-md transition-shadow border border-separator-hairline-light">
+          <div class="absolute left-0 top-0 bottom-0 w-1" [ngClass]="ev.borderClass"></div>
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-space-xs">
+              <span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">{{ ev.id }}</span>
+              <span class="px-space-xs py-0.5 rounded-full font-caption text-caption font-bold" [ngClass]="ev.badgeClass">{{ ev.badge }}</span>
+            </div>
+            <span class="font-caption text-caption text-outline">{{ ev.timeAgo }}</span>
+          </div>
+          <div class="mt-space-sm space-y-1">
+            <p class="font-label-md text-label-md text-on-surface flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]" [ngClass]="ev.iconClass">{{ ev.icon }}</span>
+              <span [innerHTML]="ev.titleHtml"></span>
+            </p>
+            <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+              {{ ev.subtitle }}
+            </p>
+          </div>
+          <div class="mt-space-md pt-space-xs flex items-center justify-between border-t border-separator-hairline-light/50">
+            <span class="font-caption text-caption text-on-surface-variant">{{ ev.capacityText }}</span>
+            @if (ev.actionText) {
+              <button
+                type="button"
+                class="font-label-sm text-label-sm text-primary hover:underline font-semibold cursor-pointer"
+                (click)="validateInsertion(ev)"
+              >
+                {{ ev.actionText }}
+              </button>
+            } @else {
+              <span class="px-space-xs py-0.5 rounded font-caption text-caption font-bold" [ngClass]="ev.capacityBadgeClass">
+                {{ ev.capacityBadge }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Two-Column Main Workspace -->
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+    <!-- LEFT COLUMN: Unassigned Orders Drawer (4 cols) -->
+    <aside class="xl:col-span-4 bg-surface-container-lowest rounded-2xl p-space-lg shadow-xs border border-separator-hairline-light flex flex-col space-y-space-md sticky top-16">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-space-xs">
+          <h2 class="font-title-md text-title-md text-on-surface">Pedidos Pendientes</h2>
+          <span class="px-space-xs py-0.5 rounded-full bg-surface-container-high font-label-sm text-label-sm font-semibold text-on-surface">
+            {{ filteredPendingOrders().length }} en cola
+          </span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors cursor-pointer"
+            title="Filtrar"
+          >
+            <span class="material-symbols-outlined text-[18px]">filter_list</span>
+          </button>
+          <button
+            type="button"
+            class="p-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors cursor-pointer"
+            title="Selección Múltiple"
+          >
+            <span class="material-symbols-outlined text-[18px]">checklist</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Segmented Control & Search -->
+      <div class="space-y-space-xs">
+        <div class="flex rounded-xl bg-surface-container-low p-1 text-center border border-separator-hairline-light">
+          <button
+            type="button"
+            class="flex-1 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
+            [class.bg-surface-container-lowest]="pendingFilter() === 'Todas'"
+            [class.shadow-2xs]="pendingFilter() === 'Todas'"
+            [class.text-on-surface]="pendingFilter() === 'Todas'"
+            [class.font-semibold]="pendingFilter() === 'Todas'"
+            [class.text-on-surface-variant]="pendingFilter() !== 'Todas'"
+            (click)="pendingFilter.set('Todas')"
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
+            [class.bg-surface-container-lowest]="pendingFilter() === 'Centro'"
+            [class.shadow-2xs]="pendingFilter() === 'Centro'"
+            [class.text-on-surface]="pendingFilter() === 'Centro'"
+            [class.font-semibold]="pendingFilter() === 'Centro'"
+            [class.text-on-surface-variant]="pendingFilter() !== 'Centro'"
+            (click)="pendingFilter.set('Centro')"
+          >
+            Centro (3)
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
+            [class.bg-surface-container-lowest]="pendingFilter() === 'Norte'"
+            [class.shadow-2xs]="pendingFilter() === 'Norte'"
+            [class.text-on-surface]="pendingFilter() === 'Norte'"
+            [class.font-semibold]="pendingFilter() === 'Norte'"
+            [class.text-on-surface-variant]="pendingFilter() !== 'Norte'"
+            (click)="pendingFilter.set('Norte')"
+          >
+            Norte (2)
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
+            [class.bg-surface-container-lowest]="pendingFilter() === 'Sur'"
+            [class.shadow-2xs]="pendingFilter() === 'Sur'"
+            [class.text-on-surface]="pendingFilter() === 'Sur'"
+            [class.font-semibold]="pendingFilter() === 'Sur'"
+            [class.text-on-surface-variant]="pendingFilter() !== 'Sur'"
+            (click)="pendingFilter.set('Sur')"
+          >
+            Sur (2)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-space-xs px-space-sm py-1.5 rounded-xl bg-surface-container-low text-on-surface-variant border border-separator-hairline-light">
+          <span class="material-symbols-outlined text-[16px] text-outline">search</span>
+          <input
+            class="bg-transparent text-body-sm font-body-sm w-full focus:outline-none placeholder:text-outline text-on-surface"
+            placeholder="Buscar por cliente, tracking # o comuna..."
+            type="text"
+            [ngModel]="pendingSearch()"
+            (ngModelChange)="pendingSearch.set($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Drag-and-Drop Orders List -->
+      <div class="space-y-space-sm max-h-[720px] overflow-y-auto pr-1">
+        @for (order of filteredPendingOrders(); track order.code) {
+          <div
+            class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-xs transition-all cursor-grab active:cursor-grabbing border border-separator-hairline-light"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-space-xs">
+                <span class="material-symbols-outlined text-outline text-[18px] group-hover:text-primary transition-colors">drag_indicator</span>
+                <span class="font-label-md text-label-md text-on-surface font-bold">{{ order.code }}</span>
+                <span class="px-1.5 py-0.2 rounded font-caption text-caption font-semibold" [ngClass]="order.badgeClass">{{ order.zoneLabel }}</span>
+              </div>
+              <span
+                class="font-caption text-caption font-semibold flex items-center gap-0.5"
+                [class.text-status-urgent]="order.isUrgent"
+                [class.font-bold]="order.isUrgent"
+                [class.text-on-surface-variant]="!order.isUrgent"
+              >
+                @if (order.isUrgent) {
+                  <span class="material-symbols-outlined text-[13px]">alarm</span>
+                }
+                Ventana {{ order.window }}
+              </span>
+            </div>
+            <div class="mt-space-xs pl-6">
+              <p class="font-label-md text-label-md text-on-surface font-medium">{{ order.client }}</p>
+              <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">{{ order.address }}</p>
+              <div class="flex items-center justify-between mt-space-xs">
+                <div class="flex items-center gap-space-xs text-outline font-caption text-caption">
+                  <span>{{ order.details }}</span>
+                  <span>•</span>
+                  <span>{{ order.tag }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="opacity-0 group-hover:opacity-100 transition-opacity font-caption text-caption text-primary font-semibold hover:underline cursor-pointer"
+                  (click)="assignPendingToFreeSlot(order)"
+                >
+                  Asignar a Ruta ↗
+                </button>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="p-space-lg text-center text-outline font-body-sm text-body-sm bg-surface-container-low/50 rounded-xl border border-separator-hairline-light">
+            No hay pedidos pendientes bajo este filtro.
+          </div>
+        }
+      </div>
+
+      <!-- Smart Dropzone helper text -->
+      <div class="p-space-sm rounded-xl bg-surface-container-low/50 text-center text-outline font-caption text-caption flex items-center justify-center gap-1 border border-separator-hairline-light">
+        <span class="material-symbols-outlined text-[15px]">pan_tool</span>
+        <span>Arrastra un pedido a una ruta a la derecha para transferencia directa.</span>
+      </div>
+    </aside>
+
+    <!-- RIGHT COLUMN: Grid of Route Cards (8 cols) -->
+    <main class="xl:col-span-8 flex flex-col space-y-space-md">
+      <!-- Controls Bar for Route Grid -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-surface-container-lowest p-space-md rounded-2xl shadow-xs border border-separator-hairline-light">
+        <div class="flex items-center gap-space-sm">
+          <span class="font-title-md text-title-md text-on-surface">Rutas Activas en Despacho</span>
+          <span class="px-space-xs py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-bold">
+            {{ routeCards().length }} Generadas
+          </span>
+        </div>
+        <div class="flex items-center gap-space-xs">
+          <!-- View Modes Toggle -->
+          <div class="flex items-center rounded-xl bg-surface-container-low p-1 border border-separator-hairline-light">
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm flex items-center gap-1 transition-all cursor-pointer"
+              [class.bg-surface-container-lowest]="viewMode() === 'mosaico'"
+              [class.shadow-2xs]="viewMode() === 'mosaico'"
+              [class.text-on-surface]="viewMode() === 'mosaico'"
+              [class.font-semibold]="viewMode() === 'mosaico'"
+              [class.text-on-surface-variant]="viewMode() !== 'mosaico'"
+              (click)="viewMode.set('mosaico')"
+            >
+              <span class="material-symbols-outlined text-[15px]">grid_view</span>
+              <span>Mosaico</span>
+            </button>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm flex items-center gap-1 transition-all cursor-pointer"
+              [class.bg-surface-container-lowest]="viewMode() === 'cronograma'"
+              [class.shadow-2xs]="viewMode() === 'cronograma'"
+              [class.text-on-surface]="viewMode() === 'cronograma'"
+              [class.font-semibold]="viewMode() === 'cronograma'"
+              [class.text-on-surface-variant]="viewMode() !== 'cronograma'"
+              (click)="viewMode.set('cronograma')"
+            >
+              <span class="material-symbols-outlined text-[15px]">timeline</span>
+              <span>Cronograma</span>
+            </button>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm flex items-center gap-1 transition-all cursor-pointer"
+              [class.bg-surface-container-lowest]="viewMode() === 'mapa'"
+              [class.shadow-2xs]="viewMode() === 'mapa'"
+              [class.text-on-surface]="viewMode() === 'mapa'"
+              [class.font-semibold]="viewMode() === 'mapa'"
+              [class.text-on-surface-variant]="viewMode() !== 'mapa'"
+              (click)="viewMode.set('mapa')"
+            >
+              <span class="material-symbols-outlined text-[15px]">map</span>
+              <span>Mapa Operativo</span>
+            </button>
+          </div>
+
+          <!-- Rebalance All Trigger -->
+          <button
+            type="button"
+            class="flex items-center gap-1 px-space-md py-1.5 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors shadow-2xs border border-separator-hairline-light cursor-pointer active:scale-95"
+            (click)="rebalanceAll()"
+          >
+            <span class="material-symbols-outlined text-[16px]">lock_open</span>
+            <span>Rebalancear Todo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW MODE: MOSAICO / CRONOGRAMA -->
+      @if (viewMode() === 'mosaico' || viewMode() === 'cronograma') {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+          @for (card of routeCards(); track card.id) {
+            <div class="rounded-2xl bg-surface-container-lowest p-space-lg shadow-xs border border-separator-hairline-light flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <!-- Card Header -->
+                <div class="flex items-start justify-between pb-space-sm border-b border-separator-hairline-light/50">
+                  <div class="flex items-center gap-space-sm">
+                    <img
+                      class="w-10 h-10 rounded-full object-cover ring-1 ring-separator-hairline-light shadow-2xs"
+                      [src]="card.driverAvatar"
+                      [alt]="card.driverName"
+                    />
+                    <div>
+                      <div class="flex items-center gap-space-xs">
+                        <span class="font-title-md text-title-md text-on-surface font-semibold">{{ card.routeNumber }}</span>
+                        <span class="px-1.5 py-0.2 rounded font-caption text-caption font-semibold" [ngClass]="card.zoneBadgeClass">
+                          {{ card.zone }}
+                        </span>
+                      </div>
+                      <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                        <span>{{ card.driverName }}</span>
+                        <span class="text-outline">•</span>
+                        <span class="flex items-center text-outline gap-0.5">
+                          <span class="material-symbols-outlined text-[13px]">{{ card.vehicleIcon }}</span>
+                          {{ card.vehicle }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <span class="px-space-xs py-0.5 rounded-full font-caption text-caption font-bold flex items-center gap-1" [ngClass]="card.statusBadgeClass">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ card.statusText }}
+                  </span>
+                </div>
+
+                <!-- Capacity Progress Indicator -->
+                <div class="mt-space-sm p-space-xs rounded-xl bg-surface-container-low border border-separator-hairline-light">
+                  <div class="flex items-center justify-between text-body-sm font-label-sm">
+                    <span class="text-on-surface font-semibold">{{ card.cupoText }}</span>
+                    <span [ngClass]="card.cupoSubtextClass">{{ card.cupoSubtext }}</span>
+                  </div>
+                  <div class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                    <div
+                      class="h-full rounded-full transition-all"
+                      [ngClass]="card.progressBarClass"
+                      [style.width.%]="card.progressPercent"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- Ordered Delivery Stops Timeline -->
+                <div class="mt-space-md space-y-space-xs">
+                  <div class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                    Secuencia de Entregas
+                  </div>
+                  <div class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                    @for (stop of card.stops; track stop.num) {
+                      <div class="relative group">
+                        @if (stop.status === 'delivered') {
+                          <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
+                          <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                              <span class="font-label-md text-label-md text-on-surface font-semibold">{{ stop.num }}. {{ stop.address }}</span>
+                              <span class="font-caption text-caption text-status-delivered font-semibold">{{ stop.time }}</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[16px] text-status-delivered">check_circle</span>
+                          </div>
+                        } @else if (stop.status === 'in_transit') {
+                          <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest animate-ping"></span>
+                          <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                          <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                              <span class="font-label-md text-label-md text-on-surface font-semibold">{{ stop.num }}. {{ stop.address }}</span>
+                              <span class="font-caption text-caption text-status-in-transit font-semibold">{{ stop.time }}</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[16px] text-outline cursor-grab">drag_indicator</span>
+                          </div>
+                        } @else if (stop.status === 'auto_inserted') {
+                          <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-surface-container-lowest"></span>
+                          <div class="flex items-center justify-between bg-primary-fixed/20 p-1 rounded-lg">
+                            <span class="font-label-md text-label-md text-on-surface font-semibold">{{ stop.num }}. {{ stop.address }}</span>
+                            <span class="font-caption text-caption text-primary font-bold">{{ stop.time }}</span>
+                          </div>
+                        } @else {
+                          <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                          <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                              <span class="font-label-md text-label-md text-on-surface">{{ stop.num }}. {{ stop.address }}</span>
+                              <span class="font-caption text-caption text-outline">{{ stop.time }}</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[16px] text-outline cursor-grab">drag_indicator</span>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Optional drop target placeholder slot -->
+                    @if (card.hasDropPlaceholder) {
+                      <div
+                        class="p-space-xs rounded-xl bg-surface-container-low text-center text-primary font-label-sm text-label-sm border border-dashed border-primary/40 cursor-pointer hover:bg-primary-fixed/30 transition-colors"
+                        (click)="assignPendingToFreeSlot(filteredPendingOrders()[0])"
+                        title="Clic para asignar primer pedido pendiente"
+                      >
+                        + Soltar Pedido Aquí (Espacio Libre)
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Footer Actions -->
+              <div class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-xl p-space-xs border border-separator-hairline-light/50">
+                <span class="font-caption text-caption text-outline font-medium">{{ card.distanceTime }}</span>
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    class="px-space-sm py-1 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-2xs border border-separator-hairline-light cursor-pointer"
+                    (click)="showToast('Acción iniciada para ' + card.routeNumber)"
+                  >
+                    {{ card.actionButtonLabel }}
+                  </button>
+                  <button
+                    type="button"
+                    class="p-1 rounded-lg text-outline hover:text-primary transition-colors cursor-pointer"
+                    title="Transferir parada"
+                    (click)="showToast('Modal de transferencia de paradas para ' + card.routeNumber)"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- VIEW MODE: MAPA OPERATIVO -->
+      @if (viewMode() === 'mapa') {
+        <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-xs border border-separator-hairline-light">
+          <div class="mb-space-sm flex items-center justify-between">
+            <div>
+              <h2 class="font-title-md text-title-md text-on-surface">Cartografía de Rutas en Tiempo Real</h2>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Polígonos de zona, waypoints secuenciales y estado dinámico de la flota.</p>
+            </div>
+            <button
+              type="button"
+              class="px-space-md py-1.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md cursor-pointer hover:bg-primary-container transition-colors shadow-2xs"
+              (click)="viewMode.set('mosaico')"
+            >
+              Volver a Mosaico
+            </button>
+          </div>
+          <app-route-workspace />
+        </div>
+      }
+
+      <!-- Algorithmic Telemetry Mini Banner -->
+      <div class="rounded-2xl bg-surface-container-low p-space-md flex flex-wrap items-center justify-between gap-space-sm text-on-surface-variant font-caption text-caption border border-separator-hairline-light shadow-2xs">
+        <div class="flex items-center gap-space-md">
+          <span class="flex items-center gap-1 text-on-surface font-semibold">
+            <span class="material-symbols-outlined text-tertiary text-[16px]">verified</span>
+            Protección Anti-Doble Reserva: Activa
+          </span>
+          <span>Rutas Cerradas: <strong>4</strong></span>
+          <span>Rutas Abiertas a Inserción: <strong>2</strong></span>
+          <span>Ahorro Estimado CO2: <strong>18.4 kg</strong></span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-outline">Última sincronización global:</span>
+          <span class="font-semibold text-on-surface">Hace 14 segundos</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification Floating Pill -->
+  @if (toastMessage()) {
+    <div
+      class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-on-surface text-surface px-space-lg py-space-sm rounded-xl shadow-xl border border-separator-hairline-dark/20 animate-bounce"
+    >
+      <span class="material-symbols-outlined text-[20px] text-status-delivered">check_circle</span>
+      <span class="font-label-md text-label-md">{{ toastMessage() }}</span>
+      <button
+        type="button"
+        class="ml-2 text-outline hover:text-surface cursor-pointer"
+        (click)="toastMessage.set(null)"
+      >
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
+    </div>
+  }
+</div>

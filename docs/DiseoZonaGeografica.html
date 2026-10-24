@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="web_dashboard" name="shell-type" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+    <style>
+        @layer base {
+
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                overscroll-behavior: none;
+            }
+
+            main>:first-child {
+                margin-top: 0 !important;
+            }
+
+            main>:last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+        id="tailwind-config">tailwind.config = { "darkMode": "class", "theme": { "extend": { "colors": { "on-primary-fixed": "#001a41", "tint-teal": "#30B0C7", "secondary": "#4c4aca", "on-error-container": "#93000a", "error-container": "#ffdad6", "surface-container-low": "#f4f3f8", "surface-container-lowest": "#ffffff", "separator-hairline-light": "#E5E5EA", "outline": "#717786", "secondary-fixed-dim": "#c2c1ff", "on-secondary-fixed": "#0c006a", "system-background": "#F2F2F7", "surface": "#faf9fe", "surface-container": "#eeedf3", "tertiary-fixed": "#72fe88", "surface-glass-light": "rgba(255, 255, 255, 0.72)", "status-in-transit": "#FF9500", "inverse-primary": "#adc6ff", "on-tertiary-container": "#f7fff2", "surface-container-high": "#e9e7ed", "on-secondary-container": "#fffbff", "tertiary-fixed-dim": "#53e16f", "on-surface-variant": "#414755", "outline-variant": "#c1c6d7", "surface-bright": "#faf9fe", "on-tertiary": "#ffffff", "on-primary-fixed-variant": "#004493", "surface-dim": "#dad9df", "on-tertiary-fixed": "#002107", "primary-fixed-dim": "#adc6ff", "on-primary-container": "#fefcff", "on-primary": "#ffffff", "tertiary": "#006b27", "tertiary-container": "#008733", "status-routing": "#5856D6", "primary-fixed": "#d8e2ff", "separator-hairline-dark": "#38383A", "surface-container-highest": "#e3e2e7", "status-urgent": "#FF3B30", "surface-tint": "#005bc1", "error": "#ba1a1a", "status-delivered": "#34C759", "inverse-surface": "#2f3034", "inverse-on-surface": "#f1f0f5", "background": "#faf9fe", "on-surface": "#1a1b1f", "surface-glass-dark": "rgba(30, 30, 32, 0.75)", "on-error": "#ffffff", "secondary-container": "#6664e4", "secondary-fixed": "#e2dfff", "on-tertiary-fixed-variant": "#00531c", "on-secondary-fixed-variant": "#3631b4", "primary-container": "#0070eb", "primary": "#0058bc", "on-background": "#1a1b1f", "on-secondary": "#ffffff", "tint-purple": "#AF52DE", "surface-variant": "#e3e2e7" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-2xs": "0.125rem", "gutter-lg": "1.5rem", "margin": "1rem", "gutter": "1rem", "space-lg": "1rem", "space-sm": "0.5rem", "space-xl": "1.5rem", "space-3xl": "3rem", "space-xs": "0.25rem", "margin-md": "1.5rem", "margin-lg": "2rem", "space-2xl": "2rem", "space-md": "0.75rem" }, "fontFamily": { "headline-md": ["Inter"], "display-lg": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "label-md": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Inter"], "caption": ["Inter"], "title-md": ["Inter"], "body-md": ["Inter"], "headline-lg-mobile": ["Inter"], "label-sm": ["Inter"] }, "fontSize": { "headline-md": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.017em", "fontWeight": "600" }], "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.022em", "fontWeight": "700" }], "headline-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.021em", "fontWeight": "700" }], "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-lg": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.011em", "fontWeight": "400" }], "headline-sm": ["20px", { "lineHeight": "25px", "letterSpacing": "-0.014em", "fontWeight": "600" }], "caption": ["10px", { "lineHeight": "12px", "letterSpacing": "0.03em", "fontWeight": "600" }], "title-md": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.012em", "fontWeight": "600" }], "body-md": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.009em", "fontWeight": "400" }], "headline-lg-mobile": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.019em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.002em", "fontWeight": "500" }] } } } };</script>
+</head>
+
+<body class="bg-system-background font-body-md text-on-surface antialiased selection:bg-primary-fixed">
+    <aside
+        class="fixed left-0 top-0 h-screen w-64 bg-surface-glass-light backdrop-blur-2xl border-r border-separator-hairline-light z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+        <div class="flex flex-col flex-1 min-h-0">
+            <div class="pt-space-md px-space-lg pb-space-sm flex items-center gap-space-xs">
+                <div class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/40"></div>
+                <div class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/40"></div>
+                <div class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/40"></div>
+            </div>
+            <div class="px-space-lg pt-space-xs pb-space-md flex items-center justify-between">
+                <div class="flex items-center gap-space-sm">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">alt_route</span></div>
+                    <div class="flex flex-col"><span
+                            class="font-title-md text-title-md text-on-surface leading-none tracking-tight">RouteOS</span><span
+                            class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mt-0.5">Logistics
+                            Core</span></div>
+                </div><span
+                    class="font-caption text-caption px-space-xs py-space-2xs rounded bg-surface-container text-on-surface-variant font-label-md">v3.4</span>
+            </div>
+            <div class="px-space-md mb-space-sm">
+                <div
+                    class="w-full flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm font-body-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+                    <div class="flex items-center gap-space-xs"><span
+                            class="material-symbols-outlined text-[16px] text-on-surface-variant">search</span><span>Buscar
+                            módulo...</span></div><kbd
+                        class="font-caption text-caption bg-surface-container-lowest px-1.5 py-0.5 rounded shadow-sm text-outline border border-separator-hairline-light">⌘K</kbd>
+                </div>
+            </div>
+            <nav class="flex-1 overflow-y-auto px-space-md space-y-space-md"
+                data-active-classes="bg-primary text-on-primary shadow-sm">
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Principal</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="centro-de-control" href="#"><span
+                            class="material-symbols-outlined text-[18px]">monitoring</span><span>Centro de
+                            Control</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="registro-de-pedidos" href="#"><span
+                            class="material-symbols-outlined text-[18px]">inventory_2</span><span>Registro de
+                            Pedidos</span></a>
+                </div>
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Operaciones</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="armado-y-optimizacion-de-rutas" href="#"><span
+                            class="material-symbols-outlined text-[18px]">route</span><span>Armado y
+                            Optimización</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="zonas-geograficas" href="#"><span
+                            class="material-symbols-outlined text-[18px]">travel_explore</span><span>Zonas
+                            Geográficas</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="gestion-de-repartidores" href="#"><span
+                            class="material-symbols-outlined text-[18px]">local_shipping</span><span>Repartidores y
+                            Flota</span></a>
+                </div>
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Análisis & SLA</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="metricas-y-pruebas-de-carga" href="#"><span
+                            class="material-symbols-outlined text-[18px]">bar_chart</span><span>Métricas &
+                            Carga</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="configuracion-de-despacho" href="#"><span
+                            class="material-symbols-outlined text-[18px]">settings_input_component</span><span>Ajustes
+                            Algorítmicos</span></a>
+                </div>
+            </nav>
+        </div>
+        <div class="p-space-md border-t border-separator-hairline-light bg-surface-glass-light/50">
+            <div
+                class="flex items-center justify-between p-space-xs rounded-xl bg-surface-container-lowest/80 border border-separator-hairline-light">
+                <div class="flex items-center gap-space-xs"><span class="relative flex h-2 w-2 ml-1"><span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span><span
+                            class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span></span><span
+                        class="font-label-sm text-label-sm text-on-surface font-semibold">Hub Metropolitano</span></div>
+                <span
+                    class="font-caption text-caption px-space-xs py-space-2xs rounded-full bg-surface-container text-tertiary font-bold">99.8%
+                    SLA</span>
+            </div>
+        </div>
+    </aside>
+    <div class="pl-64 flex flex-col min-h-screen">
+        <header
+            class="fixed top-0 left-64 right-0 h-14 bg-surface-glass-light backdrop-blur-2xl border-b border-separator-hairline-light z-40 flex items-center justify-between px-gutter-lg shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md"><span
+                    class="text-outline hover:text-on-surface transition-colors cursor-pointer">RouteOS</span><span
+                    class="text-outline-variant font-normal">/</span><span
+                    class="font-label-md text-on-surface">Despacho Principal</span><span
+                    class="inline-flex items-center gap-1 ml-space-xs px-2 py-0.5 rounded-full bg-[#34C759]/15 text-[#34C759] font-caption text-caption font-bold"><span
+                        class="w-1.5 h-1.5 rounded-full bg-[#34C759]"></span>Sincronizado</span></div>
+            <div class="flex items-center gap-space-md">
+                <div
+                    class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-on-surface text-label-md font-label-md border border-separator-hairline-light">
+                    <span
+                        class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span><span>Hoy,
+                        24 Octubre 2024</span><span
+                        class="material-symbols-outlined text-[16px] text-outline">expand_more</span></div><button
+                    class="flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-1.5 rounded-lg font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"><span
+                        class="material-symbols-outlined text-[18px]">add</span><span>Nuevo Pedido</span></button>
+                <div class="h-5 w-[1px] bg-separator-hairline-light"></div><button aria-label="Notificaciones"
+                    class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors"><span
+                        class="material-symbols-outlined text-[20px]">notifications</span><span
+                        class="absolute top-1 right-1 w-2 h-2 rounded-full bg-status-urgent"></span></button>
+                <div class="flex items-center gap-space-sm pl-space-xs"><img alt="Profile"
+                        class="w-8 h-8 rounded-full object-cover ring-1 ring-separator-hairline-light shadow-sm"
+                        src="https://lh3.googleusercontent.com/aida/AEtjO1VjH4G2Ruorc7zB6Zcxxc52DoJty3dsuDVop0kW4hl0gDT0uydLJi_Ld-EP4Rl6dWuMm4vFHY3DtOBc7eCbFGHE5CCsPMH37RB-9-tyiSAwHoJ7F4uXILn427rHMDa6tE9ozkeOaj0MUSRUBD1_3fwQlHK0rD_1NifttW5yX174ZccKfqjLNJsN_ZMB1R-bVi51kvKqQnas_ZO9-I_9K0xeTZryc88JFbOReF_GgXnsTVNabH1h2xNQ4MQR" />
+                    <div class="hidden xl:flex flex-col text-left"><span
+                            class="font-label-md text-label-md text-on-surface leading-tight">Sofia Valdés</span><span
+                            class="font-caption text-caption text-outline">Jefe de Operaciones</span></div>
+                </div>
+            </div>
+        </header>
+        <main class="flex-1 pt-14 bg-system-background">
+            <div class="flex flex-col w-full">
+                <div class="p-gutter-lg space-y-gutter-lg">
+                    <!-- Top Action Bar & Segmented Filter Control -->
+                    <div
+                        class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-lowest/80 backdrop-blur-xl p-space-md rounded-xl shadow-sm">
+                        <div class="flex items-center gap-space-md">
+                            <div class="p-2 rounded-lg bg-primary/10 text-primary">
+                                <span class="material-symbols-outlined text-[24px]">map</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h1 class="font-headline-sm text-headline-sm text-on-surface">Zonas Geográficas &
+                                        Flota Activa</h1>
+                                    <span
+                                        class="font-caption text-caption px-2 py-0.5 rounded-full bg-status-delivered/10 text-status-delivered font-bold">5
+                                        Zonas Operativas</span>
+                                </div>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant">Monitoreo poligonal en
+                                    tiempo real, balance de cargas y despacho vehicular de última milla.</p>
+                            </div>
+                        </div>
+                        <!-- Segmented View Controller & Global Actions -->
+                        <div class="flex flex-wrap items-center gap-space-sm">
+                            <div class="inline-flex p-0.5 rounded-lg bg-surface-container-high shadow-inner">
+                                <button
+                                    class="px-space-md py-1 rounded-md font-label-md text-label-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center gap-1.5"
+                                    id="view-dual-btn" onclick="switchView('dual')">
+                                    <span class="material-symbols-outlined text-[16px]">view_column</span>
+                                    <span>Vista Dual</span>
+                                </button>
+                                <button
+                                    class="px-space-md py-1 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-1.5"
+                                    id="view-zones-btn" onclick="switchView('zones')">
+                                    <span class="material-symbols-outlined text-[16px]">polyline</span>
+                                    <span>Sólo Zonas</span>
+                                </button>
+                                <button
+                                    class="px-space-md py-1 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-1.5"
+                                    id="view-drivers-btn" onclick="switchView('drivers')">
+                                    <span class="material-symbols-outlined text-[16px]">local_shipping</span>
+                                    <span>Sólo Repartidores</span>
+                                </button>
+                            </div>
+                            <div class="h-6 w-[1px] bg-separator-hairline-light hidden sm:block"></div>
+                            <button
+                                class="flex items-center gap-1 px-space-md py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md transition-all active:scale-[0.98]"
+                                onclick="toggleModal('modal-new-zone')">
+                                <span class="material-symbols-outlined text-[18px]">add_location_alt</span>
+                                <span>+ Nueva Zona</span>
+                            </button>
+                            <button
+                                class="flex items-center gap-1 px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"
+                                onclick="toggleModal('modal-new-driver')">
+                                <span class="material-symbols-outlined text-[18px]">person_add</span>
+                                <span>+ Alta Repartidor</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Main Dynamic Split Layout -->
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter-lg" id="main-content-grid">
+                        <!-- ================= LEFT COLUMN: DEFINICIÓN DE ZONAS (5/12 on XL) ================= -->
+                        <section class="xl:col-span-5 flex flex-col gap-space-lg transition-all" id="column-zones">
+                            <!-- Interactive Map Canvas Card -->
+                            <div
+                                class="relative rounded-xl overflow-hidden bg-surface-container-lowest shadow-sm flex flex-col">
+                                <div
+                                    class="p-space-md flex items-center justify-between bg-surface-container-lowest/90 backdrop-blur-md z-10">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[20px] text-primary">layers</span>
+                                        <span class="font-title-md text-title-md text-on-surface">Mapeo Poligonal
+                                            Metropolitano</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            class="w-7 h-7 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-all"
+                                            onclick="zoomMap(1)" title="Acercar">
+                                            <span class="material-symbols-outlined text-[16px]">add</span>
+                                        </button>
+                                        <button
+                                            class="w-7 h-7 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-all"
+                                            onclick="zoomMap(-1)" title="Alejar">
+                                            <span class="material-symbols-outlined text-[16px]">remove</span>
+                                        </button>
+                                        <button
+                                            class="w-7 h-7 rounded-lg bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-all"
+                                            onclick="resetMapView()" title="Centrar">
+                                            <span
+                                                class="material-symbols-outlined text-[16px]">filter_center_focus</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Interactive Vector Styled Map Canvas -->
+                                <div class="relative w-full h-[340px] bg-[#EAF0F6] overflow-hidden select-none">
+                                    <!-- Simulated GIS Satellite Background Layer -->
+                                    <div class="absolute inset-0 opacity-40 bg-cover bg-center"
+                                        data-location="Santiago Centro, Chile"
+                                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB27IYjhx9w1twqApEKs5oqEXb_zFla788Ao9dzb9ENTPsvRGhc4q9Q8YRkXphgkBpFoaj0_7Q0zChZBr7NbsAR47gicWQ9xDiCRcyf_78SUpP3hzHnZuIKMEAyEW9uKcuTVPrAOK6u4BrcWBjshy1rtKDvxi7YYbio5pAUiuDKcgbd-sOv2R2t05UbY6oEHzx0jQmBV2MBGFV94HFgF5nKadmMr9fTyN1zOifuPCeFxmuIpvxHD2Q73g')">
+                                    </div>
+                                    <!-- SVG Vector Polygons Layer Overlay -->
+                                    <svg class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
+                                        id="vector-map-svg" viewbox="0 0 600 400">
+                                        <defs>
+                                            <pattern height="20" id="grid-dots" patternunits="userSpaceOnUse"
+                                                width="20">
+                                                <circle cx="2" cy="2" fill="#717786" opacity="0.15" r="1"></circle>
+                                            </pattern>
+                                            <!-- Gradients for subtle depth on hover -->
+                                            <lineargradient id="grad-blue" x1="0%" x2="100%" y1="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#0058bc" stop-opacity="0.35"></stop>
+                                                <stop offset="100%" stop-color="#0070eb" stop-opacity="0.2"></stop>
+                                            </lineargradient>
+                                            <lineargradient id="grad-purple" x1="0%" x2="100%" y1="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#5856D6" stop-opacity="0.35"></stop>
+                                                <stop offset="100%" stop-color="#AF52DE" stop-opacity="0.2"></stop>
+                                            </lineargradient>
+                                            <lineargradient id="grad-teal" x1="0%" x2="100%" y1="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#30B0C7" stop-opacity="0.35"></stop>
+                                                <stop offset="100%" stop-color="#006b27" stop-opacity="0.2"></stop>
+                                            </lineargradient>
+                                            <lineargradient id="grad-amber" x1="0%" x2="100%" y1="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#FF9500" stop-opacity="0.35"></stop>
+                                                <stop offset="100%" stop-color="#FF3B30" stop-opacity="0.2"></stop>
+                                            </lineargradient>
+                                        </defs>
+                                        <rect fill="url(#grid-dots)" height="400" width="600"></rect>
+                                        <!-- Poly 1: Zona Norte -->
+                                        <g class="cursor-pointer transition-all duration-200" id="poly-norte"
+                                            onclick="selectZone('norte')">
+                                            <polygon class="hover:stroke-[3]" fill="url(#grad-blue)"
+                                                points="120,40 340,30 380,130 180,140 100,90" stroke="#0058bc"
+                                                stroke-dasharray="4,2" stroke-width="2"></polygon>
+                                            <circle cx="230" cy="85" fill="#0058bc" r="5"></circle>
+                                            <text fill="#001a41" font-family="Inter" font-size="12" font-weight="700"
+                                                text-anchor="middle" x="230" y="105">ZONA NORTE</text>
+                                        </g>
+                                        <!-- Poly 2: Zona Centro (Core) -->
+                                        <g class="cursor-pointer transition-all duration-200" id="poly-centro"
+                                            onclick="selectZone('centro')">
+                                            <polygon class="hover:stroke-[3.5]" fill="url(#grad-purple)"
+                                                points="180,140 380,130 360,250 200,260" stroke="#5856D6"
+                                                stroke-width="2.5"></polygon>
+                                            <circle cx="280" cy="195" fill="#5856D6" r="7"></circle>
+                                            <circle class="animate-ping" cx="280" cy="195" fill="#5856D6" opacity="0.25"
+                                                r="14"></circle>
+                                            <text fill="#0c006a" font-family="Inter" font-size="12" font-weight="700"
+                                                text-anchor="middle" x="280" y="215">HUB CENTRO (High Density)</text>
+                                        </g>
+                                        <!-- Poly 3: Zona Oriente -->
+                                        <g class="cursor-pointer transition-all duration-200" id="poly-oriente"
+                                            onclick="selectZone('oriente')">
+                                            <polygon class="hover:stroke-[3]" fill="url(#grad-teal)"
+                                                points="380,130 540,110 560,270 360,250" stroke="#30B0C7"
+                                                stroke-dasharray="4,2" stroke-width="2"></polygon>
+                                            <circle cx="450" cy="190" fill="#30B0C7" r="5"></circle>
+                                            <text fill="#002107" font-family="Inter" font-size="12" font-weight="700"
+                                                text-anchor="middle" x="450" y="210">ZONA ORIENTE</text>
+                                        </g>
+                                        <!-- Poly 4: Zona Poniente -->
+                                        <g class="cursor-pointer transition-all duration-200" id="poly-poniente"
+                                            onclick="selectZone('poniente')">
+                                            <polygon class="hover:stroke-[3]" fill="url(#grad-amber)"
+                                                points="40,140 180,140 200,260 60,270" stroke="#FF9500"
+                                                stroke-dasharray="4,2" stroke-width="2"></polygon>
+                                            <circle cx="120" cy="205" fill="#FF9500" r="5"></circle>
+                                            <text fill="#93000a" font-family="Inter" font-size="12" font-weight="700"
+                                                text-anchor="middle" x="120" y="225">ZONA PONIENTE</text>
+                                        </g>
+                                        <!-- Poly 5: Zona Sur -->
+                                        <g class="cursor-pointer transition-all duration-200" id="poly-sur"
+                                            onclick="selectZone('sur')">
+                                            <polygon class="hover:stroke-[3]" fill="url(#grad-blue)"
+                                                points="200,260 360,250 480,360 140,370" stroke="#0058bc"
+                                                stroke-dasharray="4,2" stroke-width="2"></polygon>
+                                            <circle cx="295" cy="315" fill="#0058bc" r="5"></circle>
+                                            <text fill="#001a41" font-family="Inter" font-size="12" font-weight="700"
+                                                text-anchor="middle" x="295" y="335">ZONA SUR</text>
+                                        </g>
+                                        <!-- Fleet Position Pins Live Telemetry Markers -->
+                                        <g class="pointer-events-none" transform="translate(260, 170)">
+                                            <circle cx="0" cy="0" fill="#34C759" r="4"></circle>
+                                            <circle cx="0" cy="0" fill="#34C759" opacity="0.3" r="9"></circle>
+                                        </g>
+                                        <g class="pointer-events-none" transform="translate(310, 210)">
+                                            <circle cx="0" cy="0" fill="#34C759" r="4"></circle>
+                                            <circle cx="0" cy="0" fill="#34C759" opacity="0.3" r="9"></circle>
+                                        </g>
+                                        <g class="pointer-events-none" transform="translate(460, 175)">
+                                            <circle cx="0" cy="0" fill="#34C759" r="4"></circle>
+                                        </g>
+                                        <g class="pointer-events-none" transform="translate(130, 80)">
+                                            <circle cx="0" cy="0" fill="#FF9500" r="4"></circle>
+                                        </g>
+                                        <g class="pointer-events-none" transform="translate(240, 320)">
+                                            <circle cx="0" cy="0" fill="#34C759" r="4"></circle>
+                                        </g>
+                                    </svg>
+                                    <!-- Floating Mini HUD on Map Canvas -->
+                                    <div
+                                        class="absolute bottom-3 left-3 bg-surface-container-lowest/85 backdrop-blur-md px-3 py-2 rounded-xl shadow-md flex items-center gap-3">
+                                        <div
+                                            class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#5856D6]"></span> Centro Core
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-status-delivered"></span> GPS
+                                            Activo
+                                        </div>
+                                        <div class="flex items-center gap-1.5 font-label-sm text-label-sm text-outline">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-status-in-transit"></span> Alerta
+                                            Carga
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="absolute top-3 right-3 bg-surface-container-lowest/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-caption font-caption text-on-surface-variant shadow-sm flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px] text-tertiary">tune</span>
+                                        <span>Límite Algorítmico: 4 stops/ruta</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Zone Configuration Cards Feed -->
+                            <div class="space-y-space-md">
+                                <div class="flex items-center justify-between px-1">
+                                    <span
+                                        class="font-label-md text-label-md text-outline uppercase tracking-wider">Polígonos
+                                        Configurados (5)</span>
+                                    <span class="font-caption text-caption text-primary cursor-pointer hover:underline"
+                                        onclick="resetFilterZone()">Ver todas las zonas</span>
+                                </div>
+                                <!-- Zone 1: Zona Centro -->
+                                <div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-[#5856D6]"
+                                    id="card-zone-centro" onclick="selectZone('centro')">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="font-title-md text-title-md text-on-surface font-bold">Zona
+                                                    Centro</h3>
+                                                <span
+                                                    class="font-caption text-caption px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold">Prioritaria</span>
+                                            </div>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Polígono
+                                                Z-01 • Cobertura: Providencia, Santiago Centro, Recoleta Sur</p>
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface">
+                                            <button class="p-1 rounded hover:bg-surface-container"
+                                                onclick="event.stopPropagation(); editZone('Centro')"><span
+                                                    class="material-symbols-outlined text-[18px]">edit</span></button>
+                                        </div>
+                                    </div>
+                                    <!-- Metrics Matrix Grid -->
+                                    <div
+                                        class="grid grid-cols-4 gap-2 mt-space-md pt-space-sm bg-surface-container-low/60 p-space-sm rounded-lg">
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Pendientes</span>
+                                            <span
+                                                class="font-title-md text-title-md text-status-urgent font-bold">28</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Repartidores</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">14
+                                                act.</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Tope Stops</span>
+                                            <span class="font-title-md text-title-md text-primary font-bold">4 /
+                                                ruta</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Entrega Media</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">24
+                                                min</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-sm flex items-center justify-between text-caption font-caption text-on-surface-variant">
+                                        <span>Carga operativa sectorial:</span>
+                                        <span class="font-semibold text-status-urgent">88% (Saturación moderada)</span>
+                                    </div>
+                                    <!-- Apple-style Progress bar -->
+                                    <div
+                                        class="w-full h-1.5 bg-surface-container-high rounded-full mt-1 overflow-hidden">
+                                        <div class="h-full bg-status-urgent rounded-full" style="width: 88%"></div>
+                                    </div>
+                                </div>
+                                <!-- Zone 2: Zona Oriente -->
+                                <div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-tint-teal"
+                                    id="card-zone-oriente" onclick="selectZone('oriente')">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="font-title-md text-title-md text-on-surface font-bold">Zona
+                                                    Oriente</h3>
+                                                <span
+                                                    class="font-caption text-caption px-2 py-0.5 rounded-full bg-surface-container text-tertiary font-bold">Fluida</span>
+                                            </div>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Polígono
+                                                Z-02 • Cobertura: Las Condes, Vitacura, Lo Barnechea</p>
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface">
+                                            <button class="p-1 rounded hover:bg-surface-container"
+                                                onclick="event.stopPropagation(); editZone('Oriente')"><span
+                                                    class="material-symbols-outlined text-[18px]">edit</span></button>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="grid grid-cols-4 gap-2 mt-space-md pt-space-sm bg-surface-container-low/60 p-space-sm rounded-lg">
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Pendientes</span>
+                                            <span
+                                                class="font-title-md text-title-md text-on-surface font-bold">12</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Repartidores</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">8
+                                                act.</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Tope Stops</span>
+                                            <span class="font-title-md text-title-md text-primary font-bold">4 /
+                                                ruta</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Entrega Media</span>
+                                            <span class="font-title-md text-title-md text-tertiary font-bold">18
+                                                min</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-sm flex items-center justify-between text-caption font-caption text-on-surface-variant">
+                                        <span>Carga operativa sectorial:</span>
+                                        <span class="font-semibold text-tertiary">52% (Capacidad óptima)</span>
+                                    </div>
+                                    <div
+                                        class="w-full h-1.5 bg-surface-container-high rounded-full mt-1 overflow-hidden">
+                                        <div class="h-full bg-status-delivered rounded-full" style="width: 52%"></div>
+                                    </div>
+                                </div>
+                                <!-- Zone 3: Zona Norte -->
+                                <div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-primary"
+                                    id="card-zone-norte" onclick="selectZone('norte')">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="font-title-md text-title-md text-on-surface font-bold">Zona
+                                                    Norte</h3>
+                                                <span
+                                                    class="font-caption text-caption px-2 py-0.5 rounded-full bg-surface-container text-outline font-semibold">Regular</span>
+                                            </div>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Polígono
+                                                Z-03 • Cobertura: Huechuraba, Conchalí, Quilicura</p>
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-1 text-on-surface-variant hover:text-on-surface">
+                                            <button class="p-1 rounded hover:bg-surface-container"
+                                                onclick="event.stopPropagation(); editZone('Norte')"><span
+                                                    class="material-symbols-outlined text-[18px]">edit</span></button>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="grid grid-cols-4 gap-2 mt-space-md pt-space-sm bg-surface-container-low/60 p-space-sm rounded-lg">
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Pendientes</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">9</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Repartidores</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">5
+                                                act.</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Tope Stops</span>
+                                            <span class="font-title-md text-title-md text-primary font-bold">4 /
+                                                ruta</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-caption text-caption text-outline">Entrega Media</span>
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">29
+                                                min</span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-sm flex items-center justify-between text-caption font-caption text-on-surface-variant">
+                                        <span>Carga operativa sectorial:</span>
+                                        <span class="font-semibold text-on-surface-variant">44%</span>
+                                    </div>
+                                    <div
+                                        class="w-full h-1.5 bg-surface-container-high rounded-full mt-1 overflow-hidden">
+                                        <div class="h-full bg-primary rounded-full" style="width: 44%"></div>
+                                    </div>
+                                </div>
+                                <!-- Zone 4: Zona Poniente & Sur Compact View -->
+                                <div class="grid grid-cols-2 gap-space-md">
+                                    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-status-in-transit"
+                                        id="card-zone-poniente" onclick="selectZone('poniente')">
+                                        <div class="font-label-md text-label-md text-on-surface font-bold">Zona Poniente
+                                        </div>
+                                        <div class="font-caption text-caption text-outline">Z-04 • Maipú, Pudahuel</div>
+                                        <div class="mt-space-sm flex justify-between items-baseline">
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">6 <span
+                                                    class="font-caption text-caption font-normal text-outline">ped.</span></span>
+                                            <span class="font-label-sm text-label-sm text-primary">3 Rep.</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 border-secondary"
+                                        id="card-zone-sur" onclick="selectZone('sur')">
+                                        <div class="font-label-md text-label-md text-on-surface font-bold">Zona Sur
+                                        </div>
+                                        <div class="font-caption text-caption text-outline">Z-05 • San Miguel, La
+                                            Florida</div>
+                                        <div class="mt-space-sm flex justify-between items-baseline">
+                                            <span class="font-title-md text-title-md text-on-surface font-bold">5 <span
+                                                    class="font-caption text-caption font-normal text-outline">ped.</span></span>
+                                            <span class="font-label-sm text-label-sm text-primary">2 Rep.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- ================= RIGHT COLUMN: GESTIÓN DE REPARTIDORES & FLOTA (7/12 on XL) ================= -->
+                        <section class="xl:col-span-7 flex flex-col gap-space-lg transition-all" id="column-drivers">
+                            <!-- Telemetry Key Stats Strip Cards -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm">
+                                <div
+                                    class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+                                    <div class="flex items-center justify-between text-outline">
+                                        <span class="font-caption text-caption uppercase tracking-wider">Flota
+                                            Total</span>
+                                        <span class="material-symbols-outlined text-[18px]">badge</span>
+                                    </div>
+                                    <div class="mt-1 flex items-baseline gap-1">
+                                        <span
+                                            class="font-headline-md text-headline-md text-on-surface font-bold">38</span>
+                                        <span class="font-caption text-caption text-outline">registrados</span>
+                                    </div>
+                                    <span class="font-label-sm text-label-sm text-primary mt-1 font-semibold">100%
+                                        Verificados</span>
+                                </div>
+                                <div
+                                    class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+                                    <div class="flex items-center justify-between text-status-delivered">
+                                        <span class="font-caption text-caption uppercase tracking-wider">En Ruta
+                                            Activa</span>
+                                        <span class="material-symbols-outlined text-[18px]">two_wheeler</span>
+                                    </div>
+                                    <div class="mt-1 flex items-baseline gap-1">
+                                        <span
+                                            class="font-headline-md text-headline-md text-on-surface font-bold">32</span>
+                                        <span
+                                            class="font-caption text-caption text-status-delivered font-bold">84%</span>
+                                    </div>
+                                    <span
+                                        class="font-label-sm text-label-sm text-status-delivered mt-1 flex items-center gap-1 font-medium">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-status-delivered animate-pulse"></span>
+                                        Despachando
+                                    </span>
+                                </div>
+                                <div
+                                    class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+                                    <div class="flex items-center justify-between text-primary">
+                                        <span class="font-caption text-caption uppercase tracking-wider">Disponibles /
+                                            Base</span>
+                                        <span class="material-symbols-outlined text-[18px]">warehouse</span>
+                                    </div>
+                                    <div class="mt-1 flex items-baseline gap-1">
+                                        <span
+                                            class="font-headline-md text-headline-md text-on-surface font-bold">4</span>
+                                        <span class="font-caption text-caption text-outline">standby</span>
+                                    </div>
+                                    <span class="font-label-sm text-label-sm text-primary mt-1 font-medium">Próximo
+                                        slot: 4 min</span>
+                                </div>
+                                <div
+                                    class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+                                    <div class="flex items-center justify-between text-outline">
+                                        <span class="font-caption text-caption uppercase tracking-wider">En Pausa /
+                                            Break</span>
+                                        <span class="material-symbols-outlined text-[18px]">free_breakfast</span>
+                                    </div>
+                                    <div class="mt-1 flex items-baseline gap-1">
+                                        <span
+                                            class="font-headline-md text-headline-md text-on-surface font-bold">2</span>
+                                        <span class="font-caption text-caption text-outline">almuerzo</span>
+                                    </div>
+                                    <span class="font-label-sm text-label-sm text-outline mt-1 font-medium">Retorno
+                                        14:30</span>
+                                </div>
+                            </div>
+                            <!-- Drivers Filter & Search Control Panel -->
+                            <div
+                                class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col sm:flex-row gap-space-md items-center justify-between">
+                                <!-- Live search input -->
+                                <div class="relative w-full sm:w-72">
+                                    <span
+                                        class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline">search</span>
+                                    <input
+                                        class="w-full pl-9 pr-3 py-1.5 rounded-lg bg-surface-container-low text-body-sm font-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-outline transition-all"
+                                        id="driver-search-input" onkeyup="filterDriversTable()"
+                                        placeholder="Buscar por nombre, patente, ruta..." type="text" />
+                                </div>
+                                <!-- Filter Pills (Vehicle & Status) -->
+                                <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                                    <button
+                                        class="driver-filter-pill active-pill px-3 py-1 rounded-full text-caption font-caption bg-on-surface text-surface font-bold shadow-sm transition-all"
+                                        onclick="setDriverStatusFilter('all')">Todos (38)</button>
+                                    <button
+                                        class="driver-filter-pill px-3 py-1 rounded-full text-caption font-caption bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-medium transition-all"
+                                        onclick="setDriverStatusFilter('ruta')">En Ruta (32)</button>
+                                    <button
+                                        class="driver-filter-pill px-3 py-1 rounded-full text-caption font-caption bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-medium transition-all"
+                                        onclick="setDriverStatusFilter('base')">En Base (4)</button>
+                                    <button
+                                        class="driver-filter-pill px-2.5 py-1 rounded-lg text-caption font-caption bg-surface-container-low hover:bg-surface-container text-on-surface-variant flex items-center gap-1"
+                                        onclick="setDriverVehicleFilter('furgon')">
+                                        <span class="material-symbols-outlined text-[14px]">local_shipping</span> Furgón
+                                    </button>
+                                    <button
+                                        class="driver-filter-pill px-2.5 py-1 rounded-lg text-caption font-caption bg-surface-container-low hover:bg-surface-container text-on-surface-variant flex items-center gap-1"
+                                        onclick="setDriverVehicleFilter('moto')">
+                                        <span class="material-symbols-outlined text-[14px]">two_wheeler</span> Moto
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Drivers Data Roster / Dispatch Matrix Table -->
+                            <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse" id="drivers-table">
+                                        <thead>
+                                            <tr
+                                                class="bg-surface-container-low/70 text-outline text-caption font-caption uppercase tracking-wider">
+                                                <th class="py-2.5 px-space-md font-semibold">Repartidor & Contacto</th>
+                                                <th class="py-2.5 px-space-sm font-semibold">Vehículo & Capacidad</th>
+                                                <th class="py-2.5 px-space-sm font-semibold">Ruta & Zona Asignada</th>
+                                                <th class="py-2.5 px-space-sm font-semibold">Telemetría (GPS/Batería)
+                                                </th>
+                                                <th class="py-2.5 px-space-md font-semibold">Progreso Hoy (Stops)</th>
+                                                <th class="py-2.5 px-space-sm text-right pr-space-md font-semibold">
+                                                    Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody
+                                            class="divide-y-0 text-body-sm font-body-sm divide-separator-hairline-light">
+                                            <!-- Driver Row 1 -->
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer"
+                                                data-status="ruta" data-vehicle="moto" data-zone="centro"
+                                                onclick="inspectDriver('DRV-401')">
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex items-center gap-space-sm">
+                                                        <div class="relative">
+                                                            <img class="w-9 h-9 rounded-full object-cover"
+                                                                data-alt="Close up professional portrait of a delivery courier smiling, wearing a sleek modern dark navy logistics jacket and headset, bright studio daylight lighting."
+                                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOjr9Ipq5yigfdL_qnmCWM2mCovSwn1gpb4l6uOTcyHkwIGdo4vgWSgvyO9UnIXSpCDQaV97ZfWNJSxoJ5LFr5TRFi5ehsvE6yM87zd3YAJ1S3hhNN2ontI00FQvFHAnSbVtQoHwDZBD8cI0E0iRjcrQv2RZXzanRC3QzHbaJFMDt5nNRYU_nfGzYCGtQshrmhefBLmbVTj_bXpzLVcqPcqU5__axs6F1Vj54IVz2-8Sa1Xz3M-Uzi8w" />
+                                                            <span
+                                                                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-delivered ring-2 ring-white"></span>
+                                                        </div>
+                                                        <div class="flex flex-col min-w-0">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold truncate">Matías
+                                                                Cárdenas</span>
+                                                            <span class="font-caption text-caption text-outline">+56 9
+                                                                8812 4022 • ID #401</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div
+                                                            class="p-1.5 rounded-md bg-secondary-fixed text-on-secondary-fixed">
+                                                            <span
+                                                                class="material-symbols-outlined text-[16px]">two_wheeler</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-sm text-label-sm font-medium text-on-surface">Moto
+                                                                Yamaha</span>
+                                                            <span class="font-caption text-caption text-outline">Max: 4
+                                                                pedidos/ruta</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col">
+                                                        <span
+                                                            class="font-label-md text-label-md text-primary font-bold">Ruta
+                                                            #R-108</span>
+                                                        <span
+                                                            class="inline-flex items-center gap-1 font-caption text-caption text-[#5856D6] font-semibold">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-[#5856D6]"></span>
+                                                            Zona Centro
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col gap-1">
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-status-delivered font-semibold">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">my_location</span>
+                                                            <span>En movimiento (32 km/h)</span>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-outline">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px] text-tertiary">battery_charging_90</span>
+                                                            <span>89% • Eco</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex flex-col gap-1 w-32">
+                                                        <div
+                                                            class="flex justify-between font-caption text-caption font-semibold">
+                                                            <span class="text-on-surface">14/16 entregados</span>
+                                                            <span class="text-tertiary">87%</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                                            <div class="h-full bg-status-delivered rounded-full"
+                                                                style="width: 87.5%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm text-right pr-space-md">
+                                                    <div class="flex items-center justify-end gap-1">
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-primary hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); callDriver('Matías')"
+                                                            title="Llamar">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">call</span>
+                                                        </button>
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); reassignDriver('401')"
+                                                            title="Reasignar Ruta">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Driver Row 2 -->
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer"
+                                                data-status="ruta" data-vehicle="furgon" data-zone="oriente"
+                                                onclick="inspectDriver('DRV-208')">
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex items-center gap-space-sm">
+                                                        <div class="relative">
+                                                            <img class="w-9 h-9 rounded-full object-cover"
+                                                                data-alt="Portrait of a female logistics delivery specialist with hair tied back, friendly expression, wearing a high-tech reflective fleet vest, natural soft lighting."
+                                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXMCt_2nfrpikYQoxYUrAms-MANXpu656r1wIBYDAscSoCGtfl1kBEHXUUJhcD1Ks676whCg5xzMrXO5vs-LH0zm78IbA5ueL8_umVEg7wUbDP5t3goPl_iYW3HUnsC0D3IVyV6QCC3hWvnNZvOqM67KMIqOYSFjlt8CRzkkYXZ9Lyt7LT4q9U9J7GTR_doERlxCYZeepHMR8qqB6sOsgqiXhaMc3Up4aI17NTgEGmlLVWCYOWEYFGlA" />
+                                                            <span
+                                                                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-delivered ring-2 ring-white"></span>
+                                                        </div>
+                                                        <div class="flex flex-col min-w-0">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold truncate">Camila
+                                                                Henríquez</span>
+                                                            <span class="font-caption text-caption text-outline">+56 9
+                                                                7431 9901 • ID #208</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div
+                                                            class="p-1.5 rounded-md bg-primary-fixed text-on-primary-fixed">
+                                                            <span
+                                                                class="material-symbols-outlined text-[16px]">local_shipping</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-sm text-label-sm font-medium text-on-surface">Furgón
+                                                                Peugeot</span>
+                                                            <span class="font-caption text-caption text-outline">Max: 18
+                                                                bultos (L)</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col">
+                                                        <span
+                                                            class="font-label-md text-label-md text-primary font-bold">Ruta
+                                                            #R-094</span>
+                                                        <span
+                                                            class="inline-flex items-center gap-1 font-caption text-caption text-tint-teal font-semibold">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-tint-teal"></span>
+                                                            Zona Oriente
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col gap-1">
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-status-delivered font-semibold">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">near_me</span>
+                                                            <span>En parada cliente (Stop 3/4)</span>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-outline">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px] text-tertiary">battery_5_bar</span>
+                                                            <span>74% • En línea</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex flex-col gap-1 w-32">
+                                                        <div
+                                                            class="flex justify-between font-caption text-caption font-semibold">
+                                                            <span class="text-on-surface">11/12 entregados</span>
+                                                            <span class="text-tertiary">91%</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                                            <div class="h-full bg-status-delivered rounded-full"
+                                                                style="width: 91.6%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm text-right pr-space-md">
+                                                    <div class="flex items-center justify-end gap-1">
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-primary hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); callDriver('Camila')"
+                                                            title="Llamar">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">call</span>
+                                                        </button>
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); reassignDriver('208')"
+                                                            title="Reasignar Ruta">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Driver Row 3 -->
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer"
+                                                data-status="ruta" data-vehicle="bici" data-zone="centro"
+                                                onclick="inspectDriver('DRV-512')">
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex items-center gap-space-sm">
+                                                        <div class="relative">
+                                                            <img class="w-9 h-9 rounded-full object-cover"
+                                                                data-alt="Portrait of an energetic young courier with a cycling helmet and athletic windbreaker, outdoor urban background, sharp focus, clean modern photography."
+                                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-0Ah5mAADuGxco3DfNfvIeJl8Fgo29I77WcJHN2jG4Fh_CdXCxseL6yHb5pl1mEJ4Uo0eaxDKKrNtno-y8pLq0CYoAz-SDzwBCbYixMb0w5Cw3prYUYKr-q1Ta77Uo2yfeusRSj8QVvxbdO-xLcyACh77IYltGQoS0E97sT57MrsmTEVuGehGMta3rRcTGrOZUhR1AH55tMCt7LigVxb7KJicJbzd1FL0QQkh2dxv-22ekW3s-qTh7w" />
+                                                            <span
+                                                                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-status-delivered ring-2 ring-white"></span>
+                                                        </div>
+                                                        <div class="flex flex-col min-w-0">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold truncate">Lucas
+                                                                Morales</span>
+                                                            <span class="font-caption text-caption text-outline">+56 9
+                                                                6554 1239 • ID #512</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div
+                                                            class="p-1.5 rounded-md bg-tertiary-fixed text-on-tertiary-fixed">
+                                                            <span
+                                                                class="material-symbols-outlined text-[16px]">pedal_bike</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-sm text-label-sm font-medium text-on-surface">Cargo
+                                                                E-Bike</span>
+                                                            <span class="font-caption text-caption text-outline">Max: 3
+                                                                pedidos/slot</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col">
+                                                        <span
+                                                            class="font-label-md text-label-md text-primary font-bold">Ruta
+                                                            #R-114</span>
+                                                        <span
+                                                            class="inline-flex items-center gap-1 font-caption text-caption text-[#5856D6] font-semibold">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-[#5856D6]"></span>
+                                                            Zona Centro (Peatonal)
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col gap-1">
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-status-delivered font-semibold">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">navigation</span>
+                                                            <span>Tráfico peatonal (16 km/h)</span>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-status-in-transit">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">battery_alert</span>
+                                                            <span>24% • Carga baja</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex flex-col gap-1 w-32">
+                                                        <div
+                                                            class="flex justify-between font-caption text-caption font-semibold">
+                                                            <span class="text-on-surface">15/15 entregados</span>
+                                                            <span class="text-tertiary">100%</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                                            <div class="h-full bg-status-delivered rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm text-right pr-space-md">
+                                                    <div class="flex items-center justify-end gap-1">
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-primary hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); callDriver('Lucas')"
+                                                            title="Llamar">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">call</span>
+                                                        </button>
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); reassignDriver('512')"
+                                                            title="Reasignar Ruta">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Driver Row 4 (Available in Base) -->
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer"
+                                                data-status="base" data-vehicle="moto" data-zone="norte"
+                                                onclick="inspectDriver('DRV-305')">
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex items-center gap-space-sm">
+                                                        <div class="relative">
+                                                            <img class="w-9 h-9 rounded-full object-cover"
+                                                                data-alt="Corporate headshot of a reliable male logistics fleet driver in his late 30s with clean trimmed beard, neutral soft gray studio backdrop, wearing dark gray tactical logistics vest."
+                                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiUj_8LPsFHw34feycglCphFQ8koBTw4jRfOIiA6nWBweQhrWANPxKVIr4HKC70JAGfQx94VxdCjmKIYd3l9vIsCEPgi_YRZy-woko6TDVrkCIoR9AktUpTRPXr1KR2DFbAMWzfySrQoxfgYHORe2-e9wHiKYQQ3ZbPuCQluO-LRGOF0Tk-lWsC1eAseVZ7xxrETcU1TCv9RUxIMOWoub7O0lrdhXUK8I2-x-R7pQbxqIuillCnTHQ-A" />
+                                                            <span
+                                                                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-white"></span>
+                                                        </div>
+                                                        <div class="flex flex-col min-w-0">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold truncate">Esteban
+                                                                Salazar</span>
+                                                            <span class="font-caption text-caption text-outline">+56 9
+                                                                9120 7741 • ID #305</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div
+                                                            class="p-1.5 rounded-md bg-secondary-fixed text-on-secondary-fixed">
+                                                            <span
+                                                                class="material-symbols-outlined text-[16px]">two_wheeler</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-sm text-label-sm font-medium text-on-surface">Moto
+                                                                Honda</span>
+                                                            <span class="font-caption text-caption text-outline">Max: 4
+                                                                pedidos/ruta</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col">
+                                                        <span
+                                                            class="font-label-md text-label-md text-outline italic">Sin
+                                                            ruta activa</span>
+                                                        <span
+                                                            class="inline-flex items-center gap-1 font-caption text-caption text-primary font-semibold">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                                            Zona Norte (Preferente)
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col gap-1">
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-primary font-semibold">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">warehouse</span>
+                                                            <span>En Base Central (Andén 4)</span>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-outline">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px] text-tertiary">battery_full</span>
+                                                            <span>98% • Listo</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex flex-col gap-1 w-32">
+                                                        <div
+                                                            class="flex justify-between font-caption text-caption font-semibold">
+                                                            <span class="text-outline">Completó turno mañana</span>
+                                                            <span class="text-on-surface">12/12</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                                            <div class="h-full bg-primary rounded-full"
+                                                                style="width: 100%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm text-right pr-space-md">
+                                                    <button
+                                                        class="px-2.5 py-1 rounded-md bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm transition-all"
+                                                        onclick="event.stopPropagation(); assignNewRoute('305')">
+                                                        Despachar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <!-- Driver Row 5 (Break) -->
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer opacity-80"
+                                                data-status="descanso" data-vehicle="furgon" data-zone="sur"
+                                                onclick="inspectDriver('DRV-119')">
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex items-center gap-space-sm">
+                                                        <div class="relative">
+                                                            <img class="w-9 h-9 rounded-full object-cover"
+                                                                data-alt="Portrait of an experienced male driver smiling warm and calmly, natural daylight in vehicle cabin, clean crisp style."
+                                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJsDOnpHTgmBbpt-TFfJFwCVnOlKPIOY6ZgzsajEyuSAGKWo8q6IfszcBF_ZyDSOaEtb4CSgYfte0QgWlWA5v_SCrISVKJHyQ3Jh8LmXsQksJFFBCAJem9KRk6S-LvxzuzoUYuqxK88ocLMVeIYSxS4GGswUcne13Gn3icM3hUoFeLRbdjbJN_PnZOqLDsJUYIfTAJQt7haAGXarRq0Zes9EgQwO-vTLTbkUfKTwV1CKmi66cgBGJKzw" />
+                                                            <span
+                                                                class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-outline ring-2 ring-white"></span>
+                                                        </div>
+                                                        <div class="flex flex-col min-w-0">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold truncate">Jorge
+                                                                Valenzuela</span>
+                                                            <span class="font-caption text-caption text-outline">+56 9
+                                                                5541 3320 • ID #119</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <div
+                                                            class="p-1.5 rounded-md bg-primary-fixed text-on-primary-fixed">
+                                                            <span
+                                                                class="material-symbols-outlined text-[16px]">local_shipping</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-sm text-label-sm font-medium text-on-surface">Furgón
+                                                                Hyundai</span>
+                                                            <span class="font-caption text-caption text-outline">Max: 14
+                                                                bultos (M)</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col">
+                                                        <span
+                                                            class="font-label-md text-label-md text-outline italic">Descanso
+                                                            Programado</span>
+                                                        <span
+                                                            class="inline-flex items-center gap-1 font-caption text-caption text-secondary font-semibold">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                                            Zona Sur
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm">
+                                                    <div class="flex flex-col gap-1">
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-outline">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">pause_circle</span>
+                                                            <span>Retorno: 14:30 hrs</span>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-1 text-caption font-caption text-outline">
+                                                            <span
+                                                                class="material-symbols-outlined text-[14px]">battery_4_bar</span>
+                                                            <span>62%</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-md">
+                                                    <div class="flex flex-col gap-1 w-32">
+                                                        <div
+                                                            class="flex justify-between font-caption text-caption font-semibold">
+                                                            <span class="text-on-surface">8/10 entregados</span>
+                                                            <span class="text-status-in-transit">80%</span>
+                                                        </div>
+                                                        <div
+                                                            class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                                            <div class="h-full bg-status-in-transit rounded-full"
+                                                                style="width: 80%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-space-sm text-right pr-space-md">
+                                                    <div class="flex items-center justify-end gap-1">
+                                                        <button
+                                                            class="p-1.5 rounded-lg text-outline hover:text-primary hover:bg-surface-container-high transition-colors"
+                                                            onclick="event.stopPropagation(); callDriver('Jorge')"
+                                                            title="Llamar">
+                                                            <span
+                                                                class="material-symbols-outlined text-[18px]">call</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Table Bottom Bar / Quick Metrics Indicator -->
+                                <div
+                                    class="p-space-md bg-surface-container-low/40 flex flex-col sm:flex-row items-center justify-between text-caption font-caption text-on-surface-variant gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                                        <span>SLA Diario de Despacho Flota: <strong>99.4% a tiempo</strong></span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span>Capacidad promedio utilizada: <strong>81.2%</strong></span>
+                                        <div class="h-3 w-[1px] bg-separator-hairline-light"></div>
+                                        <button
+                                            class="text-primary hover:underline font-semibold flex items-center gap-1"
+                                            onclick="exportFleetReport()">
+                                            <span class="material-symbols-outlined text-[14px]">download</span> Exportar
+                                            Roster CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <!-- ================= MODAL: NUEVA ZONA DE REPARTO ================= -->
+                <div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm hidden items-center justify-center p-space-md"
+                    id="modal-new-zone">
+                    <div
+                        class="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div class="p-space-lg bg-surface-container-lowest flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="p-2 rounded-lg bg-primary/10 text-primary">
+                                    <span class="material-symbols-outlined text-[20px]">add_location_alt</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-title-md text-title-md text-on-surface font-bold">Definir Nueva Zona
+                                        de Reparto</h3>
+                                    <p class="font-caption text-caption text-outline">Parametriza los límites
+                                        poligonales y límites por ruta.</p>
+                                </div>
+                            </div>
+                            <button class="text-outline hover:text-on-surface p-1 rounded-lg"
+                                onclick="toggleModal('modal-new-zone')">
+                                <span class="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                        </div>
+                        <form class="p-space-lg space-y-space-md bg-surface-container-low/30"
+                            onsubmit="handleCreateZone(event)">
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface mb-1">Nombre de la
+                                    Zona</label>
+                                <input
+                                    class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                    placeholder="Ej: Zona Cordillera Norte" required="" type="text" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-space-md">
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Sector Postal
+                                        / Comuna</label>
+                                    <input
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                        placeholder="Ej: 7550000 / Las Condes" type="text" />
+                                </div>
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Radio Máximo
+                                        (km)</label>
+                                    <div class="relative">
+                                        <input
+                                            class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                            step="0.5" type="number" value="7.5" />
+                                        <span
+                                            class="absolute right-3 top-2 font-caption text-caption text-outline">KM</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-space-md rounded-xl bg-surface-container-lowest space-y-space-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-label-md text-label-md text-on-surface font-semibold">Límite de
+                                        Paradas por Ruta</span>
+                                    <span class="font-title-md text-title-md text-primary font-bold"
+                                        id="zone-stops-val">4 paradas</span>
+                                </div>
+                                <p class="font-caption text-caption text-on-surface-variant">Regla algorítmica por
+                                    defecto del sistema para resguardar ventanas horarias y SLAs.</p>
+                                <input class="w-full accent-primary cursor-pointer" max="8" min="1"
+                                    oninput="document.getElementById('zone-stops-val').innerText = this.value + ' paradas'"
+                                    type="range" value="4" />
+                                <div class="flex justify-between font-caption text-caption text-outline">
+                                    <span>1 parada (Express)</span>
+                                    <span>4 (Recomendado)</span>
+                                    <span>8 (Alta densidad)</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface mb-1">Color
+                                    Identificador del Polígono</label>
+                                <div class="flex items-center gap-3">
+                                    <label class="cursor-pointer flex items-center gap-1.5 text-caption font-caption">
+                                        <input checked="" class="accent-primary" name="zone-color" type="radio"
+                                            value="blue" />
+                                        <span class="w-3.5 h-3.5 rounded-full bg-primary inline-block"></span> Azul
+                                    </label>
+                                    <label class="cursor-pointer flex items-center gap-1.5 text-caption font-caption">
+                                        <input class="accent-[#5856D6]" name="zone-color" type="radio" value="purple" />
+                                        <span class="w-3.5 h-3.5 rounded-full bg-[#5856D6] inline-block"></span> Índigo
+                                    </label>
+                                    <label class="cursor-pointer flex items-center gap-1.5 text-caption font-caption">
+                                        <input class="accent-tint-teal" name="zone-color" type="radio" value="teal" />
+                                        <span class="w-3.5 h-3.5 rounded-full bg-tint-teal inline-block"></span>
+                                        Turquesa
+                                    </label>
+                                    <label class="cursor-pointer flex items-center gap-1.5 text-caption font-caption">
+                                        <input class="accent-status-in-transit" name="zone-color" type="radio"
+                                            value="amber" />
+                                        <span class="w-3.5 h-3.5 rounded-full bg-status-in-transit inline-block"></span>
+                                        Ámbar
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="pt-space-sm flex items-center justify-end gap-space-sm">
+                                <button
+                                    class="px-space-md py-1.5 rounded-lg text-on-surface font-label-md text-label-md hover:bg-surface-container transition-all"
+                                    onclick="toggleModal('modal-new-zone')" type="button">
+                                    Cancelar
+                                </button>
+                                <button
+                                    class="px-space-lg py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"
+                                    type="submit">
+                                    Guardar & Activar Zona
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- ================= MODAL: ALTA DE NUEVO REPARTIDOR ================= -->
+                <div class="fixed inset-0 z-50 bg-inverse-surface/40 backdrop-blur-sm hidden items-center justify-center p-space-md"
+                    id="modal-new-driver">
+                    <div
+                        class="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div class="p-space-lg bg-surface-container-lowest flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="p-2 rounded-lg bg-primary/10 text-primary">
+                                    <span class="material-symbols-outlined text-[20px]">person_add</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-title-md text-title-md text-on-surface font-bold">Alta de Nuevo
+                                        Repartidor</h3>
+                                    <p class="font-caption text-caption text-outline">Registro de conductor, vehículo
+                                        asignado y perfil de flota.</p>
+                                </div>
+                            </div>
+                            <button class="text-outline hover:text-on-surface p-1 rounded-lg"
+                                onclick="toggleModal('modal-new-driver')">
+                                <span class="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                        </div>
+                        <form class="p-space-lg space-y-space-md bg-surface-container-low/30"
+                            onsubmit="handleCreateDriver(event)">
+                            <div class="grid grid-cols-2 gap-space-md">
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Nombre
+                                        Completo</label>
+                                    <input
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                        placeholder="Ej: Ignacio Morales" required="" type="text" />
+                                </div>
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">RUT /
+                                        Cédula</label>
+                                    <input
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                        placeholder="18.940.322-1" required="" type="text" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-space-md">
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Tipo de
+                                        Vehículo</label>
+                                    <select
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none">
+                                        <option value="moto">Moto (Agilidad Urbana)</option>
+                                        <option value="furgon">Furgón / Van (Alta Carga)</option>
+                                        <option value="bici">Bicicleta / E-Bike (Casco Histórico)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Capacidad Máx.
+                                        Carga</label>
+                                    <input
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                        placeholder="Ej: 4 bultos / 25 kg" type="text" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-space-md">
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Zona
+                                        Preferente</label>
+                                    <select
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none">
+                                        <option value="centro">Zona Centro</option>
+                                        <option value="oriente">Zona Oriente</option>
+                                        <option value="norte">Zona Norte</option>
+                                        <option value="poniente">Zona Poniente</option>
+                                        <option value="sur">Zona Sur</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-label-md text-label-md text-on-surface mb-1">Estado
+                                        Inicial</label>
+                                    <select
+                                        class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none">
+                                        <option value="disponible">En Base / Disponible</option>
+                                        <option value="ruta">En Ruta Directa</option>
+                                        <option value="pausa">En Capacitación / Standby</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface mb-1">Teléfono Móvil
+                                    (WhatsApp Despacho)</label>
+                                <input
+                                    class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:outline-none"
+                                    placeholder="+56 9 9000 0000" type="tel" />
+                            </div>
+                            <div class="pt-space-sm flex items-center justify-end gap-space-sm">
+                                <button
+                                    class="px-space-md py-1.5 rounded-lg text-on-surface font-label-md text-label-md hover:bg-surface-container transition-all"
+                                    onclick="toggleModal('modal-new-driver')" type="button">
+                                    Cancelar
+                                </button>
+                                <button
+                                    class="px-space-lg py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"
+                                    type="submit">
+                                    Completar Alta de Repartidor
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Toast Notification Feedback Component -->
+                <div class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 bg-on-surface text-surface px-4 py-2.5 rounded-xl shadow-xl"
+                    id="toast-notification">
+                    <span class="material-symbols-outlined text-[20px] text-tertiary-fixed"
+                        id="toast-icon">check_circle</span>
+                    <span class="font-body-sm text-body-sm font-medium" id="toast-msg">Operación completada
+                        exitosamente</span>
+                </div>
+            </div>
+            <script>
+                // Dynamic Tab Switcher for Responsive macOS Workspace
+                function switchView(mode) {
+                    const colZones = document.getElementById('column-zones');
+                    const colDrivers = document.getElementById('column-drivers');
+                    const btnDual = document.getElementById('view-dual-btn');
+                    const btnZones = document.getElementById('view-zones-btn');
+                    const btnDrivers = document.getElementById('view-drivers-btn');
+
+                    // Reset buttons appearance
+                    [btnDual, btnZones, btnDrivers].forEach(btn => {
+                        btn.className = "px-space-md py-1 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-1.5";
+                    });
+
+                    if (mode === 'dual') {
+                        colZones.classList.remove('hidden');
+                        colZones.className = "xl:col-span-5 flex flex-col gap-space-lg transition-all";
+                        colDrivers.classList.remove('hidden');
+                        colDrivers.className = "xl:col-span-7 flex flex-col gap-space-lg transition-all";
+                        btnDual.className = "px-space-md py-1 rounded-md font-label-md text-label-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center gap-1.5";
+                    } else if (mode === 'zones') {
+                        colZones.classList.remove('hidden');
+                        colZones.className = "w-full flex flex-col gap-space-lg transition-all";
+                        colDrivers.classList.add('hidden');
+                        btnZones.className = "px-space-md py-1 rounded-md font-label-md text-label-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center gap-1.5";
+                    } else if (mode === 'drivers') {
+                        colZones.classList.add('hidden');
+                        colDrivers.classList.remove('hidden');
+                        colDrivers.className = "w-full flex flex-col gap-space-lg transition-all";
+                        btnDrivers.className = "px-space-md py-1 rounded-md font-label-md text-label-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center gap-1.5";
+                    }
+                }
+
+                // Modals Visibility Management
+                function toggleModal(modalId) {
+                    const modal = document.getElementById(modalId);
+                    if (!modal) return;
+                    if (modal.classList.contains('hidden')) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    } else {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }
+                }
+
+                // Interactive Map Zone Selection and Highlighting
+                function selectZone(zoneKey) {
+                    // Dim all polygons
+                    const polyIds = ['poly-norte', 'poly-centro', 'poly-oriente', 'poly-poniente', 'poly-sur'];
+                    polyIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.setAttribute('opacity', '0.45');
+                    });
+
+                    const activePoly = document.getElementById('poly-' + zoneKey);
+                    if (activePoly) activePoly.setAttribute('opacity', '1');
+
+                    // Filter table to show drivers related to that zone
+                    const rows = document.querySelectorAll('#drivers-table tbody tr');
+                    rows.forEach(r => {
+                        if (r.getAttribute('data-zone') === zoneKey) {
+                            r.style.display = '';
+                            r.classList.add('bg-primary-fixed/20');
+                            setTimeout(() => r.classList.remove('bg-primary-fixed/20'), 1500);
+                        } else {
+                            r.style.display = 'none';
+                        }
+                    });
+
+                    showToast(`Filtrado por: Zona ${zoneKey.toUpperCase()}`);
+                }
+
+                function resetFilterZone() {
+                    const polyIds = ['poly-norte', 'poly-centro', 'poly-oriente', 'poly-poniente', 'poly-sur'];
+                    polyIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.setAttribute('opacity', '1');
+                    });
+
+                    const rows = document.querySelectorAll('#drivers-table tbody tr');
+                    rows.forEach(r => r.style.display = '');
+                    showToast('Mostrando todas las zonas y conductores');
+                }
+
+                // Filter Drivers Live Roster
+                function filterDriversTable() {
+                    const query = document.getElementById('driver-search-input').value.toLowerCase();
+                    const rows = document.querySelectorAll('#drivers-table tbody tr');
+
+                    rows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(query) ? '' : 'none';
+                    });
+                }
+
+                function setDriverStatusFilter(status) {
+                    const buttons = document.querySelectorAll('.driver-filter-pill');
+                    buttons.forEach(b => b.classList.remove('bg-on-surface', 'text-surface', 'font-bold'));
+
+                    const rows = document.querySelectorAll('#drivers-table tbody tr');
+                    rows.forEach(row => {
+                        if (status === 'all' || row.getAttribute('data-status') === status) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    showToast(status === 'all' ? 'Mostrando toda la flota' : `Filtro aplicado: ${status}`);
+                }
+
+                function setDriverVehicleFilter(vehicle) {
+                    const rows = document.querySelectorAll('#drivers-table tbody tr');
+                    rows.forEach(row => {
+                        if (row.getAttribute('data-vehicle') === vehicle) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    showToast(`Filtrado por vehículo: ${vehicle.toUpperCase()}`);
+                }
+
+                // Quick Action Triggers
+                function inspectDriver(driverId) {
+                    showToast(`Abriendo telemetría en vivo de ${driverId}`);
+                }
+
+                function callDriver(name) {
+                    showToast(`Iniciando llamada VoIP con ${name}...`);
+                }
+
+                function reassignDriver(id) {
+                    showToast(`Reasignando ruta para repartidor #${id}`);
+                }
+
+                function assignNewRoute(id) {
+                    showToast(`Despachando ruta automática #R-120 al repartidor #${id}`);
+                }
+
+                function editZone(name) {
+                    showToast(`Editando polígono y parámetros de Zona ${name}`);
+                    toggleModal('modal-new-zone');
+                }
+
+                function exportFleetReport() {
+                    showToast('Generando reporte CSV de flota y rutas...');
+                }
+
+                function zoomMap(delta) {
+                    showToast(delta > 0 ? 'Zoom in mapa (+)' : 'Zoom out mapa (-)');
+                }
+
+                function resetMapView() {
+                    resetFilterZone();
+                    showToast('Vista de mapa centrada');
+                }
+
+                function handleCreateZone(e) {
+                    e.preventDefault();
+                    toggleModal('modal-new-zone');
+                    showToast('Nueva zona configurada y guardada con éxito.');
+                }
+
+                function handleCreateDriver(e) {
+                    e.preventDefault();
+                    toggleModal('modal-new-driver');
+                    showToast('Nuevo repartidor registrado en la flota activa.');
+                }
+
+                function showToast(message) {
+                    const toast = document.getElementById('toast-notification');
+                    const msgEl = document.getElementById('toast-msg');
+                    if (!toast || !msgEl) return;
+                    msgEl.innerText = message;
+                    toast.classList.remove('translate-y-24', 'opacity-0');
+                    toast.classList.add('translate-y-0', 'opacity-100');
+
+                    setTimeout(() => {
+                        toast.classList.add('translate-y-24', 'opacity-0');
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                    }, 2800);
+                }
+            </script>
+        </main>
+    </div>
+</body>
+
+</html>

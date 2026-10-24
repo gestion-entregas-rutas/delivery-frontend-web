@@ -1,0 +1,41 @@
+<section class="metrics" aria-label="Indicadores de la operación">
+  <article class="metric">
+    <div>
+      <span>Pedidos de la fecha</span
+      ><span class="metric-icon blue material-symbols-outlined" aria-hidden="true"
+        >inventory_2</span
+      >
+    </div>
+    <strong>{{ operations.total() }}</strong>
+    <p>Total según los filtros aplicados</p>
+  </article>
+  <article class="metric">
+    <div>
+      <span>En camino</span
+      ><span class="metric-icon orange material-symbols-outlined" aria-hidden="true"
+        >local_shipping</span
+      >
+    </div>
+    <strong>{{ operations.count('EnCamino') }}</strong>
+    <p>En la página de pedidos consultada</p>
+  </article>
+  <article class="metric">
+    <div>
+      <span>Entregados</span
+      ><span class="metric-icon green material-symbols-outlined" aria-hidden="true">task_alt</span>
+    </div>
+    <strong>{{ operations.count('Entregado') }}</strong>
+    <p>En la página de pedidos consultada</p>
+  </article>
+  <article class="metric">
+    <div>
+      <span>Equipo disponible</span
+      ><span class="metric-icon purple material-symbols-outlined" aria-hidden="true">group</span>
+    </div>
+    <strong
+      >{{ operations.availableDrivers
+      }}<small>/ {{ operations.repartidores().length }}</small></strong
+    >
+    <p>Repartidores listos para una nueva ruta</p>
+  </article>
+</section>

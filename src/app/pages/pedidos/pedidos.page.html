@@ -1,0 +1,605 @@
+<div class="flex flex-col w-full p-gutter-lg space-y-gutter-lg">
+  <!-- Top Toolbar / Metric Highlights & Viewport Controls -->
+  <div class="flex flex-col gap-space-lg">
+    <!-- Row 1: Context Header & Fast KPIs -->
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+      <div>
+        <div class="flex items-center gap-space-xs text-outline font-caption text-caption uppercase tracking-wider mb-space-2xs">
+          <span>Despacho Inteligente</span>
+          <span>•</span>
+          <span class="text-primary font-semibold">Campaña San Valentín 2025</span>
+        </div>
+        <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Registro y Gestión de Pedidos</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Orquestación de envíos programados, georreferenciación instantánea y balance de carga de flota.</p>
+      </div>
+      <!-- Quick Metrics Strip -->
+      <div class="flex items-center gap-space-sm overflow-x-auto pb-1">
+        <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+          <div class="w-8 h-8 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-caption text-caption text-outline">Anticipados</span>
+            <span class="font-title-md text-title-md text-on-surface">88.7%</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+          <div class="w-8 h-8 rounded-lg bg-status-in-transit/15 flex items-center justify-center text-status-in-transit">
+            <span class="material-symbols-outlined text-[20px]">pending_actions</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-caption text-caption text-outline">Sin Asignar</span>
+            <span class="font-title-md text-title-md text-on-surface">{{ pendientesCount() }}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
+          <div class="w-8 h-8 rounded-lg bg-status-delivered/15 flex items-center justify-center text-status-delivered">
+            <span class="material-symbols-outlined text-[20px]">verified</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-caption text-caption text-outline">SLA Prometido</span>
+            <span class="font-title-md text-title-md text-on-surface">99.4%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Apple Segmented Control, Search & Actions -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+      <!-- macOS Segmented Control -->
+      <div class="inline-flex p-1 bg-surface-container-high rounded-xl self-start max-w-full overflow-x-auto shadow-inner">
+        <button
+          type="button"
+          class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all whitespace-nowrap cursor-pointer"
+          [ngClass]="activeTab() === 'todos' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+          (click)="setActiveTab('todos')"
+        >
+          Todos <span class="font-caption text-caption text-outline ml-1">{{ totalOrdersCount() }}</span>
+        </button>
+        <button
+          type="button"
+          class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all whitespace-nowrap cursor-pointer"
+          [ngClass]="activeTab() === 'anticipados' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+          (click)="setActiveTab('anticipados')"
+        >
+          Programados con Anticipación <span class="font-caption text-caption text-outline ml-1">{{ anticipadosCount() }}</span>
+        </button>
+        <button
+          type="button"
+          class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all whitespace-nowrap cursor-pointer"
+          [ngClass]="activeTab() === 'hoy' ? 'bg-surface-container-lowest text-on-surface shadow-xs font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+          (click)="setActiveTab('hoy')"
+        >
+          Pedidos de Hoy <span class="font-caption text-caption text-outline ml-1">{{ hoyCount() }}</span>
+        </button>
+        <button
+          type="button"
+          class="px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
+          [ngClass]="activeTab() === 'pendientes' ? 'bg-surface-container-lowest text-status-urgent shadow-xs font-semibold' : 'text-status-urgent hover:text-on-surface'"
+          (click)="setActiveTab('pendientes')"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-status-urgent"></span>
+          Pendientes de Asignar <span class="font-caption text-caption text-status-urgent ml-1">{{ pendientesCount() }}</span>
+        </button>
+      </div>
+
+      <!-- Search, Range & Primary Trigger -->
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <!-- Quick Search with macOS shortcut badge -->
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-space-sm text-[18px] text-outline pointer-events-none">search</span>
+          <input
+            #searchInput
+            class="pl-9 pr-14 py-2 bg-surface-container-lowest rounded-xl font-body-sm text-body-sm text-on-surface placeholder:text-outline shadow-xs border border-separator-hairline-light focus:outline-none focus:ring-2 focus:ring-primary/20 w-64 md:w-72"
+            placeholder="Buscar por ID, cliente, destinatario..."
+            type="text"
+            [(ngModel)]="searchQuery"
+          />
+          <div class="absolute right-2 flex items-center gap-0.5 pointer-events-none">
+            <kbd class="font-caption text-caption bg-surface-container-low px-1.5 py-0.5 rounded shadow-xs text-outline border border-separator-hairline-light">⌘F</kbd>
+          </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <button
+          type="button"
+          class="flex items-center gap-space-xs px-space-md py-2 bg-surface-container-lowest hover:bg-surface-container rounded-xl font-label-md text-label-md text-on-surface shadow-xs border border-separator-hairline-light transition-colors cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px] text-outline">date_range</span>
+          <span>10 Feb - 15 Feb</span>
+          <span class="material-symbols-outlined text-[16px] text-outline">arrow_drop_down</span>
+        </button>
+
+        <!-- Secondary Filter Popover Button -->
+        <button
+          type="button"
+          class="p-2 bg-surface-container-lowest hover:bg-surface-container text-on-surface rounded-xl shadow-xs border border-separator-hairline-light transition-colors cursor-pointer"
+          title="Filtros avanzados"
+        >
+          <span class="material-symbols-outlined text-[18px]">tune</span>
+        </button>
+
+        <!-- Primary Trigger for Sheet Modal -->
+        <div class="heading-actions flex items-center">
+          <button
+            type="button"
+            class="primary flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary px-space-lg py-2 rounded-xl font-label-md text-label-md shadow-md transition-all active:scale-[0.98] cursor-pointer"
+            (click)="forms.open('Pedido')"
+          >
+            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+            <span>+ Registrar Nuevo Pedido</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main macOS Grid & Data Surface -->
+  <div class="relative bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
+    <!-- Table Contextual Banner (Proactive Notification) -->
+    <div class="px-space-lg py-space-sm bg-tint-teal/10 flex items-center justify-between text-on-surface font-body-sm text-body-sm border-b border-tint-teal/20">
+      <div class="flex items-center gap-space-sm">
+        <span class="material-symbols-outlined text-tint-teal text-[20px]">local_florist</span>
+        <span>Modo Campaña Activo: <strong>San Valentín 2025</strong>. Priorizando despachos florales con control térmico y empaques frágiles.</span>
+      </div>
+      <div class="flex items-center gap-space-sm">
+        <span class="font-caption text-caption text-outline">1,260 pedidos programados fijados</span>
+        <button type="button" class="font-label-sm text-label-sm text-primary hover:underline font-semibold cursor-pointer">Ver Resumen de Carga</button>
+      </div>
+    </div>
+
+    <!-- macOS Data Table -->
+    <div class="overflow-x-auto w-full">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-container-low/70 backdrop-blur-md sticky top-0 z-10 text-outline font-label-sm text-label-sm uppercase tracking-wider select-none border-b border-separator-hairline-light">
+            <th class="py-space-md pl-space-lg pr-space-sm w-10">
+              <input
+                class="rounded text-primary focus:ring-0 cursor-pointer"
+                type="checkbox"
+                [checked]="isAllSelected()"
+                (change)="toggleSelectAll($any($event.target).checked)"
+              />
+            </th>
+            <th class="py-space-md px-space-sm font-semibold">ID Pedido</th>
+            <th class="py-space-md px-space-sm font-semibold">Cliente & Destinatario</th>
+            <th class="py-space-md px-space-sm font-semibold">Registro / Prometido</th>
+            <th class="py-space-md px-space-sm font-semibold">Zona Geográfica</th>
+            <th class="py-space-md px-space-sm font-semibold">Ventana Horaria</th>
+            <th class="py-space-md px-space-sm font-semibold">Carga & Tipo</th>
+            <th class="py-space-md px-space-sm font-semibold">Estado</th>
+            <th class="py-space-md pr-space-lg pl-space-sm text-right font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-separator-hairline-light font-body-sm text-body-sm">
+          @for (order of filteredOrders(); track order.id) {
+            <tr
+              class="group hover:bg-surface-container-low/60 transition-colors"
+              [ngClass]="{'bg-status-urgent/5': order.sinRepartidor}"
+            >
+              <td class="py-space-md pl-space-lg pr-space-sm">
+                <input
+                  class="rounded text-primary focus:ring-0 cursor-pointer"
+                  type="checkbox"
+                  [checked]="isRowSelected(order.id)"
+                  (change)="toggleSelectRow(order.id)"
+                />
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex items-center gap-space-xs">
+                  <strong class="order-id font-label-md text-label-md text-primary font-mono font-bold">{{ order.codigo }}</strong>
+                  @if (order.prioridad) {
+                    <span
+                      class="font-caption text-caption px-1.5 py-0.5 rounded font-bold"
+                      [ngClass]="order.prioridad === 'URGENTE' ? 'bg-status-urgent text-on-primary' : 'bg-status-urgent/10 text-status-urgent'"
+                    >
+                      {{ order.prioridad }}
+                    </span>
+                  }
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex flex-col">
+                  <span class="font-label-md text-label-md text-on-surface font-medium">{{ order.clienteNombre }}</span>
+                  <span class="text-on-surface-variant font-caption text-caption flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[13px] text-outline">call</span>
+                    {{ order.clienteTelefono }} → {{ order.destinatarioNombre }}
+                  </span>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex flex-col">
+                  <span class="text-on-surface font-label-sm text-label-sm font-semibold" [ngClass]="{'text-status-urgent': order.sinRepartidor}">
+                    {{ order.fechaPrometida }}
+                  </span>
+                  <span class="font-caption text-caption text-outline">{{ order.registroInfo }}</span>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm font-medium"
+                  [ngClass]="order.sinRepartidor ? 'bg-status-urgent/10 text-status-urgent' : 'bg-status-routing/10 text-status-routing'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="order.sinRepartidor ? 'bg-status-urgent' : 'bg-status-routing'"></span>
+                  {{ order.zonaNombre }}
+                </span>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex items-center gap-1 text-on-surface font-label-sm text-label-sm">
+                  <span class="material-symbols-outlined text-[15px]" [ngClass]="order.sinRepartidor ? 'text-status-urgent' : 'text-outline'">schedule</span>
+                  <span [ngClass]="{'text-status-urgent font-semibold': order.sinRepartidor}">{{ order.ventanaHoraria }}</span>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <div class="flex items-center gap-space-xs">
+                  <span class="p-1 rounded bg-tint-teal/15 text-tint-teal" [title]="order.cargaTitulo">
+                    <span class="material-symbols-outlined text-[16px]">{{ order.cargaIcono }}</span>
+                  </span>
+                  <div class="flex flex-col min-w-[120px]">
+                    <span class="font-caption text-caption text-on-surface truncate">{{ order.cargaTitulo }}</span>
+                    <div class="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden mt-0.5">
+                      <div class="h-full rounded-full" [ngClass]="order.cargaBarClass" [style.width]="order.cargaProgreso"></div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="py-space-md px-space-sm">
+                <span
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-caption text-caption font-semibold"
+                  [ngClass]="order.estadoColor"
+                >
+                  @if (order.estadoPill.includes('Entregado')) {
+                    <span class="w-1.5 h-1.5 rounded-full bg-status-delivered"></span>
+                  }
+                  {{ order.estadoPill }}
+                </span>
+              </td>
+              <td class="py-space-md pr-space-lg pl-space-sm text-right">
+                <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                  @if (order.sinRepartidor) {
+                    <button
+                      type="button"
+                      class="px-2.5 py-1 bg-primary text-on-primary rounded-lg text-label-sm font-label-sm shadow-xs hover:bg-primary-container transition-colors cursor-pointer"
+                      (click)="quickAssign(order)"
+                    >
+                      Asignar Ya
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="p-1 hover:bg-surface-container-high rounded-lg text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                      title="Reasignar Zona"
+                      (click)="showToast('Reasignación', 'Ventana de balance de zona abierta')"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">share_location</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1 hover:bg-surface-container-high rounded-lg text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                      title="Editar"
+                      (click)="openOrderSheet()"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1 hover:bg-surface-container-high rounded-lg text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                      title="Detalles"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="py-space-3xl text-center">
+                <div class="flex flex-col items-center justify-center gap-space-sm text-outline">
+                  <span class="material-symbols-outlined text-[44px]">inventory_2</span>
+                  <h3 class="font-title-md text-title-md text-on-surface font-semibold">Sin pedidos para mostrar</h3>
+                  <p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">
+                    {{ operations.connected() ? 'Prueba con otra fecha o registra un nuevo pedido.' : 'Conecta el backend para consultar tu operación.' }}
+                  </p>
+                  <button
+                    type="button"
+                    class="mt-space-xs px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md cursor-pointer"
+                    (click)="forms.open('Pedido')"
+                  >
+                    + Registrar Primer Pedido
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- macOS Table Pagination & Status Bar Footer -->
+    <div class="px-space-lg py-space-sm bg-surface-container-low/50 border-t border-separator-hairline-light flex flex-col sm:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
+      <div class="flex items-center gap-space-sm">
+        <span>Mostrando <strong>{{ filteredOrders().length }}</strong> pedidos</span>
+        <span class="text-outline-variant">|</span>
+        <span class="flex items-center gap-1 text-tertiary font-semibold">
+          <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> Auto-geolocalización activa
+        </span>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <button
+          type="button"
+          class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high disabled:opacity-40 transition-colors cursor-pointer"
+          disabled
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+        </button>
+        <span class="px-2 py-0.5 rounded bg-surface-container-lowest shadow-xs font-semibold text-on-surface border border-separator-hairline-light">1</span>
+        <button
+          type="button"
+          class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- macOS Modal Slide-over Sheet for Registering New Order -->
+  <div
+    class="fixed inset-0 z-50 flex justify-end bg-inverse-surface/30 backdrop-blur-xs transition-opacity duration-300"
+    [ngClass]="drawerOpen() ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
+    id="new-order-sheet"
+    (click)="closeOrderSheet()"
+  >
+    <div
+      class="w-full max-w-2xl h-full bg-surface-container-lowest shadow-2xl flex flex-col transform transition-transform duration-300 ease-out overflow-hidden pointer-events-auto"
+      [ngClass]="drawerOpen() ? 'translate-x-0' : 'translate-x-full'"
+      id="new-order-panel"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="px-space-lg py-space-md border-b border-separator-hairline-light bg-surface-container-low/80 backdrop-blur-xl flex items-center justify-between">
+        <div class="flex items-center gap-space-sm">
+          <div
+            class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/40 cursor-pointer hover:opacity-80 transition-opacity"
+            title="Cerrar"
+            (click)="closeOrderSheet()"
+          ></div>
+          <div class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/40"></div>
+          <div class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/40"></div>
+          <span class="ml-space-xs font-title-md text-title-md text-on-surface font-semibold">Registro de Nuevo Pedido</span>
+        </div>
+        <div class="flex items-center gap-space-xs">
+          <span class="font-caption text-caption px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">Auto-Zone AI</span>
+          <button
+            type="button"
+            class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+            (click)="closeOrderSheet()"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-space-xl space-y-space-xl">
+        <div class="space-y-space-md">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+              <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
+              <span class="font-semibold uppercase tracking-wider text-caption font-caption">1. Programación Anticipada & Horario</span>
+            </div>
+            <span class="font-caption text-caption text-outline">Fechas clave: San Valentín / Días Festivos</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Fecha de Entrega Deseada *</label>
+              <div class="relative">
+                <input
+                  class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                  type="date"
+                  [(ngModel)]="formFecha"
+                />
+                <div class="absolute right-3 top-2.5 pointer-events-none text-primary">
+                  <span class="material-symbols-outlined text-[18px]">favorite</span>
+                </div>
+              </div>
+              <span class="text-caption font-caption text-outline mt-1 block">Sugerido: 14 Feb (Campaña Activa)</span>
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Ventana Horaria *</label>
+              <select
+                class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none cursor-pointer"
+                [(ngModel)]="formVentana"
+              >
+                <option value="10:00 - 12:00 hrs (Pico Matutino)">10:00 - 12:00 hrs (Pico Matutino)</option>
+                <option value="12:00 - 14:00 hrs (Mediodía Corporativo)">12:00 - 14:00 hrs (Mediodía Corporativo)</option>
+                <option value="14:00 - 16:00 hrs (Tarde Temprana)">14:00 - 16:00 hrs (Tarde Temprana)</option>
+                <option value="16:00 - 19:00 hrs (Cierre Residencial)">16:00 - 19:00 hrs (Cierre Residencial)</option>
+                <option value="Horario Libre / Todo el Día">Horario Libre / Todo el Día</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-space-md pt-space-md border-t border-separator-hairline-light">
+          <div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+            <span class="material-symbols-outlined text-[18px]">person_pin</span>
+            <span class="font-semibold uppercase tracking-wider text-caption font-caption">2. Cliente Comprador & Destinatario</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Nombre de Quien Envía (Cliente)</label>
+              <input
+                class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                placeholder="Ej. Sebastián Valenzuela"
+                type="text"
+                [(ngModel)]="formCliente"
+              />
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Email / Notificación Comprador</label>
+              <input
+                class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                placeholder="sebastian@empresa.com"
+                type="email"
+                [(ngModel)]="formEmail"
+              />
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Nombre de Quien Recibe *</label>
+              <input
+                class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                placeholder="Ej. Valentina Ramos"
+                type="text"
+                [(ngModel)]="formDestinatario"
+              />
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Teléfono Destinatario (SMS tracking) *</label>
+              <input
+                class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                placeholder="+56 9 9123 4567"
+                type="tel"
+                [(ngModel)]="formTelefono"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-space-md pt-space-md border-t border-separator-hairline-light">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+              <span class="material-symbols-outlined text-[18px]">location_on</span>
+              <span class="font-semibold uppercase tracking-wider text-caption font-caption">3. Dirección & Georreferenciación Automática</span>
+            </div>
+            <span class="font-caption text-caption text-status-delivered font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-status-delivered animate-pulse"></span>
+              GPS Listo
+            </span>
+          </div>
+          <div>
+            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Dirección Completa (con autocompletado inteligente) *</label>
+            <div class="relative">
+              <input
+                class="w-full pl-9 pr-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                type="text"
+                [(ngModel)]="formDireccion"
+              />
+              <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
+            </div>
+          </div>
+          <div class="p-space-md rounded-xl bg-surface-container-low border border-separator-hairline-light flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-9 h-9 rounded-lg bg-status-routing/15 flex items-center justify-center text-status-routing">
+                <span class="material-symbols-outlined text-[20px]">hub</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-caption text-caption text-outline">Zona Asignada por Coordenadas</span>
+                <span class="font-label-md text-label-md text-on-surface font-semibold">{{ formZona() }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-caption text-caption px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-medium">Hub Central (4.2 km)</span>
+              <button class="font-caption text-caption text-primary hover:underline font-semibold cursor-pointer" type="button">Cambiar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-space-md pt-space-md border-t border-separator-hairline-light">
+          <div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+            <span class="material-symbols-outlined text-[18px]">package_2</span>
+            <span class="font-semibold uppercase tracking-wider text-caption font-caption">4. Especificación del Paquete</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+            <label
+              class="flex flex-col p-space-sm rounded-xl bg-surface-container-low cursor-pointer transition-all border-2"
+              [ngClass]="formTipoCarga() === 'flores' ? 'border-primary bg-primary/5' : 'border-separator-hairline-light hover:bg-surface-container'"
+              (click)="setTipoCarga('flores')"
+            >
+              <div class="flex items-center justify-between mb-1">
+                <span class="material-symbols-outlined text-status-delivered text-[20px]">local_florist</span>
+                <input [checked]="formTipoCarga() === 'flores'" class="text-primary focus:ring-0 cursor-pointer" name="product_type" type="radio" />
+              </div>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Flores & Ramos</span>
+              <span class="font-caption text-caption text-outline">San Valentín / Frágil térmico</span>
+            </label>
+            <label
+              class="flex flex-col p-space-sm rounded-xl bg-surface-container-low cursor-pointer transition-all border-2"
+              [ngClass]="formTipoCarga() === 'pasteleria' ? 'border-primary bg-primary/5' : 'border-separator-hairline-light hover:bg-surface-container'"
+              (click)="setTipoCarga('pasteleria')"
+            >
+              <div class="flex items-center justify-between mb-1">
+                <span class="material-symbols-outlined text-status-in-transit text-[20px]">cake</span>
+                <input [checked]="formTipoCarga() === 'pasteleria'" class="text-primary focus:ring-0 cursor-pointer" name="product_type" type="radio" />
+              </div>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Pastelería / Bombones</span>
+              <span class="font-caption text-caption text-outline">Transporte nivelado</span>
+            </label>
+            <label
+              class="flex flex-col p-space-sm rounded-xl bg-surface-container-low cursor-pointer transition-all border-2"
+              [ngClass]="formTipoCarga() === 'general' ? 'border-primary bg-primary/5' : 'border-separator-hairline-light hover:bg-surface-container'"
+              (click)="setTipoCarga('general')"
+            >
+              <div class="flex items-center justify-between mb-1">
+                <span class="material-symbols-outlined text-status-routing text-[20px]">redeem</span>
+                <input [checked]="formTipoCarga() === 'general'" class="text-primary focus:ring-0 cursor-pointer" name="product_type" type="radio" />
+              </div>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Regalo General</span>
+              <span class="font-caption text-caption text-outline">Caja estándar (sin refrigerar)</span>
+            </label>
+          </div>
+          <div>
+            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-1 font-medium">Notas de Entrega / Instrucciones de Conserjería</label>
+            <textarea
+              class="w-full px-space-md py-2 bg-surface-container-low rounded-xl font-body-sm text-body-sm text-on-surface border border-separator-hairline-light focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              placeholder="Ej. Dejar con conserje Don Manuel si no responden citófono. Entrega sorpresa, no llamar antes."
+              rows="2"
+              [(ngModel)]="formNotas"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-space-lg py-space-md border-t border-separator-hairline-light bg-surface-container-low/60 flex items-center justify-between">
+        <button
+          class="px-space-md py-2 text-on-surface-variant hover:text-on-surface font-label-md text-label-md rounded-xl transition-colors cursor-pointer"
+          (click)="closeOrderSheet()"
+          type="button"
+        >
+          Cancelar
+        </button>
+        <div class="flex items-center gap-space-sm">
+          <button
+            class="px-space-md py-2 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-xl shadow-xs transition-colors cursor-pointer"
+            type="button"
+            (click)="closeOrderSheet(); showToast('Borrador Guardado', 'El pedido se guardó como borrador local')"
+          >
+            Guardar como Borrador
+          </button>
+          <button
+            class="px-space-lg py-2 bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+            (click)="saveOrderAndRoute()"
+            type="button"
+          >
+            <span class="material-symbols-outlined text-[18px]">done</span>
+            <span>Confirmar y Enrutar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div
+    class="fixed top-16 right-8 z-50 flex items-center gap-space-sm bg-surface-glass-light/95 backdrop-blur-2xl border border-separator-hairline-light px-space-md py-3 rounded-2xl shadow-xl transition-all duration-300"
+    [ngClass]="toastVisible() ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-[-100px] opacity-0 pointer-events-none'"
+    id="mac-toast"
+  >
+    <div class="w-8 h-8 rounded-full bg-status-delivered/20 flex items-center justify-center text-status-delivered">
+      <span class="material-symbols-outlined text-[20px]">check_circle</span>
+    </div>
+    <div class="flex flex-col">
+      <span class="font-label-md text-label-md text-on-surface font-semibold">{{ toastTitle() }}</span>
+      <span class="font-caption text-caption text-on-surface-variant">{{ toastMessage() }}</span>
+    </div>
+  </div>
+</div>

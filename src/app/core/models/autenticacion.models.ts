@@ -43,5 +43,6 @@ export function errorAutenticacion(error: any, login = false): string {
       error?.message ||
       'No se pudo completar la operación.',
     ...Object.values(error?.error?.errors || {}).flat(),
+    ...(error?.error?.traceId ? ['Referencia: ' + error.error.traceId] : []),
   ].join(' ');
 }

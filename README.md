@@ -24,13 +24,15 @@ La URL REST se configura mediante `LOGISTICA_SERVER_URL` en `src/app/app.config.
 - SignalR por fecha con resuscripción y recarga REST al reconectar.
 - Estados vacíos, carga, errores de negocio y conexión; sin datos simulados.
 
-Los indicadores de en camino y entregados corresponden a la página de pedidos cargada (hasta 50), según los filtros. El total corresponde al total filtrado informado por la API.
+Los indicadores de pedidos provienen de `/api/resumen/pedidos` y abarcan todos los registros filtrados. Listado y resumen comparten fecha o rango, zona, estado y búsqueda. El CSV conserva el alcance de los registros cargados.
 
-El backend no expone GPS de repartidores ni trazado por calles. Las líneas del mapa son conexiones referenciales entre destinos, no navegación vial. Los mapas requieren conexión a los servidores de teselas de OpenStreetMap.
+La integración OpenAPI 1.1.0 incluye detalles y edición de pedidos pendientes con versión, transferencia atómica, reordenamiento completo de paradas y GPS por REST/SignalR. El GPS requiere publicación desde un conductor con ruta en curso; se muestran captura, precisión y caducidad. Las líneas del mapa son conexiones referenciales entre destinos, no navegación vial. No hay ETA ni historial GPS. Los mapas requieren conexión a los servidores de teselas de OpenStreetMap.
 
 El panel requiere JWT y rol Administrador. La documentación de autenticación vigente está en `docs/Autenticacion_JWT_Integracion.md`; reemplaza las indicaciones antiguas de acceso anónimo de `docs/README.md`.
 
 ## Verificación
+
+El estado actual de la entrega y la validación pendiente con backend/móvil están en [ESTADO_INTEGRACION_1.1.0.md](docs/ESTADO_INTEGRACION_1.1.0.md). La conservación de estilos y clases se comprueba con `node scripts/verificar-diseno.mjs`.
 
 ```powershell
 npm run build
@@ -40,6 +42,8 @@ npm test -- --watch=false
 `docs/verificar-api.mjs` se conserva como referencia de la integración anterior sin autenticación. No valida la nueva integración JWT: sus comprobaciones de acceso anónimo ya no aplican.
 
 ## Selección de dirección de pedidos
+
+Para creación/edición de zonas y la referencia del local, consulta [ZONAS_Y_LOCAL.md](docs/ZONAS_Y_LOCAL.md). El local se configura con dirección y mapa; su almacenamiento actual es por navegador porque la API aún no expone una sede compartida.
 
 Pega la dirección recibida por WhatsApp en el campo de dirección. Usa «Buscar dirección en el mapa», elige una coincidencia y ajusta el marcador si hace falta. También puedes hacer clic directamente sobre el mapa; la dirección escrita se conserva como referencia de entrega. Cambiar la dirección invalida el punto anterior para evitar guardar una ubicación desactualizada. No hay coordenadas predeterminadas para pedidos nuevos.
 
@@ -56,7 +60,7 @@ src/app/
     models/                 Contratos de backend y tipos de direcciones
     services/
       usuarios.service.ts         Gestión de cuentas y contraseñas temporales
-      logistica-api.service.ts    Transporte HTTP: los 21 endpoints
+      logistica-api.service.ts    Transporte HTTP tipado según OpenAPI
       operations.service.ts       Estado compartido de la operación y acciones
       operation-forms.service.ts  Estado, validación y envío de formularios
       seguimiento.service.ts      Conexión SignalR y grupos por fecha

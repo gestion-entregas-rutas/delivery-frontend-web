@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { adminGuard, credencialesGuard, loginGuard } from './core/auth/auth.guards';
-import { AdminLayout } from './layout/admin-layout/admin-layout';
 export const routes: Routes = [
   {
     path: 'login',
@@ -15,7 +14,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: AdminLayout,
+    loadComponent: () => import('./layout/admin-layout/admin-layout').then((m) => m.AdminLayout),
     canActivateChild: [adminGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'resumen' },

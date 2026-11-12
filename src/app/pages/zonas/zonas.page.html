@@ -19,7 +19,7 @@
         </div>
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline">Flota Activa</span>
-          <span class="font-title-md text-title-md text-on-surface">12 / 14</span>
+          <span class="font-title-md text-title-md text-on-surface">{{operations.availableDrivers}} / {{operations.repartidores().length}}</span>
         </div>
       </div>
       <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
@@ -28,7 +28,7 @@
         </div>
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline">Zonas Cubiertas</span>
-          <span class="font-title-md text-title-md text-on-surface">{{ operations.zonas().length || 4 }}</span>
+          <span class="font-title-md text-title-md text-on-surface">{{ operations.zonas().length }}</span>
         </div>
       </div>
       <div class="flex items-center gap-space-sm bg-surface-container-lowest px-space-md py-space-sm rounded-xl shadow-xs border border-separator-hairline-light">
@@ -37,7 +37,7 @@
         </div>
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline">Eficiencia Global</span>
-          <span class="font-title-md text-title-md text-on-surface">96.4%</span>
+          <span class="font-title-md text-title-md text-on-surface">No informado</span>
         </div>
       </div>
     </div>
@@ -73,6 +73,7 @@
     </div>
 
     <div class="flex items-center gap-space-sm">
+      <button type="button" class="flex items-center gap-1.5 bg-surface-container-lowest hover:bg-surface-container text-on-surface px-space-md py-2 rounded-xl font-label-md text-label-md shadow-xs border border-separator-hairline-light transition-colors cursor-pointer" (click)="forms.open('Local')"><span class="material-symbols-outlined text-[18px]">storefront</span><span>{{local.location() ? 'Editar nuestro local' : 'Ubicar nuestro local'}}</span></button>
       <button
         type="button"
         class="flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-2 rounded-xl font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -93,7 +94,7 @@
   </div>
 
   <!-- Interactive Map and Coverage Workspace -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg">
+  <div [style.display]="activeTab() === 'repartidores' ? 'none' : null" class="grid grid-cols-1 lg:grid-cols-12 gap-gutter-lg">
     <!-- Map Surface -->
     <div class="lg:col-span-8 bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
       <div class="px-space-lg py-space-sm bg-surface-container-low/70 border-b border-separator-hairline-light flex items-center justify-between">
@@ -103,17 +104,28 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="inline-flex items-center gap-1 text-caption font-caption px-2 py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-bold">
-            <span class="w-1.5 h-1.5 rounded-full bg-status-delivered animate-ping"></span> GPS Telemetría Activa
+            <span class="w-1.5 h-1.5 rounded-full bg-status-delivered animate-ping"></span> {{operations.live() ? 'Seguimiento conectado' : 'Seguimiento sin conexión'}}
           </span>
         </div>
       </div>
       <div class="p-space-sm">
-        <app-zone-coverage-map [zones]="operations.zonas()" />
+        <app-zone-coverage-map [zones]="operations.zonas()" (zoneSelected)="selectedZoneId.set($event || null)" />
       </div>
     </div>
 
     <!-- Active Zones Sidebar Cards -->
     <div class="lg:col-span-4 flex flex-col space-y-space-md">
+      <section class="p-space-md rounded-xl bg-surface-container-lowest border border-separator-hairline-light shadow-xs">
+        <h2 class="font-title-md text-title-md text-on-surface font-semibold">Nuestro local</h2>
+        @if(local.location();as shop){
+          <p class="font-label-md text-label-md text-on-surface">{{shop.nombre}}</p><p class="font-body-sm text-body-sm text-on-surface-variant">{{shop.direccion}}</p>
+          <p class="font-caption text-caption text-outline">Referencia guardada en este navegador.</p>
+          <p class="font-caption text-caption text-on-surface-variant">{{localZones().length ? 'Zonas que contienen el local:' : 'El local está fuera de las zonas registradas; puede funcionar como referencia externa.'}}</p>
+          @for(zone of localZones();track zone.id){<span class="font-caption text-caption text-primary">{{zone.nombre}}{{zone.activa ? '' : ' (inactiva)'}} · </span>}
+          <button type="button" class="button" (click)="coverage?.focusLocal()">Ver local en el mapa</button>
+        }@else{<p class="font-body-sm text-body-sm text-on-surface-variant">Selecciona la dirección y ajusta el marcador para usar el local como referencia.</p>}
+        @if(local.error()){<p class="font-caption text-caption text-status-urgent" role="alert">{{local.error()}}</p>}
+      </section>
       <div class="flex items-center justify-between">
         <h2 class="font-title-md text-title-md text-on-surface font-semibold">Zonas Registradas</h2>
         <span class="font-caption text-caption px-2 py-0.5 rounded-full bg-surface-container text-outline font-semibold">
@@ -123,7 +135,7 @@
 
       <div class="flex flex-col space-y-space-sm max-h-[460px] overflow-y-auto pr-1">
         @for (z of operations.zonas(); track z.id) {
-          <article class="panel entity-card zone-card p-space-md rounded-xl bg-surface-container-lowest border border-separator-hairline-light shadow-xs hover:border-primary/40 transition-colors">
+          <article [class.ring-2]="selectedZoneId() === z.id" [class.ring-primary]="selectedZoneId() === z.id" class="panel entity-card zone-card p-space-md rounded-xl bg-surface-container-lowest border border-separator-hairline-light shadow-xs hover:border-primary/40 transition-colors">
             <div class="flex items-center justify-between mb-2">
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold" [ngClass]="z.activa ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container text-outline'">
                 <span class="w-1.5 h-1.5 rounded-full" [ngClass]="z.activa ? 'bg-status-delivered' : 'bg-outline'"></span>
@@ -145,11 +157,12 @@
             <button
               type="button"
               class="button w-full mt-2 flex items-center justify-center gap-1.5 px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors cursor-pointer"
-              (click)="forms.open('Zona', z)"
+              (click)="editZone(z)" [disabled]="!!editingZoneId() || operations.saving()"
             >
               <span class="material-symbols-outlined text-[16px]">edit_location_alt</span>
-              <span>Editar Zona en el Mapa</span>
+              <span>{{editingZoneId() === z.id ? 'Cargando zona…' : 'Editar Zona en el Mapa'}}</span>
             </button>
+            <button type="button" class="button w-full mt-2 flex items-center justify-center gap-1.5 px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors cursor-pointer" (click)="selectZone(z)">Ver cobertura</button>
           </article>
         } @empty {
           <div class="p-space-xl rounded-xl bg-surface-container-lowest border border-dashed border-separator-hairline-light text-center">
@@ -170,13 +183,13 @@
   </div>
 
   <!-- Drivers Roster Table (From DiseoZonaGeografica.html) -->
-  <div class="bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
+  <div [style.display]="activeTab() === 'zonas' ? 'none' : null" class="bg-surface-container-lowest rounded-2xl shadow-xs border border-separator-hairline-light overflow-hidden flex flex-col">
     <div class="px-space-lg py-space-md border-b border-separator-hairline-light flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
       <div class="flex items-center gap-space-sm">
         <span class="material-symbols-outlined text-primary text-[22px]">local_shipping</span>
         <div>
           <h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Estado de la Flota y Asignación</h2>
-          <p class="font-body-sm text-body-sm text-on-surface-variant">Monitoreo en tiempo real de repartidores, nivel de carga y coordenadas GPS.</p>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Disponibilidad, capacidad y rutas reales. GPS con hora de captura y precisión; batería no disponible.</p>
         </div>
       </div>
       <span class="font-caption text-caption px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-semibold">
@@ -229,12 +242,12 @@
               <td class="py-space-md px-space-sm">
                 <div class="flex items-center gap-space-xs">
                   <span class="material-symbols-outlined text-[16px] text-outline">battery_charging_full</span>
-                  <span>{{ driver.vehiculo }} ({{ driver.bateria }}%)</span>
+                  <span>{{ driver.vehiculo }} (batería no informada)</span>
                 </div>
               </td>
               <td class="py-space-md px-space-sm">
                 <span class="font-mono text-caption text-caption text-on-surface-variant">
-                  {{ driver.lat.toFixed(4) }}, {{ driver.lng.toFixed(4) }}
+                  {{driver.gpsText}}
                 </span>
               </td>
               <td class="py-space-md px-space-sm">
@@ -254,16 +267,16 @@
                   <button
                     type="button"
                     class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface cursor-pointer"
-                    title="Ver en Mapa"
-                    (click)="showToast('Telemetría', 'Centrando mapa en ' + driver.nombre)"
+                    title="Ver los destinos de su ruta; no es GPS en vivo"
+                    (click)="viewRoute(driver)" [disabled]="!driver.routeId"
                   >
                     <span class="material-symbols-outlined text-[18px]">gps_fixed</span>
                   </button>
                   <button
                     type="button"
                     class="p-1 hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface cursor-pointer"
-                    title="Reasignar"
-                    (click)="showToast('Reasignación', 'Ventana de zona para ' + driver.nombre)"
+                    title="Cambiar disponibilidad"
+                    (click)="changeAvailability(driver)" [disabled]="driver.estado==='EnRuta' || operations.saving()"
                   >
                     <span class="material-symbols-outlined text-[18px]">alt_route</span>
                   </button>

@@ -1,4 +1,4 @@
-import { Component, inject, afterNextRender, OnDestroy, signal } from '@angular/core';
+import { Component, inject, afterNextRender, OnDestroy, signal, HostListener } from '@angular/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { errorAutenticacion } from '../../core/models/autenticacion.models';
 import { FormsModule } from '@angular/forms';
@@ -6,19 +6,38 @@ import { OperationsService } from '../../core/services/operations.service';
 import { OperationFormsService } from '../../core/services/operation-forms.service';
 import { RouterOutlet } from '@angular/router';
 import { OperationForm } from '../../shared/components/operation-form/operation-form';
+import { PedidoDetail } from '../../shared/components/pedido-detail/pedido-detail';
+import { PedidoDetailService } from '../../core/services/pedido-detail.service';
+import { RouteAssignmentService } from '../../core/services/route-assignment.service';
+import { RouteAssignment } from '../../shared/components/route-assignment/route-assignment';
 import { CommonModule } from '@angular/common';
+import { RouteOrder } from '../../shared/components/route-order/route-order';
+import { RouteOrderService } from '../../core/services/route-order.service';
 @Component({
   selector: 'app-admin-layout',
-  imports: [CommonModule, FormsModule, RouterOutlet, OperationForm],
+  imports: [CommonModule, FormsModule, RouterOutlet, OperationForm, RouteAssignment, PedidoDetail, RouteOrder],
   templateUrl: './admin-layout.html',
 })
 export class AdminLayout implements OnDestroy {
   readonly auth = inject(AuthService);
   readonly loggingOut = signal(false);
+  readonly desktop = signal(true);
+  private readonly assignment = inject(RouteAssignmentService);
+  private readonly detail = inject(PedidoDetailService);
+  private readonly routeOrder = inject(RouteOrderService);
+  @HostListener('window:resize') updateViewport() {
+    this.desktop.set(window.innerWidth > 900);
+  }
   readonly navigationOpen = signal(false);
   readonly groups = ['Principal', 'Operaciones', 'Administración'];
   moduleSearch = '';
-  matchesModule(name:string){const item=this.operations.navigation.find(n=>n.name===name);return !this.moduleSearch || (item?.label+' '+name).toLocaleLowerCase().includes(this.moduleSearch.toLocaleLowerCase());}
+  matchesModule(name: string) {
+    const item = this.operations.navigation.find((n) => n.name === name);
+    return (
+      !this.moduleSearch ||
+      (item?.label + ' ' + name).toLocaleLowerCase().includes(this.moduleSearch.toLocaleLowerCase())
+    );
+  }
   visibleNavigation(group?: string) {
     const q = this.moduleSearch.toLocaleLowerCase().trim();
     return this.operations.navigation.filter(
@@ -55,7 +74,10 @@ export class AdminLayout implements OnDestroy {
   readonly forms = inject(OperationFormsService);
 
   constructor() {
-    afterNextRender(() => this.operations.start());
+    afterNextRender(() => {
+      this.updateViewport();
+      this.operations.start();
+    });
   }
 
   openPrimaryAction() {
@@ -84,6 +106,10 @@ export class AdminLayout implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.routeOrder.reset();
+    this.assignment.reset();
+    this.detail.close();
+    this.forms.orderDrawerRequested.set(false);
     this.operations.stop();
     this.forms.modal.set('');
     this.forms.form = {};

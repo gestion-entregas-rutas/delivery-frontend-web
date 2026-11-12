@@ -6,10 +6,12 @@ import { ZoneMapPicker } from '../zone-map-picker/zone-map-picker';
 import { AddressPicker } from '../address-picker/address-picker';
 @Component({
   selector: 'app-operation-form',
+  host: { class: 'legacy-ui' },
   imports: [FormsModule, AddressPicker, ZoneMapPicker],
   templateUrl: './operation-form.html',
 })
 export class OperationForm {
   readonly operations = inject(OperationsService);
   readonly forms = inject(OperationFormsService);
+  readonly localPoint = this.forms.local.location;
 }

@@ -2,9 +2,11 @@ import { Injectable, inject, signal, OnDestroy } from '@angular/core';
 import { LOGISTICA_SERVER_URL } from './logistica-api.service';
 import { AuthService } from '../auth/auth.service';
 import type { HubConnection } from '@microsoft/signalr';
+import { UbicacionRepartidorDto } from '../models/logistica.models';
 @Injectable({ providedIn: 'root' })
 export class SeguimientoService implements OnDestroy {
   readonly live = signal(false);
+  onLocation?: (position: UbicacionRepartidorDto) => void;
   private readonly auth = inject(AuthService);
   private generation = 0;
   private readonly server = inject(LOGISTICA_SERVER_URL);
@@ -35,6 +37,9 @@ export class SeguimientoService implements OnDestroy {
       });
       hub.on('RutaActualizada', () => {
         if (generation === this.generation) void refresh();
+      });
+      hub.on('UbicacionRepartidorActualizada', (position: UbicacionRepartidorDto) => {
+        if(generation===this.generation)this.onLocation?.(position);
       });
       hub.onreconnecting(() => {
         if (generation === this.generation) this.live.set(false);

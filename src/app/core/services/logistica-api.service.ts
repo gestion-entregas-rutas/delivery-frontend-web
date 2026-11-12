@@ -17,6 +17,10 @@ import {
   RepartidorDto,
   RutaDto,
   ZonaDto,
+  ActualizarPedidoRequest,
+  ResumenPedidosDto,
+  UbicacionRepartidorDto,
+  TransferirPedidoRequest,
 } from '../models/logistica.models';
 
 // URL del servidor SIN /api y SIN barra final; se configura en app.config.ts.
@@ -69,6 +73,39 @@ export class LogisticaApiService {
   }
   registrarPedido(body: RegistrarPedidoRequest) {
     return this.http.post<RegistroPedidoDto>(`${this.base}/pedidos`, body);
+  }
+  actualizarPedido(id: Guid, body: ActualizarPedidoRequest) {
+    return this.http.put<PedidoDto>(`${this.base}/pedidos/${id}`, body);
+  }
+  resumenPedidos(filtro: FiltroPedidos = {}) {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filtro)) {
+      if (value !== undefined && value !== null && key !== 'pagina' && key !== 'tamano')
+        params = params.set(key, String(value));
+    }
+    return this.http.get<ResumenPedidosDto>(`${this.base}/resumen/pedidos`, { params });
+  }
+  ubicaciones(fecha: Fecha, zonaId?: Guid) {
+    let params = new HttpParams().set('fecha', fecha);
+    if (zonaId) params = params.set('zonaId', zonaId);
+    return this.http.get<UbicacionRepartidorDto[]>(`${this.base}/seguimiento/ubicaciones`, {
+      params,
+    });
+  }
+  ubicacionRepartidor(id: Guid) {
+    return this.http.get<UbicacionRepartidorDto>(`${this.base}/repartidores/${id}/ubicacion`);
+  }
+  transferirPedido(origenId: Guid, pedidoId: Guid, body: TransferirPedidoRequest) {
+    return this.http.post<{ origen: RutaDto; destino: RutaDto }>(
+      `${this.base}/rutas/${origenId}/pedidos/${pedidoId}/transferir`,
+      body,
+    );
+  }
+  reordenarParadas(id: Guid, pedidosEnOrden: Guid[], version: number) {
+    return this.http.put<RutaDto>(`${this.base}/rutas/${id}/paradas/orden`, {
+      pedidosEnOrden,
+      version,
+    });
   }
   cancelarPedido(id: Guid) {
     return this.http.post<PedidoDto>(`${this.base}/pedidos/${id}/cancelar`, null);

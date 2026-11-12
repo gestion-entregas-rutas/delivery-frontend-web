@@ -2,14 +2,35 @@ import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ZonaDto, PuntoDto } from '../models/logistica.models';
 import { OperationsService } from './operations.service';
+import { LocalLocationService } from './local-location.service';
+import { zoneGeometryError } from '../utils/zone-geometry';
 @Injectable({ providedIn: 'root' })
 export class OperationFormsService {
   private readonly operations = inject(OperationsService);
+  readonly local = inject(LocalLocationService);
   readonly modal = signal('');
+  readonly orderDrawerRequested = signal(false);
   form: any = {};
   zonePoints: PuntoDto[] = [];
   open(type: string, zone?: ZonaDto) {
+    if (this.operations.saving()) return;
+    if (type === 'Pedido') {
+      this.orderDrawerRequested.set(true);
+      this.operations.navigate('Pedidos');
+      return;
+    }
     this.operations.error.set('');
+    if (type === 'Local') {
+      const local = this.local.location();
+      this.form = {
+        nombre: local?.nombre || 'Mi local',
+        direccion: local?.direccion || '',
+        latitud: local?.ubicacion.latitud,
+        longitud: local?.ubicacion.longitud,
+      };
+      this.modal.set(type);
+      return;
+    }
     this.zonePoints = zone ? zone.poligono.map((p) => ({ ...p })) : [];
     this.form = zone
       ? { ...zone }
@@ -31,10 +52,29 @@ export class OperationFormsService {
   hasDeliveryLocation() {
     return Number.isFinite(this.form.latitud) && Number.isFinite(this.form.longitud);
   }
+  zoneError() {
+    return zoneGeometryError(this.zonePoints);
+  }
   async save() {
+    if (this.operations.saving()) return;
     this.operations.saving.set(true);
     this.operations.error.set('');
     try {
+      if (this.modal() === 'Local') {
+        if (!this.hasDeliveryLocation())
+          throw new Error('Selecciona la ubicación del local en el mapa.');
+        if (
+          !this.local.save({
+            nombre: this.form.nombre,
+            direccion: this.form.direccion,
+            ubicacion: { latitud: this.form.latitud, longitud: this.form.longitud },
+          })
+        )
+          throw new Error(this.local.error());
+        this.operations.message.set('Ubicación del local guardada en este navegador.');
+        this.modal.set('');
+        return;
+      }
       if (this.modal() === 'Pedido') {
         if (!this.hasDeliveryLocation())
           throw new Error('Selecciona la ubicación de entrega en el mapa antes de guardar.');
@@ -48,6 +88,7 @@ export class OperationFormsService {
                 : this.form.horaEntrega,
           }),
         );
+        this.operations.lastRegistration.set(result);
         this.operations.message.set(
           result.asignacion?.tipo === 'EnEspera'
             ? 'Pedido registrado. En espera de asignación.'
@@ -60,27 +101,27 @@ export class OperationFormsService {
       }
       if (this.modal() === 'Zona') {
         const poligono = this.zonePoints.map((p) => ({ ...p }));
-        if (
-          poligono.length < 3 ||
-          poligono.some(
-            (p) =>
-              !Number.isFinite(p.latitud) ||
-              !Number.isFinite(p.longitud) ||
-              Math.abs(p.latitud) > 90 ||
-              Math.abs(p.longitud) > 180,
-          )
-        )
-          throw new Error('Marca al menos tres puntos válidos en el mapa para definir la zona.');
-        if (
-          poligono[0].latitud === poligono.at(-1)!.latitud &&
-          poligono[0].longitud === poligono.at(-1)!.longitud
-        )
-          throw new Error('No repitas el primer vértice al final.');
-        const body = { ...this.form, poligono };
+        const geometryError = zoneGeometryError(poligono);
+        if (geometryError) throw new Error(geometryError);
+        const nombre = String(this.form.nombre || '').trim();
+        if (!nombre || nombre.length > 100)
+          throw new Error('El nombre de la zona es obligatorio y admite hasta 100 caracteres.');
+        if (!Number.isInteger(this.form.maxPedidosPorRuta) || this.form.maxPedidosPorRuta < 1)
+          throw new Error('La capacidad por ruta debe ser un número entero mayor que cero.');
+        const body = {
+          nombre,
+          poligono,
+          maxPedidosPorRuta: this.form.maxPedidosPorRuta,
+          activa: !!this.form.activa,
+        };
         await firstValueFrom(
           this.form.id
             ? this.operations.api.actualizarZona(this.form.id, body)
-            : this.operations.api.crearZona(body),
+            : this.operations.api.crearZona({
+                nombre,
+                poligono,
+                maxPedidosPorRuta: body.maxPedidosPorRuta,
+              }),
         );
         this.operations.message.set('Zona guardada.');
       }

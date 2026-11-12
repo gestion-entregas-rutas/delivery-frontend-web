@@ -7,10 +7,15 @@
   OnChanges,
   OnDestroy,
   signal,
+  Output,
+  EventEmitter,
+  effect,
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
 import { ZonaDto } from '../../../core/models/logistica.models';
 import { mapPalette } from '../../../core/utils/map-palette';
+import { LocalLocationService } from '../../../core/services/local-location.service';
+import { localMapMarker } from '../../../core/utils/local-map-marker';
 @Component({
   selector: 'app-zone-coverage-map',
   template: `<div class="coverage-map" role="region" aria-label="Mapa de zonas geográficas"></div>
@@ -27,6 +32,9 @@ import { mapPalette } from '../../../core/utils/map-palette';
       ><button type="button" class="button" (click)="focusZone('')" [disabled]="!zones.length">
         Centrar
       </button>
+      @if (local.location()) {
+        <button type="button" class="button" (click)="focusLocal()">⌂ Nuestro local</button>
+      }
     </div>
     @if (error()) {
       <p class="coverage-note" role="alert">{{ error() }}</p>
@@ -74,6 +82,9 @@ import { mapPalette } from '../../../core/utils/map-palette';
 })
 export class ZoneCoverageMap implements OnChanges, OnDestroy {
   @Input() zones: ZonaDto[] = [];
+  @Output() zoneSelected = new EventEmitter<string>();
+  readonly local = inject(LocalLocationService);
+  private localMarker?: Leaflet.Marker;
   selected = '';
   readonly error = signal('');
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
@@ -83,6 +94,10 @@ export class ZoneCoverageMap implements OnChanges, OnDestroy {
   private destroyed = false;
   private resize?: ResizeObserver;
   constructor() {
+    effect(() => {
+      this.local.location();
+      this.draw();
+    });
     afterNextRender(() => void this.init());
   }
   ngOnChanges() {
@@ -111,6 +126,9 @@ export class ZoneCoverageMap implements OnChanges, OnDestroy {
   draw() {
     if (!this.L || !this.map || !this.layers) return;
     this.layers.clearLayers();
+    this.localMarker?.remove();
+    const local = this.local.location();
+    if (local) this.localMarker = localMapMarker(this.L, this.map, local);
     const colors = mapPalette();
     this.zones.forEach((zone, i) => {
       if (zone.poligono.length < 3) return;
@@ -135,6 +153,7 @@ export class ZoneCoverageMap implements OnChanges, OnDestroy {
   }
   focusZone(id: string) {
     this.selected = id;
+    this.zoneSelected.emit(id);
     this.draw();
   }
   private fit() {
@@ -142,8 +161,14 @@ export class ZoneCoverageMap implements OnChanges, OnDestroy {
     const points = this.zones
       .filter((z) => !this.selected || z.id === this.selected)
       .flatMap((z) => z.poligono.map((p) => [p.latitud, p.longitud] as [number, number]));
+    const local = this.local.location();
+    if (!this.selected && local) points.push([local.ubicacion.latitud, local.ubicacion.longitud]);
     if (points.length)
       this.map.fitBounds(this.L.latLngBounds(points), { padding: [30, 30], maxZoom: 15 });
+  }
+  focusLocal() {
+    const local = this.local.location();
+    if (local) this.map?.setView([local.ubicacion.latitud, local.ubicacion.longitud], 16);
   }
   ngOnDestroy() {
     this.destroyed = true;

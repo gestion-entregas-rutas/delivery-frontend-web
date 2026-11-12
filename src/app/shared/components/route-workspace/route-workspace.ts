@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../../core/services/operations.service';
 import type * as Leaflet from 'leaflet';
 import { mapPalette } from '../../../core/utils/map-palette';
+import { drawGpsMarkers } from '../../../core/utils/gps-markers';
+import { RouteOrderService } from '../../../core/services/route-order.service';
+import { RouteAssignmentService } from '../../../core/services/route-assignment.service';
 @Component({
   selector: 'app-route-workspace',
   imports: [FormsModule],
@@ -10,12 +13,15 @@ import { mapPalette } from '../../../core/utils/map-palette';
 })
 export class RouteWorkspace implements OnDestroy {
   readonly operations = inject(OperationsService);
+  readonly order = inject(RouteOrderService);
+  readonly assignment = inject(RouteAssignmentService);
   readonly mapError = signal('');
   private readonly ready = signal(false);
   private map?: Leaflet.Map;
   private L?: typeof Leaflet;
   private layers?: Leaflet.LayerGroup;
   private destroyed = false;
+  private timer?: ReturnType<typeof setInterval>;
   constructor() {
     afterNextRender(() => void this.initMap().then(() => this.ready.set(true)));
     effect(() => {
@@ -23,6 +29,7 @@ export class RouteWorkspace implements OnDestroy {
       this.operations.rutas();
       this.operations.pedidos();
       this.operations.selected();
+      this.operations.ubicaciones();
       if (this.ready()) this.draw();
     });
   }
@@ -42,6 +49,7 @@ export class RouteWorkspace implements OnDestroy {
       }).addTo(this.map);
       this.L.control.zoom({ position: 'bottomright' }).addTo(this.map);
       this.layers = this.L.layerGroup().addTo(this.map);
+      this.timer=setInterval(()=>this.draw(),30000);
 
       this.draw();
     } catch {
@@ -109,6 +117,7 @@ export class RouteWorkspace implements OnDestroy {
           .bindPopup(el)
           .addTo(this.layers!);
       });
+    drawGpsMarkers(L,this.layers,this.operations.ubicaciones(),this.operations.rutas(),id=>this.operations.driver(id),palette.teal,this.operations.zona,this.operations.selected()?.id || '');
     this.fitMap();
   }
   fitMap() {
@@ -119,6 +128,7 @@ export class RouteWorkspace implements OnDestroy {
 
   ngOnDestroy() {
     this.destroyed = true;
+    clearInterval(this.timer);
     this.map?.remove();
   }
 }

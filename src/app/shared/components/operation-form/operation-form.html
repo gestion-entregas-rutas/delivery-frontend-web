@@ -5,7 +5,7 @@
       aria-modal="true"
       aria-labelledby="modal-title"
       class="modal"
-      [class.modal-map]="forms.modal() === 'Pedido' || forms.modal() === 'Zona'"
+      [class.modal-map]="forms.modal() === 'Pedido' || forms.modal() === 'Zona' || forms.modal() === 'Local'"
       (click)="$event.stopPropagation()"
     >
       <div class="panel-heading">
@@ -17,7 +17,7 @@
                 ? 'Editar zona'
                 : forms.modal() === 'Zona'
                   ? 'Nueva zona'
-                  : 'Nuevo ' + forms.modal().toLowerCase()
+                  : forms.modal() === 'Local' ? 'Ubicación de nuestro local' : 'Nuevo ' + forms.modal().toLowerCase()
             }}
           </h2>
         </div>
@@ -34,6 +34,12 @@
         <div class="form-body">
           @if (operations.error()) {
             <div class="notice error" role="alert">{{ operations.error() }}</div>
+          }
+          @if(forms.modal()==='Local'){
+            <p class="form-hint">Configura la referencia del local para los mapas. Por ahora se guarda solo en este navegador; todavía no se comparte con otros administradores ni define el origen de las rutas del backend.</p>
+            <label>Nombre del local<input name="nombreLocal" [(ngModel)]="forms.form.nombre" required maxlength="150"></label>
+            <label>Dirección del local<input name="direccionLocal" [(ngModel)]="forms.form.direccion" required maxlength="300"></label>
+            <app-address-picker [address]="forms.form.direccion || ''" [initialPoint]="localPoint()?.ubicacion || null" (locationChange)="forms.setDeliveryLocation($event)" />
           }
           @if (forms.modal() === 'Pedido') {
             <label
@@ -160,9 +166,10 @@
             [disabled]="
               entry.invalid ||
               operations.saving() ||
-              !operations.connected() ||
+              (!operations.connected() && forms.modal() !== 'Local') ||
               (forms.modal() === 'Pedido' && !forms.hasDeliveryLocation()) ||
-              (forms.modal() === 'Zona' && forms.zonePoints.length < 3)
+              (forms.modal() === 'Local' && !forms.hasDeliveryLocation()) ||
+              (forms.modal() === 'Zona' && !!forms.zoneError())
             "
           >
             {{ operations.saving() ? 'Guardando…' : 'Guardar ' + forms.modal().toLowerCase() }}

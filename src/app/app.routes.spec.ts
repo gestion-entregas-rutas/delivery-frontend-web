@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { routes } from './app.routes';
 import { LOGISTICA_SERVER_URL } from './core/services/logistica-api.service';
 import { OperationFormsService } from './core/services/operation-forms.service';
@@ -74,7 +74,12 @@ describe('Navegación administrativa', () => {
       harness.routeNativeElement?.querySelector('.heading-actions .primary') as HTMLButtonElement
     ).click();
     harness.detectChanges();
-    expect(TestBed.inject(OperationFormsService).modal()).toBe('Pedido');
+    expect(
+      harness.routeNativeElement?.querySelector('#new-order-sheet')?.getAttribute('aria-hidden'),
+    ).toBe('false');
+    expect(harness.routeNativeElement?.querySelector('app-pedidos-page')?.textContent).toContain(
+      'Confirmar y Enrutar',
+    );
     expect(harness.routeNativeElement?.querySelector('app-address-picker')).toBeTruthy();
   });
   it('edita la zona real en el selector de mapa y busca módulos sin filtrar pedidos', async () => {
@@ -103,6 +108,10 @@ describe('Navegación administrativa', () => {
     expect(harness.routeNativeElement?.querySelectorAll('.nav-link').length).toBe(1);
     expect(operations.search).toBe('Cliente de prueba');
     (harness.routeNativeElement?.querySelector('.zone-card .button') as HTMLButtonElement).click();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:5289/api/zonas/zona-real')
+      .flush(zone);
+    await Promise.resolve();
     harness.detectChanges();
     const forms = TestBed.inject(OperationFormsService);
     expect(forms.form.id).toBe('zona-real');

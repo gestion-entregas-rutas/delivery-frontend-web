@@ -18,6 +18,7 @@
       @if (mapError()) {
         <div class="map-error">{{ mapError() }}</div>
       }
+      @if(operations.gpsError()){<p class="map-error" role="status">{{operations.gpsError()}}</p>}
     </div>
     <div class="map-footer">
       <div>
@@ -99,6 +100,9 @@
       </button>
     </div>
     <div class="route-actions">
+      @if(operations.selected()!.estado === 'Planificada' || operations.selected()!.estado === 'EnCurso'){
+        <button class="button" [disabled]="operations.saving()" (click)="order.open(operations.selected()!.id)">Ordenar paradas</button>
+      }
       @if (operations.selected()!.estado === 'Planificada') {
         <button
           class="button primary"
@@ -163,6 +167,7 @@
           operations.label(stop.pedido.estado)
         }}</span>
         @if (stop.pedido.estado === 'AsignadoARuta') {
+          <button class="text-button" [disabled]="operations.saving()" (click)="assignment.open(stop.pedido)">Transferir</button>
           <button
             class="text-button"
             [disabled]="operations.saving()"

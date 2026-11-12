@@ -1,5 +1,7 @@
 ﻿import { TestBed } from '@angular/core/testing';
 import { ZoneMapPicker } from './zone-map-picker';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 const fake = vi.hoisted(() => ({
   events: {} as Record<string, (event: any) => void>,
   markers: [] as any[],
@@ -43,6 +45,7 @@ vi.mock('leaflet', () => {
 });
 describe('Mapa de zonas', () => {
   beforeEach(() => {
+    TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting()]});
     fake.events = {};
     fake.markers = [];
     vi.clearAllMocks();

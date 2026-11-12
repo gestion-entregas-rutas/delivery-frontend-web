@@ -5,7 +5,7 @@ import { LOGISTICA_SERVER_URL } from './logistica-api.service';
 import { SeguimientoService } from './seguimiento.service';
 const fake = vi.hoisted(() => ({
   options: null as any,
-  events: new Map<string, () => void>(),
+  events: new Map<string, (...args: any[]) => void>(),
   hub: {
     state: 'Disconnected',
     on: vi.fn(),
@@ -75,5 +75,29 @@ describe('Seguimiento autenticado', () => {
     expect(refresh).not.toHaveBeenCalled();
     expect(service.live()).toBe(false);
     expect(fake.hub.stop).toHaveBeenCalled();
+  });
+  it('aplica la carga GPS directa y recupera REST tras resuscribirse al reconectar', async () => {
+    usuario.set({ rol: 'Administrador', debeCambiarCredenciales: false });
+    const refresh = vi.fn().mockResolvedValue(undefined),
+      onLocation = vi.fn();
+    service.onLocation = onLocation;
+    await service.start('2027-01-01', refresh);
+    const position = { repartidorId: 'd', rutaId: 'r', capturadaEn: '2027-01-01T15:00:00Z' };
+    fake.events.get('UbicacionRepartidorActualizada')?.(position);
+    expect(onLocation).toHaveBeenCalledWith(position);
+    await service.subscribeDate('2027-01-02');
+    expect(fake.hub.invoke).toHaveBeenCalledWith('CancelarFecha', '2027-01-01');
+    refresh.mockClear();
+    fake.hub.invoke.mockClear();
+    await fake.hub.onreconnected.mock.calls[0][0]();
+    expect(fake.hub.invoke).toHaveBeenCalledWith('SuscribirseAFecha', '2027-01-02');
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(
+      fake.hub.on.mock.calls.filter(([name]) => name === 'UbicacionRepartidorActualizada'),
+    ).toHaveLength(1);
+    await service.stop();
+    onLocation.mockClear();
+    fake.events.get('UbicacionRepartidorActualizada')?.(position);
+    expect(onLocation).not.toHaveBeenCalled();
   });
 });

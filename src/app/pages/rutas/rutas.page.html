@@ -6,9 +6,9 @@
         <div class="flex items-center gap-space-xs">
           <span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-caption text-caption tracking-wider uppercase font-semibold">
             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-            Algoritmo Heurístico v4.2 Activo
+            Planificación configurada en backend
           </span>
-          <span class="font-caption text-caption text-outline">Latencia motor: 42ms</span>
+          <span class="font-caption text-caption text-outline">Latencia del motor: no informada</span>
         </div>
         <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Armado y Optimización Inteligente de Rutas</h1>
         <p class="font-body-sm text-body-sm text-on-surface-variant">
@@ -27,7 +27,7 @@
               id="algo-model-select"
               class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer pr-space-sm"
               [ngModel]="selectedModel()"
-              (ngModelChange)="selectedModel.set($event)"
+              (ngModelChange)="selectedModel.set($event)" disabled title="El contrato no permite seleccionar el algoritmo"
             >
               @for (m of models; track m) {
                 <option [value]="m">{{ m }}</option>
@@ -74,13 +74,13 @@
           type="button"
           class="flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary px-space-lg py-2.5 rounded-xl font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
           id="optimizeTriggerBtn"
-          [disabled]="operations.saving() || optimizingMock()"
+          [disabled]="operations.saving() || optimizing()"
           (click)="triggerOptimization()"
         >
-          <span class="material-symbols-outlined text-[20px]" [class.animate-spin]="operations.saving() || optimizingMock()">
-            {{ operations.saving() || optimizingMock() ? 'refresh' : 'bolt' }}
+          <span class="material-symbols-outlined text-[20px]" [class.animate-spin]="operations.saving() || optimizing()">
+            {{ operations.saving() || optimizing() ? 'refresh' : 'bolt' }}
           </span>
-          <span>{{ operations.saving() || optimizingMock() ? 'Ejecutando Heurística VRP...' : 'Disparar Armado Automático' }}</span>
+          <span>{{ operations.saving() || optimizing() ? 'Ejecutando Heurística VRP...' : 'Disparar Armado Automático' }}</span>
         </button>
       </div>
     </div>
@@ -91,7 +91,7 @@
         <span class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Reglas Operativas Vigentes:</span>
         <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-lg bg-surface-container-lowest text-on-surface shadow-2xs border border-separator-hairline-light">
           <span class="material-symbols-outlined text-primary text-[15px]">inventory</span>
-          <span>Límite Estricto: <strong>4 pedidos / repartidor</strong></span>
+          <span>Límite Estricto: <strong>Según capacidad de zona y repartidor</strong></span>
           <button type="button" class="hover:text-primary transition-colors text-outline cursor-pointer" title="Ajustar límite">
             <span class="material-symbols-outlined text-[13px]">edit</span>
           </button>
@@ -102,17 +102,17 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-lg bg-surface-container-lowest text-on-surface shadow-2xs border border-separator-hairline-light">
           <span class="material-symbols-outlined text-tint-teal text-[15px]">schedule</span>
-          <span>Tolerancia de Ventana Horaria: <strong>±15 min</strong></span>
+          <span>Tolerancia de Ventana Horaria: <strong>No informada</strong></span>
         </div>
       </div>
       <div class="flex items-center gap-space-sm">
         <span class="font-caption text-caption text-outline">Balance de Flota:</span>
         <div class="w-28 bg-surface-container rounded-full h-2 overflow-hidden flex">
-          <div class="bg-status-delivered h-full w-[65%]" title="65% En ruta"></div>
-          <div class="bg-status-routing h-full w-[25%]" title="25% Asignado"></div>
-          <div class="bg-outline-variant h-full w-[10%]" title="10% Standby"></div>
+          <div class="bg-status-delivered h-full w-[65%]" [style.width.%]="fleetPercent('EnRuta')"></div>
+          <div class="bg-status-routing h-full w-[25%]" [style.width.%]="fleetPercent('Disponible')"></div>
+          <div class="bg-outline-variant h-full w-[10%]" [style.width.%]="fleetPercent('NoDisponible')"></div>
         </div>
-        <span class="font-label-sm text-label-sm text-on-surface font-semibold">90% Activo</span>
+        <span class="font-label-sm text-label-sm text-on-surface font-semibold">{{operations.availableDrivers}} disponibles</span>
       </div>
     </div>
   </section>
@@ -132,7 +132,7 @@
             </span>
           </div>
           <p class="font-body-sm text-body-sm text-on-surface-variant">
-            Reoptimización heurística en caliente sin desviar compromisos garantizados ni exceder el cupo máximo de 4 pedidos.
+            Registro real y asignación confirmada por el servidor. No hay simulaciones locales.
           </p>
         </div>
       </div>
@@ -140,12 +140,12 @@
         <button
           type="button"
           class="px-space-md py-1.5 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1 shadow-2xs border border-separator-hairline-light cursor-pointer active:scale-95"
-          (click)="simulateInjection()"
+          (click)="registerSameDay()"
         >
           <span class="material-symbols-outlined text-[16px]">restart_alt</span>
-          <span>Simular Inyección +1</span>
+          <span>Registrar pedido de hoy</span>
         </button>
-        <span class="font-caption text-caption text-outline px-2">Modo Auto-Aplicación: Encendido</span>
+        <span class="font-caption text-caption text-outline px-2">Asignación automática confirmada por el servidor</span>
       </div>
     </div>
 
@@ -245,7 +245,7 @@
             [class.text-on-surface-variant]="pendingFilter() !== 'Centro'"
             (click)="pendingFilter.set('Centro')"
           >
-            Centro (3)
+            Centro ({{pendingFor('Centro')}})
           </button>
           <button
             type="button"
@@ -257,7 +257,7 @@
             [class.text-on-surface-variant]="pendingFilter() !== 'Norte'"
             (click)="pendingFilter.set('Norte')"
           >
-            Norte (2)
+            Norte ({{pendingFor('Norte')}})
           </button>
           <button
             type="button"
@@ -269,7 +269,7 @@
             [class.text-on-surface-variant]="pendingFilter() !== 'Sur'"
             (click)="pendingFilter.set('Sur')"
           >
-            Sur (2)
+            Sur ({{pendingFor('Sur')}})
           </button>
         </div>
 
@@ -288,7 +288,7 @@
       <!-- Drag-and-Drop Orders List -->
       <div class="space-y-space-sm max-h-[720px] overflow-y-auto pr-1">
         @for (order of filteredPendingOrders(); track order.code) {
-          <div
+          <div draggable="true" (dragstart)="startDrag($event,order)"
             class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-xs transition-all cursor-grab active:cursor-grabbing border border-separator-hairline-light"
           >
             <div class="flex items-start justify-between">
@@ -400,7 +400,7 @@
           <button
             type="button"
             class="flex items-center gap-1 px-space-md py-1.5 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors shadow-2xs border border-separator-hairline-light cursor-pointer active:scale-95"
-            (click)="rebalanceAll()"
+            (click)="rebalanceAll()" disabled title="Pendiente de backend: operación atómica de rebalanceo"
           >
             <span class="material-symbols-outlined text-[16px]">lock_open</span>
             <span>Rebalancear Todo</span>
@@ -410,9 +410,9 @@
 
       <!-- VIEW MODE: MOSAICO / CRONOGRAMA -->
       @if (viewMode() === 'mosaico' || viewMode() === 'cronograma') {
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+        <div [style.grid-template-columns]="viewMode()==='cronograma'?'minmax(0,1fr)':null" class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
           @for (card of routeCards(); track card.id) {
-            <div class="rounded-2xl bg-surface-container-lowest p-space-lg shadow-xs border border-separator-hairline-light flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div (dragover)="$event.preventDefault()" (drop)="dropOnRoute($event,card)" class="rounded-2xl bg-surface-container-lowest p-space-lg shadow-xs border border-separator-hairline-light flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <!-- Card Header -->
                 <div class="flex items-start justify-between pb-space-sm border-b border-separator-hairline-light/50">
@@ -467,7 +467,7 @@
                   </div>
                   <div class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
                     @for (stop of card.stops; track stop.num) {
-                      <div class="relative group">
+                      <div [draggable]="stop.status === 'pending'" (dragstart)="startStopDrag($event,card,stop)" class="relative group">
                         @if (stop.status === 'delivered') {
                           <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
                           <div class="flex items-center justify-between">
@@ -510,7 +510,7 @@
                     @if (card.hasDropPlaceholder) {
                       <div
                         class="p-space-xs rounded-xl bg-surface-container-low text-center text-primary font-label-sm text-label-sm border border-dashed border-primary/40 cursor-pointer hover:bg-primary-fixed/30 transition-colors"
-                        (click)="assignPendingToFreeSlot(filteredPendingOrders()[0])"
+                        (click)="assignPendingToFreeSlot(filteredPendingOrders()[0],card.id)" [attr.aria-disabled]="!filteredPendingOrders().length || operations.saving()"
                         title="Clic para asignar primer pedido pendiente"
                       >
                         + Soltar Pedido Aquí (Espacio Libre)
@@ -524,10 +524,13 @@
               <div class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-xl p-space-xs border border-separator-hairline-light/50">
                 <span class="font-caption text-caption text-outline font-medium">{{ card.distanceTime }}</span>
                 <div class="flex items-center gap-1">
+                  @if(card.raw.estado==='Planificada' || card.raw.estado==='EnCurso'){
+                    <button type="button" class="p-1 rounded-lg text-outline hover:text-primary transition-colors cursor-pointer" title="Ordenar paradas" aria-label="Ordenar paradas" [disabled]="operations.saving()" (click)="order.open(card.id)"><span class="material-symbols-outlined text-[16px]">reorder</span></button>
+                  }
                   <button
                     type="button"
                     class="px-space-sm py-1 rounded-lg bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-2xs border border-separator-hairline-light cursor-pointer"
-                    (click)="showToast('Acción iniciada para ' + card.routeNumber)"
+                    (click)="actOnRoute(card)" [disabled]="operations.saving() || card.raw.estado==='Cancelada'"
                   >
                     {{ card.actionButtonLabel }}
                   </button>
@@ -535,7 +538,7 @@
                     type="button"
                     class="p-1 rounded-lg text-outline hover:text-primary transition-colors cursor-pointer"
                     title="Transferir parada"
-                    (click)="showToast('Modal de transferencia de paradas para ' + card.routeNumber)"
+                    (click)="openRoute(card)"
                   >
                     <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
                   </button>
@@ -573,13 +576,13 @@
             <span class="material-symbols-outlined text-tertiary text-[16px]">verified</span>
             Protección Anti-Doble Reserva: Activa
           </span>
-          <span>Rutas Cerradas: <strong>4</strong></span>
-          <span>Rutas Abiertas a Inserción: <strong>2</strong></span>
-          <span>Ahorro Estimado CO2: <strong>18.4 kg</strong></span>
+          <span>Rutas Cerradas: <strong>{{completedRoutes()}}</strong></span>
+          <span>Rutas Abiertas a Inserción: <strong>{{openRoutes()}}</strong></span>
+          <span>Ahorro Estimado CO2: <strong>No informado</strong></span>
         </div>
         <div class="flex items-center gap-1">
           <span class="text-outline">Última sincronización global:</span>
-          <span class="font-semibold text-on-surface">Hace 14 segundos</span>
+          <span class="font-semibold text-on-surface">{{operations.lastRefresh() ? (operations.lastRefresh() | date:'HH:mm:ss') : 'Sin sincronizar'}}</span>
         </div>
       </div>
     </main>

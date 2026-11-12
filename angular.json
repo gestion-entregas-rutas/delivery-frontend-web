@@ -34,7 +34,12 @@
             "ssr": {
               "entry": "src/server.ts"
             },
-            "allowedCommonJsDependencies": ["leaflet"]
+            "allowedCommonJsDependencies": [
+              "leaflet",
+              "osmtogeojson",
+              "@mapbox/geojson-rewind",
+              "osm-polygon-features"
+            ]
           },
           "configurations": {
             "production": {

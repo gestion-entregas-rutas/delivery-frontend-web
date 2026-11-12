@@ -37,8 +37,14 @@ export class AddressSearchService {
                 .join(', '),
               longitud: f.geometry.coordinates[0],
               latitud: f.geometry.coordinates[1],
+              ...this.osmReference(f.properties),
             })),
         ),
       );
+  }
+  private osmReference(properties: Record<string, string>): Pick<AddressResult, 'osm'> {
+    const type = ({ N: 'node', W: 'way', R: 'relation' } as const)[properties['osm_type']];
+    const id = Number(properties['osm_id']);
+    return type && Number.isSafeInteger(id) && id > 0 ? { osm: { type, id } } : {};
   }
 }

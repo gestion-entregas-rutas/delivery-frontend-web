@@ -48,8 +48,50 @@ export interface RegistrarPedidoRequest {
   fechaEntrega: Fecha;
   horaEntrega: Hora;
   zonaId?: Guid | null;
+  detalles?: DetallesPedidoDto | null;
+}
+export interface DetallesPedidoDto {
+  remitenteNombre?: string | null;
+  remitenteTelefono?: string | null;
+  remitenteCorreo?: string | null;
+  destinatarioCorreo?: string | null;
+  observaciones?: string | null;
+  tipoCarga?: 'General' | 'Documento' | 'Alimentos' | 'Medicamentos' | 'Otro' | null;
+  pesoKg?: number | null;
+  fragil?: boolean | null;
+  prioridad?: 'Baja' | 'Normal' | 'Alta' | 'Urgente' | null;
+}
+export interface ActualizarPedidoRequest extends RegistrarPedidoRequest {
+  version: number;
+}
+export interface ResumenPedidosDto {
+  total: number;
+  noCancelados: number;
+  entregados: number;
+  porcentajeEntregado: number;
+  porEstado: { estado: EstadoPedido; cantidad: number }[];
+  porZona: { zonaId: Guid; cantidad: number }[];
+  calculadoEn: string;
+}
+export interface UbicacionRepartidorDto extends PuntoDto {
+  repartidorId: Guid;
+  rutaId: Guid;
+  precisionMetros: number | null;
+  capturadaEn: string;
+  recibidaEn: string;
+  esReciente: boolean;
+}
+export interface TransferirPedidoRequest {
+  destinoRutaId: Guid;
+  versionOrigen: number;
+  versionDestino: number;
+  posicion?: number | null;
 }
 export interface PedidoDto {
+  version?: number;
+  detalles?: DetallesPedidoDto | null;
+  destinatarioNombre?: string;
+  destinatarioTelefono?: string;
   id: Guid;
   clienteNombre: string;
   clienteTelefono: string;
@@ -72,6 +114,9 @@ export interface RegistroPedidoDto {
   asignacion: ResultadoAsignacionDto | null;
 }
 export interface FiltroPedidos {
+  desde?: Fecha;
+  hasta?: Fecha;
+  buscar?: string;
   fecha?: Fecha;
   zonaId?: Guid;
   estado?: EstadoPedido;
@@ -98,6 +143,7 @@ export interface ParadaDto {
   pedido: PedidoDto;
 }
 export interface RutaDto {
+  version?: number;
   id: Guid;
   fecha: Fecha;
   zonaId: Guid;

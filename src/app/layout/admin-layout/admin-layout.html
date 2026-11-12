@@ -5,7 +5,7 @@
 <aside
   class="fixed left-0 top-0 h-screen w-64 bg-surface-glass-light backdrop-blur-2xl border-r border-separator-hairline-light z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)] transition-transform duration-200"
   [class.translate-x-0]="navigationOpen()"
-  [class.-translate-x-full]="!navigationOpen() && false"
+  [class.-translate-x-full]="!navigationOpen() && !desktop()"
 >
   <div class="flex flex-col flex-1 min-h-0">
     <!-- macOS Traffic Light Window Controls -->
@@ -226,7 +226,7 @@
 <!-- Main Shell Area -->
 <div class="pl-64 flex flex-col min-h-screen approved-shell">
   <!-- Top Navigation Header -->
-  <header class="fixed top-0 left-64 right-0 h-14 bg-surface-glass-light backdrop-blur-2xl border-b border-separator-hairline-light z-40 flex items-center justify-between px-gutter-lg shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+  <header [style.left.px]="desktop()?256:0" class="fixed top-0 left-64 right-0 h-14 bg-surface-glass-light backdrop-blur-2xl border-b border-separator-hairline-light z-40 flex items-center justify-between px-gutter-lg shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
     <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md">
       <span class="text-outline hover:text-on-surface transition-colors cursor-pointer" (click)="navigate('Resumen')">RouteOS</span>
       <span class="text-outline-variant font-normal">/</span>
@@ -337,3 +337,7 @@
 
 <!-- Global Modals (Pedido, Repartidor, Zona with map pickers) -->
 <app-operation-form />
+<app-route-assignment />
+
+<app-pedido-detail />
+<app-route-order />

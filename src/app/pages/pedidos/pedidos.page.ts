@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   ElementRef,
   HostListener,
@@ -6,13 +6,27 @@ import {
   computed,
   inject,
   signal,
+  OnDestroy,
+  effect,
+  untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { OperationsService } from '../../core/services/operations.service';
 import { OperationFormsService } from '../../core/services/operation-forms.service';
-import { PedidoDto } from '../../core/models/logistica.models';
-
+import { RouteAssignmentService } from '../../core/services/route-assignment.service';
+import {
+  PedidoDto,
+  PuntoDto,
+  DetallesPedidoDto,
+  RegistrarPedidoRequest,
+} from '../../core/models/logistica.models';
+import { zoneForPoint } from '../../core/utils/presentation';
+import { PedidoDetailService } from '../../core/services/pedido-detail.service';
+import { AddressPicker } from '../../shared/components/address-picker/address-picker';
+import { LocalLocationService } from '../../core/services/local-location.service';
+import { deliveryCoverage } from '../../core/utils/delivery-coverage';
 export interface PedidoItemUI {
   id: string;
   codigo: string;
@@ -33,252 +47,420 @@ export interface PedidoItemUI {
   cargaBarClass: string;
   estadoPill: string;
   estadoColor: string;
-  sinRepartidor?: boolean;
-  rawPedido?: PedidoDto;
+  sinRepartidor: boolean;
+  rawPedido: PedidoDto;
 }
-
 @Component({
   selector: 'app-pedidos-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AddressPicker],
   templateUrl: './pedidos.page.html',
 })
-export class PedidosPage {
+export class PedidosPage implements OnDestroy {
+  readonly local = inject(LocalLocationService);
   readonly operations = inject(OperationsService);
+  readonly detail = inject(PedidoDetailService);
+  readonly filtersOpen = signal(false);
+  @ViewChild('datePicker') datePicker?: ElementRef<HTMLInputElement>;
+  chooseDate() {
+    try {
+      this.datePicker?.nativeElement.showPicker();
+    } catch {
+      this.datePicker?.nativeElement.focus();
+    }
+  }
   readonly forms = inject(OperationFormsService);
-
+  readonly assignment = inject(RouteAssignmentService);
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
-
-  // Filter State
   readonly activeTab = signal<'todos' | 'anticipados' | 'hoy' | 'pendientes'>('todos');
-  readonly searchQuery = signal<string>('');
+  readonly searchQuery = signal(this.operations.search);
   readonly selectedIds = signal<Set<string>>(new Set());
-
-  // Slideover & Toast UI State
-  readonly drawerOpen = signal<boolean>(false);
-  readonly toastVisible = signal<boolean>(false);
-  readonly toastTitle = signal<string>('Pedido Registrado');
-  readonly toastMessage = signal<string>('Asignado con éxito a Zona Oriente - Las Condes A');
-  private toastTimer: any = null;
-
-  // New Order Form state
-  readonly formFecha = signal<string>('2025-02-14');
-  readonly formVentana = signal<string>('10:00 - 12:00 hrs (Pico Matutino)');
-  readonly formCliente = signal<string>('Sebastián Valenzuela');
-  readonly formEmail = signal<string>('sebastian@empresa.com');
-  readonly formDestinatario = signal<string>('Valentina Ramos');
-  readonly formTelefono = signal<string>('+56 9 9123 4567');
-  readonly formDireccion = signal<string>('Av. Isidora Goyenechea 3000, Dpto 804, Las Condes');
-  readonly formZona = signal<string>('Zona Oriente - Sector Residencial Las Condes A');
-  readonly formTipoCarga = signal<'flores' | 'pasteleria' | 'general'>('flores');
-  readonly formNotas = signal<string>(
-    'Dejar con conserje Don Manuel si no responden citófono. Entrega sorpresa, no llamar antes.',
+  readonly drawerOpen = signal(false);
+  readonly toastVisible = signal(false);
+  readonly toastTitle = signal('');
+  readonly toastMessage = signal('');
+  private toastTimer?: ReturnType<typeof setTimeout>;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private destroyed = false;
+  private editRequest = 0;
+  readonly formFecha = signal(this.operations.fecha);
+  readonly formHora = signal('12:00');
+  readonly formVentana = signal('');
+  readonly formCliente = signal('');
+  readonly editing = signal<PedidoDto | null>(null);
+  readonly editingPoint = signal<PuntoDto | null>(null);
+  readonly formRemitente = signal('');
+  readonly formRemitenteTelefono = signal('');
+  readonly formDestinatarioCorreo = signal('');
+  readonly formPeso = signal<number | null>(null);
+  readonly formFragil = signal<boolean | null>(null);
+  readonly formPrioridad = signal<DetallesPedidoDto['prioridad']>(null);
+  readonly formEmail = signal('');
+  readonly formTelefono = signal('');
+  readonly formDireccion = signal('');
+  readonly formTipoCarga = signal<DetallesPedidoDto['tipoCarga']>(null);
+  readonly formNotas = signal('');
+  readonly formPoint = signal<PuntoDto | null>(null);
+  readonly coverage = computed(() =>
+    deliveryCoverage(
+      this.formPoint(),
+      this.operations.zonas(),
+      this.local.location()?.ubicacion || null,
+    ),
   );
-
-  // Local newly created orders to display immediately
-  readonly localOrders = signal<PedidoItemUI[]>([]);
-
-  // Combined orders (backend + local)
-  readonly allOrders = computed<PedidoItemUI[]>(() => {
-    const backendOrders = this.operations.pedidos().map((p): PedidoItemUI => {
-      const esAnticipado = p.fechaEntrega > this.operations.fecha;
-      const esHoy = p.fechaEntrega === this.operations.fecha;
-      const sinRepartidor = p.estado === 'Pendiente' || !p.rutaId;
-      return {
-        id: p.id,
-        codigo: `#${this.operations.short(p.id)}`,
-        prioridad: sinRepartidor ? 'URGENTE' : undefined,
-        clienteNombre: p.clienteNombre,
-        clienteTelefono: p.clienteTelefono || '+56 9 8412 0000',
-        destinatarioNombre: p.clienteNombre,
-        fechaPrometida: esHoy ? 'Hoy, Entrega' : p.fechaEntrega,
-        registroInfo: `Reg: ${p.fechaEntrega} • ${p.horaEntrega?.slice(0, 5) || '12:00'}`,
-        esAnticipado,
-        esHoy,
-        zonaNombre: this.operations.zoneName(p.zonaId) || 'Zona Metropolitana',
-        zonaColor: 'bg-status-routing',
-        ventanaHoraria: `${p.horaEntrega?.slice(0, 5) || '10:00'} - 18:00 hrs`,
-        cargaTitulo: 'Paquete Despacho Standard',
-        cargaIcono: 'inventory_2',
-        cargaProgreso: '50%',
-        cargaBarClass: 'bg-primary',
-        estadoPill: sinRepartidor ? 'Sin Repartidor' : this.operations.label(p.estado),
-        estadoColor: sinRepartidor
-          ? 'bg-surface-container text-outline'
-          : p.estado === 'Entregado'
-            ? 'bg-status-delivered/15 text-status-delivered'
+  readonly formZona = computed(
+    () =>
+      zoneForPoint(this.formPoint(), this.operations.zonas())?.nombre ||
+      (this.formPoint() ? 'Fuera del área de cobertura' : 'Selecciona una ubicación'),
+  );
+  readonly allOrders = computed<PedidoItemUI[]>(() =>
+    this.operations.pedidos().map((p) => ({
+      id: p.id,
+      codigo: '#' + this.operations.short(p.id),
+      clienteNombre: p.detalles?.remitenteNombre || 'No informado',
+      clienteTelefono: p.detalles?.remitenteTelefono || p.clienteTelefono,
+      destinatarioNombre: p.destinatarioNombre || p.clienteNombre,
+      prioridad:
+        p.detalles?.prioridad === 'Alta'
+          ? 'ALTA'
+          : p.detalles?.prioridad === 'Urgente'
+            ? 'URGENTE'
+            : undefined,
+      fechaPrometida: p.fechaEntrega,
+      registroInfo: 'Reg: ' + new Date(p.registradoEn).toLocaleString('es-EC'),
+      esAnticipado: p.fechaEntrega > this.operations.today,
+      esHoy: p.fechaEntrega === this.operations.today,
+      zonaNombre: this.operations.zoneName(p.zonaId),
+      zonaColor: 'bg-status-routing',
+      ventanaHoraria: p.horaEntrega.slice(0, 5) + ' (hora de entrega)',
+      cargaTitulo:
+        [
+          p.detalles?.tipoCarga,
+          p.detalles?.pesoKg != null ? p.detalles.pesoKg + ' kg' : null,
+          p.detalles?.fragil === true
+            ? 'Frágil'
+            : p.detalles?.fragil === false
+              ? 'No frágil'
+              : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || 'No informada',
+      cargaIcono: 'inventory_2',
+      cargaProgreso: '0%',
+      cargaBarClass: 'bg-primary',
+      estadoPill: this.operations.label(p.estado),
+      estadoColor:
+        p.estado === 'Entregado'
+          ? 'bg-status-delivered/15 text-tertiary'
+          : p.estado === 'Cancelado'
+            ? 'bg-status-urgent/15 text-status-urgent'
             : p.estado === 'EnCamino'
-              ? 'bg-status-in-transit/15 text-status-in-transit'
+              ? 'bg-status-in-transit/15 text-on-surface-variant'
               : 'bg-status-routing/15 text-status-routing',
-        sinRepartidor,
-        rawPedido: p,
-      };
-    });
-
-    return [...this.localOrders(), ...backendOrders];
-  });
-
-  // Filtered orders based on selected tab and search term
-  readonly filteredOrders = computed<PedidoItemUI[]>(() => {
-    const tab = this.activeTab();
-    const query = this.searchQuery().toLowerCase().trim();
-
-    return this.allOrders().filter((order) => {
-      // Tab matching
-      if (tab === 'anticipados' && !order.esAnticipado) return false;
-      if (tab === 'hoy' && !order.esHoy) return false;
-      if (tab === 'pendientes' && !order.sinRepartidor) return false;
-
-      // Query matching
-      if (query) {
-        const matchesCode = order.codigo.toLowerCase().includes(query);
-        const matchesClient = order.clienteNombre.toLowerCase().includes(query);
-        const matchesRecipient = order.destinatarioNombre.toLowerCase().includes(query);
-        const matchesZone = order.zonaNombre.toLowerCase().includes(query);
-        const matchesPhone = order.clienteTelefono.toLowerCase().includes(query);
-        return matchesCode || matchesClient || matchesRecipient || matchesZone || matchesPhone;
-      }
-
-      return true;
-    });
-  });
-
-  // Fast KPI metrics
-  readonly anticipadosCount = computed(
-    () => this.allOrders().filter((o) => o.esAnticipado).length,
+      sinRepartidor: p.estado === 'Pendiente' && !p.rutaId,
+      rawPedido: p,
+    })),
   );
-  readonly pendientesCount = computed(
-    () => this.allOrders().filter((o) => o.sinRepartidor).length,
-  );
-  readonly hoyCount = computed(() => this.allOrders().filter((o) => o.esHoy).length);
-  readonly totalOrdersCount = computed(() => this.allOrders().length);
-
+  readonly filteredOrders = this.allOrders;
+  readonly anticipadosCount = computed(() => {
+    this.operations.resumen();
+    return this.operations.desde === this.operations.scheduledDate() && !this.operations.hasta
+      ? this.operations.total()
+      : '—';
+  });
+  readonly pendientesCount = computed(() => this.operations.count('Pendiente'));
+  readonly hoyCount = computed(() => {
+    this.operations.resumen();
+    return this.operations.fecha === this.operations.today &&
+      !this.operations.desde &&
+      !this.operations.hasta
+      ? this.operations.total()
+      : '—';
+  });
+  readonly totalOrdersCount = computed(() => this.operations.total());
   constructor() {
     this.operations.view.set('Pedidos');
+    effect(() => {
+      if (this.forms.orderDrawerRequested())
+        untracked(() => {
+          this.forms.orderDrawerRequested.set(false);
+          this.openOrderSheet();
+        });
+    });
   }
-
-  // Keyboard shortcut listener for ⌘F / Ctrl+F and Escape
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.key === 'Escape' && this.drawerOpen()) {
-      this.closeOrderSheet();
-    } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
+  @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape') this.closeOrderSheet();
+    else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       this.searchInput?.nativeElement.focus();
     }
   }
-
   setActiveTab(tab: 'todos' | 'anticipados' | 'hoy' | 'pendientes') {
     this.activeTab.set(tab);
+    this.operations.estado = tab === 'pendientes' ? 'Pendiente' : '';
+    this.operations.desde = tab === 'anticipados' ? this.operations.scheduledDate() : '';
+    this.operations.hasta = '';
+    if (tab === 'hoy') this.operations.fecha = this.operations.today;
+    void this.operations.changeDate();
   }
-
+  searchOnServer(value: string) {
+    clearTimeout(this.searchTimer);
+    this.operations.search = value.slice(0, 150);
+    this.searchTimer = setTimeout(() => void this.operations.refresh(true), 350);
+  }
+  applyRange() {
+    if (
+      this.operations.desde &&
+      this.operations.hasta &&
+      this.operations.desde > this.operations.hasta
+    ) {
+      this.operations.error.set('Desde no puede ser posterior a Hasta.');
+      return;
+    }
+    void this.operations.refresh(true);
+  }
+  selectExactDate() {
+    this.operations.desde = '';
+    this.operations.hasta = '';
+    void this.operations.changeDate();
+  }
   openOrderSheet() {
+    this.editing.set(null);
+    this.editingPoint.set(null);
+    this.formRemitente.set('');
+    this.formRemitenteTelefono.set('');
+    this.formEmail.set('');
+    this.formDestinatarioCorreo.set('');
+    this.formNotas.set('');
+    this.formTipoCarga.set(null);
+    this.formPeso.set(null);
+    this.formFragil.set(null);
+    this.formPrioridad.set(null);
+    this.formFecha.set(this.operations.fecha);
+    this.formCliente.set('');
+    this.formTelefono.set('');
+    this.formDireccion.set('');
+    this.formPoint.set(null);
+    this.operations.error.set('');
     this.drawerOpen.set(true);
   }
-
-  closeOrderSheet() {
-    this.drawerOpen.set(false);
+  async editOrder(id: string) {
+    if (this.operations.saving()) return;
+    const request = ++this.editRequest;
+    try {
+      const p = await firstValueFrom(this.operations.api.obtenerPedido(id));
+      if (this.destroyed || request !== this.editRequest) return;
+      if (p.estado !== 'Pendiente' || p.version == null) {
+        this.operations.error.set('Solo puedes editar un pedido pendiente con versión vigente.');
+        return;
+      }
+      this.openOrderSheet();
+      this.editing.set(p);
+      this.editingPoint.set(p.ubicacion);
+      this.formCliente.set(p.clienteNombre);
+      this.formTelefono.set(p.clienteTelefono);
+      this.formDireccion.set(p.direccion);
+      this.formPoint.set(p.ubicacion);
+      this.formFecha.set(p.fechaEntrega);
+      this.formHora.set(p.horaEntrega.slice(0, 5));
+      const d = p.detalles;
+      this.formRemitente.set(d?.remitenteNombre || '');
+      this.formRemitenteTelefono.set(d?.remitenteTelefono || '');
+      this.formEmail.set(d?.remitenteCorreo || '');
+      this.formDestinatarioCorreo.set(d?.destinatarioCorreo || '');
+      this.formNotas.set(d?.observaciones || '');
+      this.formTipoCarga.set(d?.tipoCarga ?? null);
+      this.formPeso.set(d?.pesoKg ?? null);
+      this.formFragil.set(d?.fragil ?? null);
+      this.formPrioridad.set(d?.prioridad ?? null);
+    } catch (e) {
+      this.operations.showError(e);
+    }
   }
-
-  setTipoCarga(tipo: 'flores' | 'pasteleria' | 'general') {
+  closeOrderSheet() {
+    if (!this.operations.saving()) this.drawerOpen.set(false);
+  }
+  setTipoCarga(tipo: DetallesPedidoDto['tipoCarga']) {
     this.formTipoCarga.set(tipo);
   }
-
   toggleSelectAll(checked: boolean) {
-    const next = new Set<string>();
-    if (checked) {
-      this.filteredOrders().forEach((o) => next.add(o.id));
-    }
-    this.selectedIds.set(next);
+    this.selectedIds.set(new Set(checked ? this.filteredOrders().map((o) => o.id) : []));
   }
-
   toggleSelectRow(id: string) {
     const next = new Set(this.selectedIds());
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
+    next.has(id) ? next.delete(id) : next.add(id);
     this.selectedIds.set(next);
   }
-
-  isRowSelected(id: string): boolean {
+  isRowSelected(id: string) {
     return this.selectedIds().has(id);
   }
-
-  isAllSelected(): boolean {
-    const orders = this.filteredOrders();
-    return orders.length > 0 && orders.every((o) => this.selectedIds().has(o.id));
+  isAllSelected() {
+    return (
+      this.filteredOrders().length > 0 &&
+      this.filteredOrders().every((o) => this.isRowSelected(o.id))
+    );
   }
-
   quickAssign(order: PedidoItemUI) {
-    order.sinRepartidor = false;
-    order.estadoPill = 'Ruta Optimizada #05';
-    order.estadoColor = 'bg-status-routing/15 text-status-routing';
-    this.showToast(
-      `Pedido ${order.codigo} Asignado`,
-      `Enrutado dinámicamente a la flota de ${order.zonaNombre}`,
-    );
+    void this.assignment.open(order.rawPedido);
   }
-
-  saveOrderAndRoute() {
-    const nextIdNumber = Math.floor(9403 + Math.random() * 50);
-    const newCode = `#PED-${nextIdNumber}`;
-    const isValentine = this.formFecha().includes('02-14');
-
-    const newOrder: PedidoItemUI = {
-      id: `PED-${nextIdNumber}`,
-      codigo: newCode,
-      prioridad: isValentine ? 'ALTA' : undefined,
-      clienteNombre: this.formCliente() || 'Sebastián Valenzuela',
-      clienteTelefono: this.formTelefono() || '+56 9 9123 4567',
-      destinatarioNombre: this.formDestinatario() || 'Valentina Ramos',
-      fechaPrometida: this.formFecha() === '2025-02-14' ? '14 Feb 2025' : this.formFecha(),
-      registroInfo: 'Reg: Ahora • Anticipado',
-      esAnticipado: true,
-      esHoy: false,
-      zonaNombre: this.formZona(),
-      zonaColor: 'bg-status-routing',
-      ventanaHoraria: this.formVentana().split('(')[0].trim(),
-      cargaTitulo:
-        this.formTipoCarga() === 'flores'
-          ? 'Ramo Premium & Tarjeta'
-          : this.formTipoCarga() === 'pasteleria'
-            ? 'Caja Bombones Artesanales'
-            : 'Paquete de Obsequio',
-      cargaIcono:
-        this.formTipoCarga() === 'flores'
-          ? 'local_florist'
-          : this.formTipoCarga() === 'pasteleria'
-            ? 'cake'
-            : 'redeem',
-      cargaProgreso: '45%',
-      cargaBarClass: this.formTipoCarga() === 'flores' ? 'bg-tint-teal' : 'bg-secondary',
-      estadoPill: 'Ruta Optimizada #09',
-      estadoColor: 'bg-status-routing/15 text-status-routing',
-    };
-
-    // Prepend new order locally
-    this.localOrders.update((prev) => [newOrder, ...prev]);
-
-    // Close drawer
-    this.closeOrderSheet();
-
-    // Show macOS toast notification
-    this.showToast(
-      `Pedido ${newCode} Registrado`,
-      `Asignado con éxito a ${this.formZona()}`,
-    );
+  viewRoute(order: PedidoItemUI) {
+    if (order.rawPedido.rutaId) this.operations.showOrderRoute(order.rawPedido.rutaId);
   }
-
+  async saveOrderAndRoute() {
+    if (this.operations.saving()) return;
+    const point = this.formPoint();
+    if (
+      !point ||
+      !this.formCliente().trim() ||
+      !this.formTelefono().trim() ||
+      !this.formDireccion().trim()
+    ) {
+      this.operations.error.set(
+        'Completa nombre, teléfono, dirección y selecciona la ubicación en el mapa.',
+      );
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(this.formFecha()) || this.formFecha() < this.operations.today) {
+      this.operations.error.set('La fecha de entrega debe ser hoy o futura.');
+      return;
+    }
+    if (!this.coverage().covered) {
+      this.operations.error.set(this.coverage().message);
+      return;
+    }
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(this.formHora())) {
+      this.operations.error.set('Selecciona una hora de entrega válida.');
+      return;
+    }
+    if (Boolean(this.formRemitente().trim()) !== Boolean(this.formRemitenteTelefono().trim())) {
+      this.operations.error.set('Completa juntos nombre y teléfono del remitente.');
+      return;
+    }
+    if (
+      [this.formEmail(), this.formDestinatarioCorreo()].some(
+        (v) => v && (v.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)),
+      )
+    ) {
+      this.operations.error.set('Revisa el formato de los correos.');
+      return;
+    }
+    const peso = this.formPeso();
+    if (
+      peso != null &&
+      (!Number.isFinite(peso) ||
+        peso <= 0 ||
+        peso > 10000 ||
+        Math.abs(peso * 1000 - Math.round(peso * 1000)) > 1e-7)
+    ) {
+      this.operations.error.set(
+        'El peso debe ser mayor que 0 y hasta 10000 kg, con hasta tres decimales.',
+      );
+      return;
+    }
+    if (
+      this.formNotas().length > 2000 ||
+      this.formRemitente().length > 150 ||
+      this.formRemitenteTelefono().length > 30
+    ) {
+      this.operations.error.set('Revisa la longitud del remitente y las observaciones.');
+      return;
+    }
+    this.operations.saving.set(true);
+    this.operations.error.set('');
+    try {
+      const details: DetallesPedidoDto = {
+        remitenteNombre: this.formRemitente().trim() || null,
+        remitenteTelefono: this.formRemitenteTelefono().trim() || null,
+        remitenteCorreo: this.formEmail().trim() || null,
+        destinatarioCorreo: this.formDestinatarioCorreo().trim() || null,
+        observaciones: this.formNotas().trim() || null,
+        tipoCarga: this.formTipoCarga() ?? null,
+        pesoKg: peso,
+        fragil: this.formFragil(),
+        prioridad: this.formPrioridad() ?? null,
+      };
+      const body: RegistrarPedidoRequest = {
+        clienteNombre: this.formCliente().trim(),
+        clienteTelefono: this.formTelefono().trim(),
+        direccion: this.formDireccion().trim(),
+        fechaEntrega: this.formFecha(),
+        horaEntrega: this.formHora().length === 5 ? this.formHora() + ':00' : this.formHora(),
+        latitud: point.latitud,
+        longitud: point.longitud,
+        ...(Object.values(details).some((v) => v != null)
+          ? { detalles: details }
+          : this.editing()
+            ? { detalles: null }
+            : {}),
+      };
+      const editing = this.editing();
+      if (editing) {
+        if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
+        if (
+          point.latitud === editing.ubicacion.latitud &&
+          point.longitud === editing.ubicacion.longitud
+        )
+          body.zonaId = editing.zonaId;
+        const updated = await firstValueFrom(
+          this.operations.api.actualizarPedido(editing.id, { ...body, version: editing.version }),
+        );
+        this.drawerOpen.set(false);
+        this.operations.fecha = updated.fechaEntrega;
+        await this.operations.changeDate();
+        this.showToast(
+          'Pedido actualizado',
+          'Cambios guardados. La edición no asigna una ruta automáticamente.',
+        );
+        return;
+      }
+      const result = await firstValueFrom(this.operations.api.registrarPedido(body));
+      this.operations.lastRegistration.set(result);
+      this.drawerOpen.set(false);
+      this.operations.fecha = result.pedido.fechaEntrega;
+      await this.operations.changeDate();
+      if (!this.destroyed)
+        this.showToast(
+          'Pedido registrado',
+          result.asignacion?.tipo === 'EnEspera'
+            ? 'Registrado correctamente. En espera de asignación.'
+            : result.asignacion?.rutaId
+              ? 'Asignado a la ruta #' + this.operations.short(result.asignacion.rutaId)
+              : 'Registrado para la fecha seleccionada, pendiente de planificación.',
+        );
+    } catch (e) {
+      if ((e as any)?.status === 409 && this.editing()) {
+        const editingId = this.editing()!.id;
+        this.editing.set({ ...this.editing()!, version: undefined });
+        try {
+          const current = await firstValueFrom(this.operations.api.obtenerPedido(editingId));
+          this.operations.pedidos.update((all) =>
+            all.map((p) => (p.id === current.id ? current : p)),
+          );
+        } catch {}
+        this.operations.showError(e);
+        this.operations.error.update(
+          (message) =>
+            message +
+            ' Tus cambios siguen en el formulario. Recarga el pedido antes de volver a guardar.',
+        );
+        return;
+      }
+      this.operations.showError(e);
+    } finally {
+      this.operations.saving.set(false);
+    }
+  }
   showToast(title: string, message: string) {
-    if (this.toastTimer) clearTimeout(this.toastTimer);
+    clearTimeout(this.toastTimer);
     this.toastTitle.set(title);
     this.toastMessage.set(message);
     this.toastVisible.set(true);
-
-    this.toastTimer = setTimeout(() => {
-      this.toastVisible.set(false);
-    }, 4500);
+    this.toastTimer = setTimeout(() => this.toastVisible.set(false), 4500);
+  }
+  ngOnDestroy() {
+    this.destroyed = true;
+    this.editRequest++;
+    clearTimeout(this.toastTimer);
+    clearTimeout(this.searchTimer);
   }
 }

@@ -8,13 +8,13 @@
           Campaña Activa: San Valentín Rush
         </span>
         <span class="font-caption text-caption uppercase tracking-wider text-outline px-2.5 py-1 rounded-full bg-surface-container font-semibold">
-          Algoritmo v4.1 Dynamic Batching
+          Planificación del backend
         </span>
-        <span class="font-caption text-caption text-outline-variant font-medium">Última optimización: hace 42s</span>
+        <span class="font-caption text-caption text-outline-variant font-medium">Última sincronización: {{operations.lastRefresh() ? (operations.lastRefresh() | date:'HH:mm:ss') : 'Sin sincronizar'}}</span>
       </div>
       <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Centro de Mando & Despacho Flotante</h1>
       <p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl">
-        Monitorización satelital en tiempo real, balance de carga para flota de última milla (tope 4 órdenes/ruta) y rebalanceo dinámico de pedidos instantáneos.
+        Seguimiento de destinos y estados de entrega. Capacidad según las zonas y repartidores registrados.
       </p>
     </div>
 
@@ -58,7 +58,7 @@
       <div class="flex items-start justify-between">
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline uppercase tracking-wider font-semibold">Volumen Total</span>
-          <span class="font-display-lg text-display-lg text-on-surface tracking-tight mt-1">{{ operations.total() || 1420 }}</span>
+          <span class="font-display-lg text-display-lg text-on-surface tracking-tight mt-1">{{ operations.resumen()?.total ?? '—' }}</span>
         </div>
         <div class="w-10 h-10 rounded-xl bg-primary-fixed/50 text-primary flex items-center justify-center">
           <span class="material-symbols-outlined text-[22px]">package_2</span>
@@ -67,17 +67,17 @@
       <div class="mt-space-md space-y-space-xs">
         <div class="flex justify-between items-center text-body-sm font-body-sm">
           <span class="text-on-surface-variant flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-primary"></span> 89% Programados
+            <span class="w-2 h-2 rounded-full bg-primary"></span> {{operations.resumen()?.noCancelados ?? 0}} no cancelados
           </span>
-          <span class="font-label-md text-label-md text-on-surface">1,264</span>
+          <span class="font-label-md text-label-md text-on-surface">{{operations.count('Pendiente')}} pendientes</span>
         </div>
         <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden flex">
-          <div class="bg-primary h-full rounded-full" style="width: 89%;"></div>
-          <div class="bg-status-in-transit h-full rounded-full" style="width: 11%;"></div>
+          <div class="bg-primary h-full rounded-full" [style.width.%]="0"></div>
+          <div class="bg-status-in-transit h-full rounded-full" [style.width.%]="0"></div>
         </div>
         <div class="flex justify-between items-center text-label-sm font-label-sm text-outline pt-0.5">
-          <span>Same-day (11% hoy): 156</span>
-          <span class="text-status-delivered font-semibold">+18.4% vs ayer</span>
+          <span>Entregados: {{operations.resumen()?.entregados ?? 0}} en la consulta</span>
+          <span class="text-status-delivered font-semibold">Variación no informada</span>
         </div>
       </div>
     </div>
@@ -88,8 +88,8 @@
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline uppercase tracking-wider font-semibold">Rutas Despachadas</span>
           <div class="flex items-baseline gap-1.5 mt-1">
-            <span class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ operations.rutas().length || 38 }}</span>
-            <span class="font-label-md text-label-md text-outline">/ 42 cap.</span>
+            <span class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ operations.rutas().length }}</span>
+            <span class="font-label-md text-label-md text-outline">/ {{operations.repartidores().length}} registrados</span>
           </div>
         </div>
         <div class="w-10 h-10 rounded-xl bg-status-routing/15 text-status-routing flex items-center justify-center">
@@ -98,15 +98,15 @@
       </div>
       <div class="mt-space-md space-y-space-xs">
         <div class="flex justify-between items-center text-body-sm font-body-sm">
-          <span class="text-on-surface-variant">Capacidad Óptima (≤4 ped.)</span>
-          <span class="font-label-md text-label-md text-status-routing">{{ operations.avgOrdersPerRoute || '3.6' }} ped/ruta</span>
+          <span class="text-on-surface-variant">Capacidad según zona y repartidor</span>
+          <span class="font-label-md text-label-md text-status-routing">{{ operations.avgOrdersPerRoute }} ped/ruta</span>
         </div>
         <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-          <div class="bg-status-routing h-full rounded-full" style="width: 90%;"></div>
+          <div class="bg-status-routing h-full rounded-full" [style.width.%]="0"></div>
         </div>
         <div class="flex justify-between items-center text-label-sm font-label-sm text-outline pt-0.5">
-          <span>Ventana activa: 14:00 - 18:00</span>
-          <span class="text-secondary font-medium">90% saturación</span>
+          <span>Ventanas: no informadas</span>
+          <span class="text-secondary font-medium">Saturación: no informada</span>
         </div>
       </div>
     </div>
@@ -117,7 +117,7 @@
         <div class="flex flex-col">
           <span class="font-caption text-caption text-outline uppercase tracking-wider font-semibold">Flota Operativa</span>
           <div class="flex items-baseline gap-1.5 mt-1">
-            <span class="font-display-lg text-display-lg text-on-surface tracking-tight">32</span>
+            <span class="font-display-lg text-display-lg text-on-surface tracking-tight">{{activeFleet()}}</span>
             <span class="font-label-md text-label-md text-outline">activos</span>
           </div>
         </div>
@@ -128,15 +128,15 @@
       <div class="mt-space-md space-y-space-xs">
         <div class="flex justify-between items-center text-body-sm font-body-sm">
           <span class="text-on-surface-variant">Reserva en Hub</span>
-          <span class="font-label-md text-label-md text-on-surface">{{ operations.availableDrivers || 6 }} disponibles</span>
+          <span class="font-label-md text-label-md text-on-surface">{{ operations.availableDrivers }} disponibles</span>
         </div>
         <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden flex">
-          <div class="bg-tint-teal h-full rounded-full" style="width: 84%;"></div>
-          <div class="bg-outline-variant h-full rounded-full" style="width: 16%;"></div>
+          <div class="bg-tint-teal h-full rounded-full" [style.width.%]="0"></div>
+          <div class="bg-outline-variant h-full rounded-full" [style.width.%]="0"></div>
         </div>
         <div class="flex justify-between items-center text-label-sm font-label-sm text-outline pt-0.5">
-          <span>Tiempo prom. parada: 4.8 min</span>
-          <span class="text-tint-teal font-medium">32 Vans / Motos</span>
+          <span>Tiempo por parada: no informado</span>
+          <span class="text-tint-teal font-medium">Vehículos no informados</span>
         </div>
       </div>
     </div>
@@ -145,8 +145,8 @@
     <div class="relative overflow-hidden bg-surface-container-lowest/90 backdrop-blur-xl p-space-lg rounded-xl shadow-xs border border-separator-hairline-light hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
       <div class="flex items-start justify-between">
         <div class="flex flex-col">
-          <span class="font-caption text-caption text-outline uppercase tracking-wider font-semibold">SLA Cumplimiento</span>
-          <span class="font-display-lg text-display-lg text-status-delivered tracking-tight mt-1">98.2%</span>
+          <span class="font-caption text-caption text-outline uppercase tracking-wider font-semibold">Porcentaje entregado</span>
+          <span class="font-display-lg text-display-lg text-status-delivered tracking-tight mt-1">{{ operations.resumen()?.porcentajeEntregado ?? 0 }}%</span>
         </div>
         <div class="w-10 h-10 rounded-xl bg-status-delivered/15 text-status-delivered flex items-center justify-center">
           <span class="material-symbols-outlined text-[22px]">verified</span>
@@ -154,15 +154,15 @@
       </div>
       <div class="mt-space-md space-y-space-xs">
         <div class="flex justify-between items-center text-body-sm font-body-sm">
-          <span class="text-on-surface-variant">Brechas Críticas (>15m)</span>
-          <span class="font-label-md text-label-md text-status-urgent">3 en riesgo</span>
+          <span class="text-on-surface-variant">Entregas confirmadas</span>
+          <span class="font-label-md text-label-md text-status-urgent">{{ operations.resumen()?.entregados ?? '—' }}</span>
         </div>
         <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-          <div class="bg-status-delivered h-full rounded-full" style="width: 98.2%;"></div>
+          <div class="bg-status-delivered h-full rounded-full" [style.width.%]="operations.resumen()?.porcentajeEntregado ?? 0"></div>
         </div>
         <div class="flex justify-between items-center text-label-sm font-label-sm text-outline pt-0.5">
-          <span>Meta contractual: ≥97.5%</span>
-          <span class="text-status-delivered font-semibold">En Objetivo</span>
+          <span>Sobre pedidos no cancelados</span>
+          <span class="text-status-delivered font-semibold">Sin evaluación SLA</span>
         </div>
       </div>
     </div>
@@ -182,39 +182,39 @@
             [ngClass]="selectedZoneChip() === 'todos' ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
             (click)="setZoneChip('todos')"
           >
-            Todos (4 Zonas)
+            Todos ({{operations.zonas().length}} zonas)
           </button>
           <button
             type="button"
             class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
-            [ngClass]="selectedZoneChip() === 'norte' ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
-            (click)="setZoneChip('norte')"
+            [ngClass]="selectedZoneChip() === operations.zonas()[0]?.id ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
+            (click)="setZoneChip(operations.zonas()[0]?.id || 'todos')"
           >
-            Norte (12)
+            {{operations.zonas()[0]?.nombre || 'Sin zona'}} ({{zoneOrderCount(operations.zonas()[0]?.id)}})
           </button>
           <button
             type="button"
             class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
-            [ngClass]="selectedZoneChip() === 'centro' ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
-            (click)="setZoneChip('centro')"
+            [ngClass]="selectedZoneChip() === operations.zonas()[1]?.id ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
+            (click)="setZoneChip(operations.zonas()[1]?.id || 'todos')"
           >
-            Centro (18)
+            {{operations.zonas()[1]?.nombre || 'Sin zona'}} ({{zoneOrderCount(operations.zonas()[1]?.id)}})
           </button>
           <button
             type="button"
             class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
-            [ngClass]="selectedZoneChip() === 'sur' ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
-            (click)="setZoneChip('sur')"
+            [ngClass]="selectedZoneChip() === operations.zonas()[2]?.id ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
+            (click)="setZoneChip(operations.zonas()[2]?.id || 'todos')"
           >
-            Sur (9)
+            {{operations.zonas()[2]?.nombre || 'Sin zona'}} ({{zoneOrderCount(operations.zonas()[2]?.id)}})
           </button>
           <button
             type="button"
             class="px-2.5 py-1 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer"
-            [ngClass]="selectedZoneChip() === 'poniente' ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
-            (click)="setZoneChip('poniente')"
+            [ngClass]="selectedZoneChip() === operations.zonas()[3]?.id ? 'bg-primary text-on-primary' : 'hover:bg-surface-container text-on-surface-variant'"
+            (click)="setZoneChip(operations.zonas()[3]?.id || 'todos')"
           >
-            Poniente (6)
+            {{operations.zonas()[3]?.nombre || 'Sin zona'}} ({{zoneOrderCount(operations.zonas()[3]?.id)}})
           </button>
         </div>
 
@@ -240,7 +240,9 @@
       </div>
 
       <!-- Static Map Integration Container (From CentroControlDespacho.html) -->
-      <div class="w-full flex-1 bg-cover bg-center relative min-h-[500px]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC_qN5-7QytNm4cwL0l3twxVPsvtdF-1pTxsHcxJRkAnOByFw6E0OyRjEtmekMqZkYKd0R33S7v76T6fWRfwOzKxuG8u5SEtLBrWW2E0XTJuEl2q60m-zELu6y0_v8_wl-PsQ6yvzTrNxzSnYqPPor_YhFUU0mv0GRwMpY8Fv15EoafMCxkskZkFOW3L3pqF5Y_ZCxutgS1ekLQBRY2QEoYJHkNgvuW3OVtZN6HtqEvQfSFVVlCMrWb0w');">
+      <div class="w-full flex-1 bg-cover bg-center relative min-h-[500px]" >
+<app-operations-map [zoneId]="selectedZoneChip()==='todos'?'':selectedZoneChip()" />
+@if(false){
         <!-- Live Simulated Overlay Nodes on Map Surface -->
         <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
 
@@ -299,6 +301,7 @@
           </div>
         </div>
 
+}
         <!-- Floating Bottom Map Mini-HUD -->
         <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between p-space-md bg-surface-container-lowest/85 backdrop-blur-xl rounded-xl shadow-lg border border-separator-hairline-light">
           <div class="flex items-center gap-space-lg">
@@ -306,7 +309,7 @@
               <span class="material-symbols-outlined text-tint-teal text-[20px]">speed</span>
               <div class="flex flex-col">
                 <span class="font-caption text-caption text-outline">Velocidad Promedio</span>
-                <span class="font-label-md text-label-md text-on-surface font-semibold">24.6 km/h</span>
+                <span class="font-label-md text-label-md text-on-surface font-semibold">No informada</span>
               </div>
             </div>
             <div class="h-6 w-px bg-separator-hairline-light"></div>
@@ -314,7 +317,7 @@
               <span class="material-symbols-outlined text-status-routing text-[20px]">near_me</span>
               <div class="flex flex-col">
                 <span class="font-caption text-caption text-outline">Km Totales Hoy</span>
-                <span class="font-label-md text-label-md text-on-surface font-semibold">842.1 km</span>
+                <span class="font-label-md text-label-md text-on-surface font-semibold">No informados</span>
               </div>
             </div>
             <div class="h-6 w-px bg-separator-hairline-light hidden sm:block"></div>
@@ -322,14 +325,14 @@
               <span class="material-symbols-outlined text-status-delivered text-[20px]">eco</span>
               <div class="flex flex-col">
                 <span class="font-caption text-caption text-outline">Huella de CO2</span>
-                <span class="font-label-md text-label-md text-on-surface font-semibold">-14% vs avg</span>
+                <span class="font-label-md text-label-md text-on-surface font-semibold">No informada</span>
               </div>
             </div>
           </div>
           <button
             type="button"
             class="flex items-center gap-1 bg-surface-container px-3 py-1.5 rounded-lg text-on-surface hover:bg-surface-container-high transition-colors font-label-sm text-label-sm cursor-pointer"
-            (click)="showToast('Capas Cartográficas', 'Visualizando mapas de calor de demanda')"
+            disabled title="Pendiente backend: mapa de demanda"
           >
             <span class="material-symbols-outlined text-[16px]">layers</span>
             <span>Capas de Calor</span>
@@ -350,7 +353,7 @@
         </span>
       </div>
       <p class="font-body-sm text-body-sm text-on-surface-variant mt-2 mb-space-md">
-        Entrantes en los últimos 15 min. Clasificados por compatibilidad de geocercas y umbral de 4 pedidos por repartidor.
+        Pedidos del día en la página consultada. El backend confirma su asignación y estado.
       </p>
 
       <!-- Alert Stream Items -->
@@ -384,7 +387,7 @@
                   class="flex-1 py-1 rounded-lg bg-status-urgent text-on-primary font-label-sm text-label-sm font-semibold hover:opacity-95 shadow-xs transition-opacity cursor-pointer"
                   (click)="createExpressRoute(alert)"
                 >
-                  Crear Ruta Express
+                  Asignar a ruta
                 </button>
                 <button
                   type="button"
@@ -433,7 +436,7 @@
         <button
           type="button"
           class="font-label-sm text-label-sm text-primary font-semibold hover:underline cursor-pointer"
-          (click)="showToast('Ajustes Algorítmicos', 'Parámetros CVRPTW de clustering actualizados')"
+          disabled title="Pendiente backend: configuración de planificación"
         >
           Ajustar Criterios de Asignación →
         </button>
@@ -446,7 +449,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-sm border-b border-separator-hairline-light">
       <div>
         <h2 class="font-headline-sm text-headline-sm text-on-surface">Manifiesto de Rutas Activas</h2>
-        <p class="font-body-sm text-body-sm text-on-surface-variant">Desglose secuencial de paradas y capacidad máxima asignada (límite 4 pedidos por operador).</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Paradas y capacidades devueltas por el backend para la fecha seleccionada.</p>
       </div>
 
       <!-- Table Filters -->
@@ -464,7 +467,7 @@
           type="button"
           class="p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant transition-colors cursor-pointer"
           title="Exportar CSV"
-          (click)="showToast('Exportación', 'Manifiesto exportado en formato CSV')"
+          (click)="exportCsv()"
         >
           <span class="material-symbols-outlined text-[18px]">download</span>
         </button>
@@ -478,7 +481,7 @@
           <tr class="border-b border-separator-hairline-light font-caption text-caption text-outline uppercase tracking-wider">
             <th class="py-space-sm px-space-md font-semibold">Operador / Vehículo</th>
             <th class="py-space-sm px-space-md font-semibold">Ruta ID & Zona</th>
-            <th class="py-space-sm px-space-md font-semibold">Capacidad Ocupada (Tope 4)</th>
+            <th class="py-space-sm px-space-md font-semibold">Capacidad asignada por el backend</th>
             <th class="py-space-sm px-space-md font-semibold">Secuencia de Paradas</th>
             <th class="py-space-sm px-space-md font-semibold">ETA Próxima</th>
             <th class="py-space-sm px-space-md font-semibold">Estado SLA</th>
@@ -560,10 +563,10 @@
               <td class="py-space-md px-space-md">
                 <span
                   class="inline-flex items-center gap-1 font-label-sm text-label-sm font-semibold px-2 py-0.5 rounded-full"
-                  [ngClass]="route.estadoSla === 'tiempo' ? 'text-status-delivered bg-status-delivered/10' : 'text-status-urgent bg-status-urgent/10'"
+                  [ngClass]="route.estadoSla === 'tiempo' ? 'text-status-delivered bg-status-delivered/10' : route.estadoSla==='riesgo' ? 'text-status-urgent bg-status-urgent/10' : 'text-outline bg-surface-container'"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="route.estadoSla === 'tiempo' ? 'bg-status-delivered' : 'bg-status-urgent animate-pulse'"></span>
-                  {{ route.estadoSla === 'tiempo' ? 'A Tiempo' : 'Riesgo SLA' }}
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="route.estadoSla === 'tiempo' ? 'bg-status-delivered' : route.estadoSla==='riesgo' ? 'bg-status-urgent animate-pulse' : 'bg-outline'"></span>
+                  {{ route.estadoSla === 'tiempo' ? 'A Tiempo' : route.estadoSla === 'riesgo' ? 'Riesgo SLA' : 'No informado' }}
                 </span>
               </td>
               <td class="py-space-md px-space-md text-right">
@@ -580,7 +583,7 @@
                     type="button"
                     class="p-1 rounded-md hover:bg-surface-container text-on-surface-variant transition-colors cursor-pointer"
                     title="Detalles del manifiesto"
-                    (click)="showToast('Detalles', 'Visualizando manifiesto de ' + route.rutaCodigo)"
+                    (click)="viewRoute(route)"
                   >
                     <span class="material-symbols-outlined text-[18px]">more_vert</span>
                   </button>
@@ -603,7 +606,7 @@
         >
           Anterior
         </button>
-        <span class="px-2 font-label-sm text-label-sm text-on-surface">Página 1 de 13</span>
+        <span class="px-2 font-label-sm text-label-sm text-on-surface">Rutas de la fecha seleccionada</span>
         <button
           type="button"
           class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors cursor-pointer"
@@ -613,9 +616,6 @@
       </div>
     </div>
   </section>
-
-  <!-- Live Orders Section Table (Operational Table Component) -->
-  <app-orders-table />
 
   <!-- Toast Notification -->
   @if (toastVisible()) {

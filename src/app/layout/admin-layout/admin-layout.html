@@ -134,6 +134,36 @@
             <span>Repartidores y Flota</span>
           </button>
         }
+        @if (matchesModule('Productos')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'Productos'"
+            [class.text-on-primary]="operations.view() === 'Productos'"
+            [class.text-on-surface-variant]="operations.view() !== 'Productos'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'Productos'"
+            [class.hover:text-on-surface]="operations.view() !== 'Productos'"
+            [attr.aria-current]="operations.view() === 'Productos' ? 'page' : null"
+            (click)="navigate('Productos')"
+          >
+            <span class="material-symbols-outlined text-[18px]">storefront</span>
+            <span>Catálogo y Productos</span>
+          </button>
+        }
+        @if (matchesModule('RetirosTienda')) {
+          <button
+            class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-all w-full text-left nav-link cursor-pointer"
+            [class.bg-primary]="operations.view() === 'RetirosTienda'"
+            [class.text-on-primary]="operations.view() === 'RetirosTienda'"
+            [class.text-on-surface-variant]="operations.view() !== 'RetirosTienda'"
+            [class.hover:bg-surface-container-high]="operations.view() !== 'RetirosTienda'"
+            [class.hover:text-on-surface]="operations.view() !== 'RetirosTienda'"
+            [attr.aria-current]="operations.view() === 'RetirosTienda' ? 'page' : null"
+            (click)="navigate('RetirosTienda')"
+          >
+            <span class="material-symbols-outlined text-[18px]">store</span>
+            <span>Retiros en Tienda</span>
+          </button>
+        }
       </div>
 
       <!-- Grupo Administración & SLA -->
@@ -255,7 +285,7 @@
       </div>
 
       <!-- Primary Action Button (Matches heading-actions .primary for spec) -->
-      @if (operations.view() !== 'Usuarios') {
+      @if (operations.view() !== 'Usuarios' && operations.view() !== 'RetirosTienda') {
         <div class="heading-actions flex items-center">
           <button
             class="primary flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-1.5 rounded-lg font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] cursor-pointer"
@@ -268,7 +298,9 @@
                   ? 'Nueva Zona'
                   : operations.view() === 'Repartidores'
                     ? 'Alta Repartidor'
-                    : 'Nuevo Pedido'
+                    : operations.view() === 'Productos'
+                      ? 'Nuevo Producto'
+                      : 'Nuevo Pedido'
               }}
             </span>
           </button>

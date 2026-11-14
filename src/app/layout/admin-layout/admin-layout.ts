@@ -66,6 +66,8 @@ export class AdminLayout implements OnDestroy {
           Zonas: 'Dibuja y ajusta las áreas de cobertura en el mapa.',
           Repartidores: 'Gestiona la capacidad y disponibilidad de tu equipo.',
           Usuarios: 'Administra las cuentas, los permisos y las credenciales del equipo.',
+          Productos: 'Administra el catálogo, precios, stock y disponibilidad de productos.',
+          RetirosTienda: 'Consulta y confirma retiros en tienda para órdenes pagadas.',
         } as Record<string, string>
       )[this.operations.view()] || ''
     );
@@ -85,6 +87,10 @@ export class AdminLayout implements OnDestroy {
       this.forms.open('Repartidor');
     } else if (this.operations.view() === 'Zonas') {
       this.forms.open('Zona');
+    } else if (this.operations.view() === 'Productos') {
+      this.operations.navigate('Productos');
+    } else if (this.operations.view() === 'RetirosTienda') {
+      this.operations.navigate('RetirosTienda');
     } else {
       this.forms.open('Pedido');
     }

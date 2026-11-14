@@ -22,6 +22,15 @@ import {
   UbicacionRepartidorDto,
   TransferirPedidoRequest,
 } from '../models/logistica.models';
+import {
+  CategoriaDto,
+  FiltroProductosAdmin,
+  GuardarProductoRequest,
+  OrdenRetiroDto,
+  PaginaProductosDto,
+  ProductoDto,
+  SubcategoriaDto,
+} from '../models/ecommerce.models';
 
 // URL del servidor SIN /api y SIN barra final; se configura en app.config.ts.
 export const LOGISTICA_SERVER_URL = new InjectionToken<string>('LOGISTICA_SERVER_URL');
@@ -146,5 +155,71 @@ export class LogisticaApiService {
       `${this.base}/seguimiento/pedidos/${pedidoId}/entregado`,
       null,
     );
+  }
+
+  listarCategorias(incluirInactivas = false) {
+    return this.http.get<CategoriaDto[]>(`${this.base}/categorias`, {
+      params: incluirInactivas ? { incluirInactivas: true } : {},
+    });
+  }
+  crearCategoria(body: Partial<CategoriaDto> & { nombre: string }) {
+    return this.http.post<CategoriaDto>(`${this.base}/categorias`, body);
+  }
+  actualizarCategoria(id: number | string, body: Partial<CategoriaDto> & { nombre?: string }) {
+    return this.http.put<CategoriaDto>(`${this.base}/categorias/${id}`, body);
+  }
+  listarSubcategorias(categoriaId?: number, incluirInactivas = false) {
+    let params = new HttpParams();
+    if (categoriaId != null) params = params.set('categoriaId', String(categoriaId));
+    if (incluirInactivas) params = params.set('incluirInactivas', 'true');
+    return this.http.get<SubcategoriaDto[]>(`${this.base}/subcategorias`, { params });
+  }
+  crearSubcategoria(body: Partial<SubcategoriaDto> & { nombre: string; categoriaId: number }) {
+    return this.http.post<SubcategoriaDto>(`${this.base}/subcategorias`, body);
+  }
+  actualizarSubcategoria(id: number | string, body: Partial<SubcategoriaDto>) {
+    return this.http.put<SubcategoriaDto>(`${this.base}/subcategorias/${id}`, body);
+  }
+
+  listarProductos(filtro: FiltroProductosAdmin = {}) {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filtro)) {
+      if (value !== undefined && value !== null && value !== '')
+        params = params.set(key, String(value));
+    }
+    return this.http.get<PaginaProductosDto | ProductoDto[]>(`${this.base}/productos`, { params });
+  }
+  obtenerProducto(id: string) {
+    return this.http.get<ProductoDto>(`${this.base}/productos/${id}`, {
+      params: { incluirInactivos: 'true' },
+    });
+  }
+  crearProducto(body: GuardarProductoRequest) {
+    return this.http.post<ProductoDto>(`${this.base}/productos`, body);
+  }
+  actualizarProducto(id: string, body: GuardarProductoRequest) {
+    return this.http.put<ProductoDto>(`${this.base}/productos/${id}`, body);
+  }
+  actualizarStockProducto(id: string, stock: number) {
+    return this.http.patch<ProductoDto>(`${this.base}/productos/${id}/stock`, { stock });
+  }
+  desactivarProducto(id: string) {
+    return this.http.delete<void>(`${this.base}/productos/${id}`);
+  }
+  activarProducto(id: string) {
+    return this.http.post<ProductoDto>(`${this.base}/productos/${id}/activar`, null);
+  }
+
+  listarRetirosTienda() {
+    return this.http.get<OrdenRetiroDto[] | { items?: OrdenRetiroDto[] }>(
+      `${this.base}/ordenes/retiros-tienda`,
+    );
+  }
+  marcarOrdenRetirada(id: string) {
+    return this.http.patch<OrdenRetiroDto>(`${this.base}/ordenes/${id}/marcar-retirado`, null);
+  }
+
+  poblarEscenarioAltoVolumen() {
+    return this.http.post<unknown>(`${this.base}/testing/poblar-escenario-alto-volumen`, null);
   }
 }

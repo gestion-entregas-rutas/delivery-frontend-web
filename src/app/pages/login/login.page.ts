@@ -7,7 +7,6 @@ import { errorAutenticacion } from '../../core/models/autenticacion.models';
   selector: 'app-login-page',
   imports: [FormsModule],
   templateUrl: './login.page.html',
-  styleUrl: '../../shared/auth-page.css',
 })
 export class LoginPage {
   readonly auth = inject(AuthService);

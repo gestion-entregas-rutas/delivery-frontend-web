@@ -58,6 +58,18 @@ export class OperationsService {
       group: 'Operaciones',
     },
     {
+      name: 'Productos',
+      label: 'Catálogo y Productos',
+      icon: 'storefront',
+      group: 'Operaciones',
+    },
+    {
+      name: 'RetirosTienda',
+      label: 'Retiros en Tienda',
+      icon: 'store',
+      group: 'Operaciones',
+    },
+    {
       name: 'Usuarios',
       label: 'Cuentas y Acceso',
       icon: 'admin_panel_settings',
@@ -214,6 +226,8 @@ export class OperationsService {
           Zonas: '/zonas',
           Usuarios: '/usuarios',
           Credenciales: '/credenciales',
+          Productos: '/productos',
+          RetirosTienda: '/retiros-tienda',
         } as Record<string, string>
       )[name] || '/resumen',
     ]);

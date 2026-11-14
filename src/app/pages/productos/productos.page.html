@@ -1,0 +1,201 @@
+<div class="legacy-ui p-gutter-lg space-y-gutter-lg">
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Catálogo y Productos <span class="number-pill">{{ filtrados().length }}</span></h2>
+        <p>Administra productos, precios, stock y disponibilidad. La edición usa concurrencia optimista por versión.</p>
+      </div>
+      <button class="button primary" (click)="abrirNuevo()" [disabled]="saving() || loading()">＋ Nuevo producto</button>
+    </div>
+
+    @if (message()) {
+      <div class="notice success" role="status">{{ message() }}</div>
+    }
+    @if (error() && !editorAbierto()) {
+      <div class="notice error" role="alert">{{ error() }} <button (click)="cargar()">Reintentar</button></div>
+    }
+
+    <div class="form-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;">
+      <label>Buscar
+        <input name="buscarProducto" [(ngModel)]="buscar" placeholder="Nombre, marca o subcategoría" />
+      </label>
+      <label>Categoría
+        <select name="categoriaFiltro" [(ngModel)]="categoriaFiltro">
+          <option [ngValue]="''">Todas las categorías</option>
+          @for (cat of categoriasOpciones(); track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+          }
+        </select>
+      </label>
+      <label>Estado
+        <select name="estadoFiltro" [(ngModel)]="estadoFiltro">
+          <option value="todos">Todos</option>
+          <option value="activo">Activo</option>
+          <option value="agotado">Agotado</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>PRODUCTO</th>
+            <th>CATEGORÍA</th>
+            <th>PRECIO</th>
+            <th>STOCK</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of filtrados(); track p.id) {
+            <tr>
+              <td>
+                <strong>{{ p.nombre }}</strong>
+                <small>{{ p.marca || 'Sin marca' }} · {{ p.subcategoria || 'Sin subcategoría' }}</small>
+              </td>
+              <td>{{ p.categoriaNombre || ('ID ' + p.categoriaId) }}</td>
+              <td>
+                @if (p.precioOferta != null) {
+                  <strong>${{ p.precioOferta }}</strong> <small style="text-decoration:line-through;">${{ p.precioBase }}</small>
+                } @else {
+                  <strong>${{ p.precioBase }}</strong>
+                }
+              </td>
+              <td>{{ p.stock }}</td>
+              <td>
+                <span class="badge" [attr.data-state]="estadoProducto(p) === 'Activo' ? 'Disponible' : 'Cancelado'">{{ estadoProducto(p) }}</span>
+              </td>
+              <td>
+                <button class="text-button" (click)="abrirEditar(p)" [disabled]="saving()">Editar</button>
+                <button class="text-button" (click)="cambiarStock(p)" [disabled]="saving()">Stock</button>
+                @if (p.activo) {
+                  <button class="text-button danger" (click)="desactivar(p)" [disabled]="saving()">Desactivar</button>
+                } @else {
+                  <button class="text-button" (click)="activar(p)" [disabled]="saving()">Activar</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <div class="empty">
+                  <h3>{{ loading() ? 'Cargando productos…' : 'No hay productos para mostrar' }}</h3>
+                  <p>Ajusta los filtros o crea un producto nuevo.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (editorAbierto()) {
+    <div class="modal-backdrop" (click)="cerrarEditor()">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="producto-dialog-title" style="max-width:920px;width:95vw;max-height:92vh;overflow:auto;" (click)="$event.stopPropagation()">
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow">CATÁLOGO</div>
+            <h2 id="producto-dialog-title">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+            @if (editandoId()) { <p>Versión actual: <strong>{{ editandoVersion() ?? '—' }}</strong></p> }
+          </div>
+          <button class="icon-button" aria-label="Cerrar" [disabled]="saving()" (click)="cerrarEditor()">×</button>
+        </div>
+
+        <form #f="ngForm" (ngSubmit)="guardar()">
+          <div class="form-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+            @if (conflict()) {
+              <div class="notice error" role="alert" style="grid-column:1/-1;">
+                {{ conflict() }}
+                <button type="button" class="button" (click)="recargarProductoActual()" [disabled]="saving() || loading()">Recargar datos</button>
+              </div>
+            }
+            @if (error()) {
+              <div class="notice error" role="alert" style="grid-column:1/-1;">{{ error() }}</div>
+            }
+
+            <label>Categoría *
+              <select name="categoriaId" [(ngModel)]="form.categoriaId" required [disabled]="saving()">
+                <option [ngValue]="0">Selecciona una categoría</option>
+                @for (cat of categoriasOpciones(); track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+                }
+              </select>
+            </label>
+            <label>Subcategoría
+              <input name="subcategoria" [(ngModel)]="form.subcategoria" [disabled]="saving()" />
+            </label>
+            <label style="grid-column:1/-1;">Nombre *
+              <input name="nombre" [(ngModel)]="form.nombre" required [disabled]="saving()" />
+            </label>
+            <label>Marca
+              <input name="marca" [(ngModel)]="form.marca" [disabled]="saving()" />
+            </label>
+            <label>Stock
+              <input type="number" min="0" name="stock" [(ngModel)]="form.stock" [disabled]="saving()" />
+            </label>
+            <label>Precio base *
+              <input type="number" min="0" step="0.01" name="precioBase" [(ngModel)]="form.precioBase" required [disabled]="saving()" />
+            </label>
+            <label>Precio oferta
+              <input type="number" min="0" step="0.01" name="precioOferta" [(ngModel)]="form.precioOferta" [disabled]="saving()" />
+            </label>
+            <label>Activo
+              <select name="activo" [(ngModel)]="form.activo" [disabled]="saving()">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+              </select>
+            </label>
+            <label style="grid-column:1/-1;">Descripción corta
+              <textarea name="descripcionCorta" rows="2" [(ngModel)]="form.descripcionCorta" [disabled]="saving()"></textarea>
+            </label>
+            <label style="grid-column:1/-1;">Imagen principal (URL)
+              <input name="imagenPrincipalUrl" [(ngModel)]="form.imagenPrincipalUrl" [disabled]="saving()" />
+            </label>
+
+            <div style="grid-column:1/-1;">
+              <div class="panel-heading"><h3>Galería multimedia</h3><button type="button" class="button" (click)="addGaleria()" [disabled]="saving()">Agregar</button></div>
+              @for (m of form.galeriaMultimedia; track $index) {
+                <div style="display:grid;grid-template-columns:140px 1fr 100px auto;gap:8px;align-items:end;margin-bottom:8px;">
+                  <label>Tipo<select [(ngModel)]="m.tipo" [name]="'tipo'+$index" [disabled]="saving()"><option value="imagen">Imagen</option><option value="video">Video</option></select></label>
+                  <label>URL<input [(ngModel)]="m.url" [name]="'murl'+$index" [disabled]="saving()" /></label>
+                  <label>Orden<input type="number" [(ngModel)]="m.orden" [name]="'morden'+$index" [disabled]="saving()" /></label>
+                  <button type="button" class="text-button danger" (click)="removeGaleria($index)" [disabled]="saving()">Quitar</button>
+                </div>
+              }
+            </div>
+
+            <div style="grid-column:1/-1;">
+              <div class="panel-heading"><h3>Ficha técnica</h3><button type="button" class="button" (click)="addFicha()" [disabled]="saving()">Agregar fila</button></div>
+              @for (f of form.fichaTecnica; track $index) {
+                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
+                  <label>Clave<input [(ngModel)]="f.clave" [name]="'fclave'+$index" [disabled]="saving()" /></label>
+                  <label>Valor<input [(ngModel)]="f.valor" [name]="'fvalor'+$index" [disabled]="saving()" /></label>
+                  <button type="button" class="text-button danger" (click)="removeFicha($index)" [disabled]="saving()">Quitar</button>
+                </div>
+              }
+            </div>
+
+            <div style="grid-column:1/-1;">
+              <div class="panel-heading"><h3>Sobre este artículo</h3><button type="button" class="button" (click)="addSobre()" [disabled]="saving()">Agregar ítem</button></div>
+              @for (s of form.sobreEsteArticulo; track $index) {
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
+                  <label>Texto<textarea rows="2" [(ngModel)]="form.sobreEsteArticulo[$index]" [name]="'sobre'+$index" [disabled]="saving()"></textarea></label>
+                  <button type="button" class="text-button danger" (click)="removeSobre($index)" [disabled]="saving()">Quitar</button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="button" (click)="cerrarEditor()" [disabled]="saving()">Cancelar</button>
+            <button class="button primary" [disabled]="f.invalid || saving()">{{ saving() ? 'Guardando…' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</div>

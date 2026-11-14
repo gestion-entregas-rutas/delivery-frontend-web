@@ -1,0 +1,17 @@
+﻿
+> frontend-web@0.0.0 test
+> ng test --watch=false
+
+ÔØ» Building...
+Ô£ö Building...
+Application bundle generation complete. [9.324 seconds] - 2026-11-14T19:28:43.347Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90mC:/Users/Josue/Desktop/Gestion e Implantacion del Software/Proyecto/frontend-web[39m
+
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m81 passed[39m[22m[90m (81)[39m
+[2m   Start at [22m 14:28:44
+[2m   Duration [22m 7.43s[2m (transform 2.15s, setup 7.77s, import 4.07s, tests 3.39s, environment 45.33s)[22m
+

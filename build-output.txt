@@ -1,0 +1,64 @@
+﻿
+> frontend-web@0.0.0 build
+> ng build
+
+ÔØ» Building...
+Ô£ö Building...
+Browser bundles     
+Initial chunk files  | Names             |  Raw size | Estimated transfer size
+main-IUQ2UKJM.js     | main              | 314.99 kB |                87.90 kB
+styles-CS63BN4Z.css  | styles            | 107.02 kB |                15.48 kB
+
+                     | Initial total     | 422.01 kB |               103.38 kB
+
+Lazy chunk files     | Names             |  Raw size | Estimated transfer size
+chunk-DqBZLF4w.js    | leaflet-src       | 149.42 kB |                37.63 kB
+chunk-C5SUU_no.js    | admin-layout      |  65.67 kB |                14.73 kB
+chunk-DBy44-RZ.js    | index             |  55.63 kB |                12.64 kB
+chunk-1wwvwTHF.js    | pedidos-page      |  51.44 kB |                11.09 kB
+chunk-CkBr8NR-.js    | rutas-page        |  49.03 kB |                11.00 kB
+chunk-C6lP3HCf.js    | -                 |  44.59 kB |                 9.40 kB
+chunk-Dg9rxiyn.js    | resumen-page      |  39.43 kB |                 9.29 kB
+chunk-BBz5k-a9.js    | index             |  35.66 kB |                11.03 kB
+chunk-DZPZfV2X.js    | zonas-page        |  25.42 kB |                 6.73 kB
+chunk-CMHJkJaL.js    | productos-page    |  21.97 kB |                 5.59 kB
+chunk-DlQrOoFN.js    | -                 |  12.37 kB |                 4.19 kB
+chunk-BuGENRyr.js    | credenciales-page |  12.11 kB |                 3.19 kB
+chunk-CVq2BSzd.js    | usuarios-page     |  10.25 kB |                 3.35 kB
+chunk-uSbVbD6J.js    | -                 |   9.59 kB |                 3.05 kB
+chunk-CJm9cSGL.js    | -                 |   5.93 kB |                 2.02 kB
+...and 9 more lazy chunks files. Use "--verbose" to show all the files.
+
+
+Server bundles      
+Initial chunk files  | Names             |  Raw size
+server.mjs           | server            | 920.52 kB |                        
+chunk-FH46GX5T.mjs   | -                 | 313.62 kB |                        
+main.server.mjs      | main.server       | 284.62 kB |                        
+polyfills.server.mjs | polyfills.server  | 235.58 kB |                        
+chunk-C2KJ4ATU.mjs   | -                 |   1.54 kB |                        
+chunk-KYQQYI4M.mjs   | -                 |   1.01 kB |                        
+
+Lazy chunk files     | Names             |  Raw size
+chunk-WZUE7MDR.mjs   | leaflet-src       | 149.59 kB |                        
+chunk-5EHCLQC2.mjs   | admin-layout      |  64.52 kB |                        
+chunk-PO4TTEBG.mjs   | index             |  55.88 kB |                        
+chunk-FV3FP4W6.mjs   | pedidos-page      |  50.61 kB |                        
+chunk-VC2SOUMA.mjs   | rutas-page        |  48.17 kB |                        
+chunk-3KYNB44Z.mjs   | -                 |  44.45 kB |                        
+chunk-IPSQT2Z7.mjs   | resumen-page      |  38.87 kB |                        
+chunk-NNBSTX7U.mjs   | index             |  35.76 kB |                        
+chunk-QGD2HP43.mjs   | zonas-page        |  25.06 kB |                        
+chunk-OCPYOS5S.mjs   | productos-page    |  21.40 kB |                        
+chunk-L44MF7IN.mjs   | -                 |  12.38 kB |                        
+chunk-RBXOAK24.mjs   | xhr2              |  12.17 kB |                        
+chunk-XDZ7ZLR6.mjs   | xhr2              |  12.08 kB |                        
+chunk-7LNYMPEY.mjs   | credenciales-page |  12.03 kB |                        
+chunk-7EBHMD47.mjs   | usuarios-page     |  10.04 kB |                        
+...and 11 more lazy chunks files. Use "--verbose" to show all the files.
+
+Prerendered 0 static routes.
+Application bundle generation complete. [13.592 seconds] - 2026-11-14T19:28:47.501Z
+
+Output location: C:\Users\Josue\Desktop\Gestion e Implantacion del Software\Proyecto\frontend-web\dist\frontend-web
+

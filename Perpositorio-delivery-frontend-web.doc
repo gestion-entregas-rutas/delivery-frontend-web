@@ -1,0 +1,735 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'><title>Ejecuci?n de pruebas - RouteOS</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.4;margin:1in;} h1{font-size:18pt;color:#1a1b1f;} h2{font-size:14pt;color:#1a1b1f;border-bottom:1px solid #ddd;} h3{font-size:12pt;} table{margin:8px 0;} td,th{vertical-align:top;}</style>
+</head><body><h1>Ejecución de pruebas — RouteOS (frontend-web / panel administrativo)</h1>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Documento:</b> Perpositorio-delivery-frontend-web.md  </p>
+<p style="margin:4px 0;"><b>Proyecto:</b> RouteOS — Panel administrativo (<code style="font-family:Consolas,monospace;background:#f6f6f6;">frontend-web</code>)  </p>
+<p style="margin:4px 0;"><b>Fecha de ejecución:</b> 2026-11-14  </p>
+<p style="margin:4px 0;"><b>Entorno de ejecución (local):</b> Windows (win32), directorio <code style="font-family:Consolas,monospace;background:#f6f6f6;">C:\Users\Josue\Desktop\Gestion e Implantacion del Software\Proyecto\frontend-web</code>  </p>
+<p style="margin:4px 0;"><b>Ejecutor:</b> Automatizado (asistido) mediante CLI del proyecto y scripts de prueba  </p>
+<p style="margin:4px 0;"><b>Plan base:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">PLAN_PRUEBAS.md</code></p>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>1. Objetivo</h2>
+<p style="margin:4px 0;">Ejecutar y evidenciar las pruebas planificadas para el panel administrativo RouteOS, registrando resultados reales (sin registros inventados), con foco en:</p>
+<p style="margin:2px 0 2px 18px;">? Verificación técnica automatizada (pruebas unitarias/frontend con mocks, compilación y tipado).</p>
+<p style="margin:2px 0 2px 18px;">? Pruebas <b>sin API</b> (mocks) para fundamentar lógica de UI/negocio (catálogo, retiros, login, rutas).</p>
+<p style="margin:2px 0 2px 18px;">? Pruebas de <b>integración contra API real</b> (backend encendido) para autenticación, catálogo/productos, concurrencia optimista (409), retiros y smoke de regresión logística.</p>
+<p style="margin:2px 0 2px 18px;">? Conservación del diseño aprobado y ausencia de regresiones de construcción.</p>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>2. Alcance ejecutado</h2>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Tipo de prueba</th>
+<th style="background:#f2f2f2;font-weight:bold;">Alcance</th>
+<th style="background:#f2f2f2;font-weight:bold;">Estado</th>
+</tr>
+<tr>
+<td>Unitarias/automatizadas (Vitest/Angular)</td>
+<td>Suite completa del frontend, incluye pruebas existentes y nuevas pruebas sin API (<code style="font-family:Consolas,monospace;background:#f6f6f6;">*.spec.ts</code>)</td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>Pruebas sin API (mocks)</td>
+<td>Productos (carga/filtros/crear/conflicto 409/stock/estado), Retiros (carga/filtro/marcar retirado/error), Login (diseño minimal), rutas e-commerce</td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>Compilación (build)</td>
+<td>Build de navegador y servidor/SSR (<code style="font-family:Consolas,monospace;background:#f6f6f6;">npm run build</code>)</td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>Conservación de diseño aprobado</td>
+<td>Verificación de baseline (<code style="font-family:Consolas,monospace;background:#f6f6f6;">node scripts/verificar-diseno.mjs</code>)</td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>Verificación de tipos TypeScript</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">tsc -p tsconfig.app.json --noEmit --noUnusedLocals --noUnusedParameters</code></td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>Integración API real (backend encendido)</td>
+<td>Login, categorías, productos (listar/crear/obtener/editar/stock), <b>concurrencia 409 con versión obsoleta (2 admins)</b>, retiros, smoke logístico</td>
+<td><b>Ejecutada</b></td>
+</tr>
+<tr>
+<td>UI manual end-to-end en navegador</td>
+<td>Validación visual/flujo completo en UI con interacción humana</td>
+<td><b>Pendiente</b></td>
+</tr>
+<tr>
+<td>Integración tiempo real (SignalR/GPS)</td>
+<td>Eventos <code style="font-family:Consolas,monospace;background:#f6f6f6;">/hubs/seguimiento</code>, posiciones de conductor en vivo</td>
+<td><b>Pendiente</b> (requiere conductor/app y eventos en vivo)</td>
+</tr>
+<tr>
+<td>Casos funcionales UI adicionales</td>
+<td>Escenarios no cubiertos por script API (p.ej. forzar credenciales, UX detallada, casos de datos específicos de retiros con marcado en UI)</td>
+<td><b>Pendiente/Parcial</b></td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>3. Preparación del entorno</h2>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Ítem</th>
+<th style="background:#f2f2f2;font-weight:bold;">Resultado</th>
+<th style="background:#f2f2f2;font-weight:bold;">Observación</th>
+</tr>
+<tr>
+<td>Código fuente y dependencias</td>
+<td>OK</td>
+<td>Repositorio <code style="font-family:Consolas,monospace;background:#f6f6f6;">frontend-web</code> disponible.</td>
+</tr>
+<tr>
+<td>Herramientas CLI del proyecto</td>
+<td>OK</td>
+<td>Scripts <code style="font-family:Consolas,monospace;background:#f6f6f6;">build</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">test</code>, verificador de diseño y TypeScript disponibles.</td>
+</tr>
+<tr>
+<td>Backend/API (<code style="font-family:Consolas,monospace;background:#f6f6f6;">http://localhost:5289</code>)</td>
+<td><b>OK (encendido)</b></td>
+<td>API accesible; autenticación y endpoints e-commerce/logística respondieron durante la integración.</td>
+</tr>
+<tr>
+<td>Usuarios administradores (2)</td>
+<td><b>OK</b></td>
+<td>Se utilizaron credenciales provistas para autenticación y prueba de concurrencia multiusuario (no se incluyen en este documento).</td>
+</tr>
+<tr>
+<td>Datos de catálogo</td>
+<td>OK</td>
+<td>Categorías activas y productos existentes disponibles en el backend.</td>
+</tr>
+<tr>
+<td>Órdenes de retiro en tienda</td>
+<td>Parcial</td>
+<td>Endpoint respondió correctamente; sin registros al momento de la prueba (<code style="font-family:Consolas,monospace;background:#f6f6f6;">count=0</code>).</td>
+</tr>
+<tr>
+<td>Evidencias</td>
+<td>OK</td>
+<td>Salidas capturadas en ejecución; script de integración genera resumen JSON; archivo <code style="font-family:Consolas,monospace;background:#f6f6f6;">integracion-api-output.txt</code> generado.</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>4. Pruebas sin API (mocks) y automatizadas de frontend</h2>
+<p style="margin:6px 0;"></p>
+<h3>4.1 Archivos de prueba creados (sin backend, fundamentación)</h3>
+<p style="margin:4px 0;">Convención del proyecto: <code style="font-family:Consolas,monospace;background:#f6f6f6;">*.spec.ts</code> (Vitest + Angular TestBed).</p>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Archivo</th>
+<th style="background:#f2f2f2;font-weight:bold;">Cobertura (sin API real)</th>
+</tr>
+<tr>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/productos/productos.page.spec.ts</code></td>
+<td>Carga/filtros (búsqueda, categoría, estado), creación normalizada, conflicto <b>409</b> con banner y recarga de versión sin sobrescribir/cerrar, stock/activar/desactivar (mocks).</td>
+</tr>
+<tr>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/retiros-tienda/retiros-tienda.page.spec.ts</code></td>
+<td>Carga y filtrado por cédula/nombre/código/ID, marcar retirado con refresco, error controlado en carga.</td>
+</tr>
+<tr>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/login/login.page.spec.ts</code></td>
+<td>Login minimalista: elementos esenciales presentes y ausencia de bloques informativos extensos del diseño anterior.</td>
+</tr>
+<tr>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/ecommerce.no-api.spec.ts</code></td>
+<td>Rutas <code style="font-family:Consolas,monospace;background:#f6f6f6;">productos</code> y <code style="font-family:Consolas,monospace;background:#f6f6f6;">retiros-tienda</code> (lazy) y redirecciones a <code style="font-family:Consolas,monospace;background:#f6f6f6;">resumen</code>.</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<h3>4.2 Ejecución de suite automatizada (Vitest)</h3>
+<p style="margin:4px 0;"><b>Comando:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">npm test -- --watch=false</code>  </p>
+<p style="margin:4px 0;"><b>Resultado:</b> <b>PASA</b>  </p>
+<p style="margin:4px 0;"><b>Resumen:</b> 15 archivos de prueba, 91 pruebas aprobadas, 0 fallas (incluye pruebas existentes + nuevas pruebas sin API).</p>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Evidencia (salida):</b></p>
+<pre style="font-family:Consolas,monospace;font-size:9pt;background:#f6f6f6;border:1px solid #ddd;padding:8px;white-space:pre-wrap;">&gt; frontend-web@0.0.0 test
+&gt; ng test --watch=false
+
+❯ Building...
+✔ Building...
+Application bundle generation complete.
+
+ RUN  v4.1.11  C:/Users/Josue/Desktop/Gestion e Implantacion del Software/Proyecto/frontend-web
+
+ Test Files  15 passed (15)
+      Tests  91 passed (91)
+   Start at  15:36:43
+   Duration  5.19s (transform 2.28s, setup 7.11s, import 4.28s, tests 4.87s, environment 29.75s)
+
+EXIT:0</pre>
+<p style="margin:6px 0;"></p>
+<h3>4.3 Compilación (build)</h3>
+<p style="margin:4px 0;"><b>Comando:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">npm run build</code>  </p>
+<p style="margin:4px 0;"><b>Resultado:</b> <b>PASA</b>  </p>
+<p style="margin:4px 0;"><b>Resumen:</b> Compilación browser + server/SSR completada; incluye chunks lazy de <code style="font-family:Consolas,monospace;background:#f6f6f6;">productos-page</code> y <code style="font-family:Consolas,monospace;background:#f6f6f6;">retiros-tienda-page</code>.</p>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Evidencia (extracto):</b></p>
+<pre style="font-family:Consolas,monospace;font-size:9pt;background:#f6f6f6;border:1px solid #ddd;padding:8px;white-space:pre-wrap;">Application bundle generation complete.
+Output location: C:\Users\Josue\Desktop\Gestion e Implantacion del Software\Proyecto\frontend-web\dist\frontend-web</pre>
+<p style="margin:6px 0;"></p>
+<h3>4.4 Verificación de diseño aprobado</h3>
+<p style="margin:4px 0;"><b>Comando:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">node scripts/verificar-diseno.mjs</code>  </p>
+<p style="margin:4px 0;"><b>Resultado:</b> <b>PASA</b></p>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Evidencia:</b></p>
+<pre style="font-family:Consolas,monospace;font-size:9pt;background:#f6f6f6;border:1px solid #ddd;padding:8px;white-space:pre-wrap;">7 hojas de estilo sin cambios; 16 plantillas con clases aprobadas conservadas. Se permiten controles funcionales adicionales.</pre>
+<p style="margin:6px 0;"></p>
+<h3>4.5 Verificación de tipos (TypeScript)</h3>
+<p style="margin:4px 0;"><b>Comando:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit --noUnusedLocals --noUnusedParameters</code>  </p>
+<p style="margin:4px 0;"><b>Resultado:</b> <b>PASA</b> (<code style="font-family:Consolas,monospace;background:#f6f6f6;">EXIT:0</code>)</p>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>5. Pruebas de integración contra API real (backend encendido)</h2>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Script:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">scripts/integracion-api.test.mjs</code>  </p>
+<p style="margin:4px 0;"><b>Comando:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">node scripts/integracion-api.test.mjs</code>  </p>
+<p style="margin:4px 0;"><b>Backend:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">http://localhost:5289/api</code>  </p>
+<p style="margin:4px 0;"><b>Resultado:</b> <b>PASA</b> — <b>Total: 12 | PASS: 12 | FAIL: 0</b>  </p>
+<p style="margin:4px 0;"><b>Evidencia adicional:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">integracion-api-output.txt</code> (salida capturada). Producto de prueba creado durante la ejecución y desactivado al finalizar (<code style="font-family:Consolas,monospace;background:#f6f6f6;">DELETE ... status=204</code>).</p>
+<p style="margin:6px 0;"></p>
+<h3>5.1 Resultados por caso de integración</h3>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">ID</th>
+<th style="background:#f2f2f2;font-weight:bold;">Caso</th>
+<th style="background:#f2f2f2;font-weight:bold;">Resultado</th>
+<th style="background:#f2f2f2;font-weight:bold;">Evidencia (resumen)</th>
+</tr>
+<tr>
+<td>CP-LOGIN-01</td>
+<td>Login administrador 1 válido</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">usuario=admin rol=Administrador</code></td>
+</tr>
+<tr>
+<td>CP-LOGIN-02A</td>
+<td>Login administrador 2 válido (para concurrencia)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">usuario=Admin rol=Administrador</code></td>
+</tr>
+<tr>
+<td>CP-LOGIN-02</td>
+<td>Login con credenciales inválidas rechazado</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">status=401</code></td>
+</tr>
+<tr>
+<td>CP-PROD-01A</td>
+<td>Listar categorías (API real)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">count=28</code></td>
+</tr>
+<tr>
+<td>CP-PROD-01B</td>
+<td>Listar productos admin (<code style="font-family:Consolas,monospace;background:#f6f6f6;">incluirInactivos</code>)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">items=5 total=42</code></td>
+</tr>
+<tr>
+<td>CP-PROD-02</td>
+<td>Crear producto (API real)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">status=201</code>, producto creado con <code style="font-family:Consolas,monospace;background:#f6f6f6;">version=&quot;vgQAAA==&quot;</code></td>
+</tr>
+<tr>
+<td>CP-PROD-04A</td>
+<td>Obtener producto por ID con versión</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">version=&quot;vgQAAA==&quot;</code></td>
+</tr>
+<tr>
+<td>CP-PROD-04B</td>
+<td>Actualizar producto con versión válida (PUT)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">v1=&quot;vgQAAA==&quot;</code> → <code style="font-family:Consolas,monospace;background:#f6f6f6;">v2=&quot;vwQAAA==&quot;</code> (versión incrementa)</td>
+</tr>
+<tr>
+<td>CP-PROD-04C</td>
+<td>Actualizar stock (PATCH)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">status=200 stock=99</code></td>
+</tr>
+<tr>
+<td>CP-PROD-03</td>
+<td><b>Concurrencia: PUT con versión obsoleta retorna 409</b></td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">status=409 codigo=CONFLICTO_VERSION_PRODUCTO</code></td>
+</tr>
+<tr>
+<td>CP-RET-01</td>
+<td>Listar retiros en tienda (API real)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">count=0</code> (endpoint responde correctamente)</td>
+</tr>
+<tr>
+<td>CP-REG-01</td>
+<td>Smoke regresión logística (zonas/repartidores/rutas)</td>
+<td><b>PASS</b></td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">zonas=200 repartidores=200 rutas=200</code></td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<h3>5.2 Evidencia clave — Concurrencia optimista (CP-PROD-03)</h3>
+<p style="margin:4px 0;">Se realizó actualización válida con Admin 1 (versión <code style="font-family:Consolas,monospace;background:#f6f6f6;">v1</code> → <code style="font-family:Consolas,monospace;background:#f6f6f6;">v2</code>) y posteriormente un intento de actualización con Admin 2 usando la versión obsoleta (<code style="font-family:Consolas,monospace;background:#f6f6f6;">v1</code>), obteniendo conflicto real del backend:</p>
+<p style="margin:6px 0;"></p>
+<pre style="font-family:Consolas,monospace;font-size:9pt;background:#f6f6f6;border:1px solid #ddd;padding:8px;white-space:pre-wrap;">{
+  &quot;title&quot;: &quot;Conflicto de concurrencia&quot;,
+  &quot;status&quot;: 409,
+  &quot;detail&quot;: &quot;El producto fue editado por otro usuario. Recarga los datos antes de guardar.&quot;,
+  &quot;instance&quot;: &quot;/api/productos/01a1dbd3-a11d-73f0-9b98-27dd8af5ce13&quot;,
+  &quot;codigo&quot;: &quot;CONFLICTO_VERSION_PRODUCTO&quot;,
+  &quot;traceId&quot;: &quot;00-e1531d33a238c7177a1542df6a807104-d88d57f655264060-00&quot;
+}</pre>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Interpretación:</b> el backend aplica control de concurrencia por versión y rechaza sobrescritura con versión obsoleta (409), entregando código/mensaje/<code style="font-family:Consolas,monospace;background:#f6f6f6;">traceId</code> coherentes con el contrato y con el manejo implementado en el frontend.</p>
+<p style="margin:6px 0;"></p>
+<h3>5.3 Evidencia (salida resumida del script)</h3>
+<pre style="font-family:Consolas,monospace;font-size:9pt;background:#f6f6f6;border:1px solid #ddd;padding:8px;white-space:pre-wrap;">API_BASE=http://localhost:5289/api
+PASS  CP-LOGIN-01 - Login administrador 1 válido :: usuario=admin rol=Administrador
+PASS  CP-LOGIN-02A - Login administrador 2 válido (para concurrencia) :: usuario=Admin rol=Administrador
+PASS  CP-LOGIN-02 - Login con credenciales inválidas es rechazado :: status=401
+PASS  CP-PROD-01A - Listar categorías (API real) :: count=28 categoriaId=01a1d8a6-b4ef-7e0d-bac0-0bac45512a00
+PASS  CP-PROD-01B - Listar productos admin (incluirInactivos) :: items=5 total=42
+PASS  CP-PROD-02 - Crear producto (API real) :: id=01a1dbd3-a11d-73f0-9b98-27dd8af5ce13 version=&quot;vgQAAA==&quot; status=201
+PASS  CP-PROD-04A - Obtener producto por ID con versión :: version=&quot;vgQAAA==&quot;
+PASS  CP-PROD-04B - Actualizar producto con versión válida (PUT) :: v1=&quot;vgQAAA==&quot; v2=&quot;vwQAAA==&quot;
+PASS  CP-PROD-04C - Actualizar stock (PATCH) :: status=200 stock=99
+PASS  CP-PROD-03 - Conflicto de concurrencia: PUT con versión obsoleta retorna 409 :: status=409 codigo=CONFLICTO_VERSION_PRODUCTO ...
+PASS  CP-RET-01 - Listar retiros en tienda (API real) :: count=0
+PASS  CP-REG-01 - Smoke regresión logística: zonas/repartidores/rutas responden :: zonas=200 repartidores=200 rutas=200
+CLEANUP  Desactivar producto prueba 01a1dbd3-a11d-73f0-9b98-27dd8af5ce13 :: status=204
+
+--- RESUMEN INTEGRACIÓN ---
+Total: 12 | PASS: 12 | FAIL: 0
+EXIT:0</pre>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>6. Hoja de ejecución de casos de prueba (consolidada)</h2>
+<p style="margin:6px 0;"></p>
+<p style="margin:4px 0;"><b>Leyenda:</b> <code style="font-family:Consolas,monospace;background:#f6f6f6;">Pasa</code> | <code style="font-family:Consolas,monospace;background:#f6f6f6;">Falla</code> | <code style="font-family:Consolas,monospace;background:#f6f6f6;">Bloqueado</code> | <code style="font-family:Consolas,monospace;background:#f6f6f6;">Pendiente</code> | <code style="font-family:Consolas,monospace;background:#f6f6f6;">Parcial</code></p>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">ID Caso</th>
+<th style="background:#f2f2f2;font-weight:bold;">Módulo</th>
+<th style="background:#f2f2f2;font-weight:bold;">Tipo</th>
+<th style="background:#f2f2f2;font-weight:bold;">Resultado esperado (resumen)</th>
+<th style="background:#f2f2f2;font-weight:bold;">Resultado obtenido</th>
+<th style="background:#f2f2f2;font-weight:bold;">Estado</th>
+<th style="background:#f2f2f2;font-weight:bold;">Evidencia</th>
+<th style="background:#f2f2f2;font-weight:bold;">ID Defecto</th>
+</tr>
+<tr>
+<td>CP-TEST-01</td>
+<td>Transversal</td>
+<td>Automatizada (Vitest)</td>
+<td>Suite frontend sin fallos</td>
+<td>15 archivos, 91 pruebas aprobadas, 0 fallas</td>
+<td><b>Pasa</b></td>
+<td>4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-NOAPI-PROD</td>
+<td>Productos</td>
+<td>Automatizada (mocks)</td>
+<td>Filtros, alta normalizada, 409 sin sobrescribir/cerrar, recarga versión, stock/estado</td>
+<td>Comportamientos validados en <code style="font-family:Consolas,monospace;background:#f6f6f6;">productos.page.spec.ts</code></td>
+<td><b>Pasa</b></td>
+<td>4.1, 4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-NOAPI-RET</td>
+<td>Retiros</td>
+<td>Automatizada (mocks)</td>
+<td>Carga/filtro, marcar retirado y refresco, error controlado</td>
+<td>Comportamientos validados en <code style="font-family:Consolas,monospace;background:#f6f6f6;">retiros-tienda.page.spec.ts</code></td>
+<td><b>Pasa</b></td>
+<td>4.1, 4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-NOAPI-LOGIN</td>
+<td>Login</td>
+<td>Automatizada (mocks)</td>
+<td>UI minimal con elementos esenciales, sin bloques extensos previos</td>
+<td>Validado en <code style="font-family:Consolas,monospace;background:#f6f6f6;">login.page.spec.ts</code></td>
+<td><b>Pasa</b></td>
+<td>4.1, 4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-NOAPI-RUTAS</td>
+<td>Navegación</td>
+<td>Automatizada</td>
+<td>Rutas e-commerce y redirecciones correctas</td>
+<td>Validado en <code style="font-family:Consolas,monospace;background:#f6f6f6;">ecommerce.no-api.spec.ts</code></td>
+<td><b>Pasa</b></td>
+<td>4.1, 4.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-BUILD-01</td>
+<td>Transversal</td>
+<td>Automatizada</td>
+<td>Build sin errores</td>
+<td>Build browser/server OK</td>
+<td><b>Pasa</b></td>
+<td>4.3</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-UI-01</td>
+<td>Diseño</td>
+<td>Automatizada</td>
+<td>Baseline de diseño conservada</td>
+<td>Verificador OK (7 estilos, 16 plantillas)</td>
+<td><b>Pasa</b></td>
+<td>4.4</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-TYPES-01</td>
+<td>Transversal</td>
+<td>Automatizada</td>
+<td>Tipado sin errores</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">tsc --noEmit</code> OK</td>
+<td><b>Pasa</b></td>
+<td>4.5</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-LOGIN-01</td>
+<td>Login/Acceso</td>
+<td>Integración API</td>
+<td>Credenciales válidas admin → autenticación</td>
+<td>Login correcto (Admin 1)</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-LOGIN-02A</td>
+<td>Login/Acceso</td>
+<td>Integración API</td>
+<td>Segundo admin autenticado (concurrencia)</td>
+<td>Login correcto (Admin 2)</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-LOGIN-02</td>
+<td>Login/Acceso</td>
+<td>Integración API (negativa)</td>
+<td>Credenciales inválidas rechazadas</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">401</code></td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-01A</td>
+<td>Productos/Categorías</td>
+<td>Integración API</td>
+<td>Listar categorías</td>
+<td>28 categorías</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-01B</td>
+<td>Productos</td>
+<td>Integración API</td>
+<td>Listar productos admin (<code style="font-family:Consolas,monospace;background:#f6f6f6;">incluirInactivos</code>)</td>
+<td>Respuesta OK (<code style="font-family:Consolas,monospace;background:#f6f6f6;">items=5 total=42</code>)</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-02</td>
+<td>Productos</td>
+<td>Integración API</td>
+<td>Crear producto con datos válidos</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">201</code>, producto con versión</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-04A</td>
+<td>Productos</td>
+<td>Integración API</td>
+<td>Obtener producto con versión</td>
+<td>Versión presente</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-04B</td>
+<td>Productos</td>
+<td>Integración API</td>
+<td>Actualizar con versión válida</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">200</code>, versión incrementa</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-04C</td>
+<td>Productos</td>
+<td>Integración API</td>
+<td>Actualizar stock (PATCH)</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">200</code>, stock actualizado</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-PROD-03</td>
+<td>Productos</td>
+<td><b>Integración API (concurrencia crítica)</b></td>
+<td>PUT con versión obsoleta → 409, no sobrescribe</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">409 CONFLICTO_VERSION_PRODUCTO</code>, mensaje y <code style="font-family:Consolas,monospace;background:#f6f6f6;">traceId</code> correctos</td>
+<td><b>Pasa</b></td>
+<td>5.1, 5.2</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-RET-01</td>
+<td>Retiros</td>
+<td>Integración API</td>
+<td>Listar retiros en tienda</td>
+<td>Endpoint responde <code style="font-family:Consolas,monospace;background:#f6f6f6;">200</code> (<code style="font-family:Consolas,monospace;background:#f6f6f6;">count=0</code>)</td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-RET-02</td>
+<td>Retiros</td>
+<td>Integración API/UI</td>
+<td>Marcar retirado en orden real</td>
+<td>Sin datos de retiro disponibles al ejecutar</td>
+<td><b>Pendiente</b></td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-REG-01</td>
+<td>Regresión logística</td>
+<td>Integración API (smoke)</td>
+<td>Zonas/repartidores/rutas responden</td>
+<td><code style="font-family:Consolas,monospace;background:#f6f6f6;">200/200/200</code></td>
+<td><b>Pasa</b></td>
+<td>5.1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-AUTH-01</td>
+<td>Credenciales</td>
+<td>Funcional UI</td>
+<td>Cambio obligatorio → redirección <code style="font-family:Consolas,monospace;background:#f6f6f6;">/credenciales</code></td>
+<td>No ejecutado en UI con usuario en estado obligatorio</td>
+<td><b>Pendiente</b></td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-AUTH-02</td>
+<td>Sesión</td>
+<td>Funcional UI/API</td>
+<td>Expiración/401 operativo maneja sesión</td>
+<td>No forzado en entorno</td>
+<td><b>Pendiente</b></td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-REG-04</td>
+<td>Seguimiento</td>
+<td>Integración tiempo real</td>
+<td>Eventos SignalR/GPS actualizan UI</td>
+<td>Requiere conductor/eventos en vivo</td>
+<td><b>Pendiente</b></td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CP-UI-MANUAL</td>
+<td>UI E2E</td>
+<td>Manual</td>
+<td>Flujos completos en navegador (productos/retiros/pedidos/rutas)</td>
+<td>No ejecutado como prueba manual guiada en esta sesión</td>
+<td><b>Pendiente</b></td>
+<td>—</td>
+<td>—</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>7. Registro de incidentes (defectos)</h2>
+<p style="margin:6px 0;"></p>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">ID Defecto</th>
+<th style="background:#f2f2f2;font-weight:bold;">Título</th>
+<th style="background:#f2f2f2;font-weight:bold;">Módulo/Caso</th>
+<th style="background:#f2f2f2;font-weight:bold;">Severidad</th>
+<th style="background:#f2f2f2;font-weight:bold;">Prioridad</th>
+<th style="background:#f2f2f2;font-weight:bold;">Estado</th>
+<th style="background:#f2f2f2;font-weight:bold;">Evidencia</th>
+<th style="background:#f2f2f2;font-weight:bold;">Observaciones</th>
+</tr>
+<tr>
+<td>—</td>
+<td>No se detectaron defectos en las pruebas ejecutadas</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>Secciones 4, 5</td>
+<td>Aplica a las pruebas automatizadas (mocks + integración API real) ejecutadas. Quedan casos pendientes (UI manual/E2E, SignalR en vivo, retiro con marcado sobre datos reales, escenarios específicos de sesión).</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>8. Verificación de resultados y métricas</h2>
+<p style="margin:6px 0;"></p>
+<h3>8.1 Métricas — Pruebas automatizadas frontend (Vitest)</h3>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Métrica</th>
+<th style="background:#f2f2f2;font-weight:bold;">Valor</th>
+</tr>
+<tr>
+<td>Archivos de prueba</td>
+<td>15</td>
+</tr>
+<tr>
+<td>Pruebas</td>
+<td>91</td>
+</tr>
+<tr>
+<td>Pasaron</td>
+<td>91</td>
+</tr>
+<tr>
+<td>Fallaron</td>
+<td>0</td>
+</tr>
+<tr>
+<td>% éxito</td>
+<td>100%</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<h3>8.2 Métricas — Integración API real</h3>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Métrica</th>
+<th style="background:#f2f2f2;font-weight:bold;">Valor</th>
+</tr>
+<tr>
+<td>Casos ejecutados (script)</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Pasaron</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Fallaron</td>
+<td>0</td>
+</tr>
+<tr>
+<td>% éxito</td>
+<td>100%</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<h3>8.3 Métricas — Hoja consolidada</h3>
+<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:10pt;">
+<tr>
+<th style="background:#f2f2f2;font-weight:bold;">Métrica</th>
+<th style="background:#f2f2f2;font-weight:bold;">Valor</th>
+</tr>
+<tr>
+<td>Casos registrados</td>
+<td>25</td>
+</tr>
+<tr>
+<td>Pasaron</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Fallaron</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Pendientes</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Bloqueados</td>
+<td>0</td>
+</tr>
+<tr>
+<td>% éxito sobre ejecutados</td>
+<td>100% (20/20)</td>
+</tr>
+</table>
+<p style="margin:6px 0;"></p>
+<h3>8.4 Conclusión</h3>
+<p style="margin:2px 0 2px 18px;">? <b>Conclusión:</b> <b>Exitoso (alcance automatizado y de integración API ejecutado)</b>. La versión evaluada compila, conserva el diseño aprobado, pasa verificación de tipos y la suite automatizada completa (<b>91/91</b>). Las pruebas de integración contra el backend encendido fueron exitosas (<b>12/12</b>), incluyendo autenticación, catálogo/productos (listar/crear/obtener/actualizar/stock), <b>concurrencia optimista con 409 <code style="font-family:Consolas,monospace;background:#f6f6f6;">CONFLICTO_VERSION_PRODUCTO</code> y versión obsoleta</b> verificada con dos administradores, consulta de retiros y smoke de regresión logística.</p>
+<p style="margin:2px 0 2px 18px;">? <b>Cobertura de la regla crítica (concurrencia):</b> validada a nivel de API real (409 correcto con mensaje/código/<code style="font-family:Consolas,monospace;background:#f6f6f6;">traceId</code>) y a nivel de frontend con mocks (banner, no sobrescritura/cierre, recarga de versión).</p>
+<p style="margin:2px 0 2px 18px;">? <b>Pendientes/Riesgos residuales:</b> validación manual E2E en navegador (UX completa), escenarios de sesión/credenciales obligatorias en UI, marcado de retiro sobre órdenes reales disponibles, y eventos en tiempo real SignalR/GPS. Se recomienda ejecutar estos casos con datos/eventos apropiados y anexar evidencias (capturas, Network/traceId) en una actualización del informe.</p>
+<p style="margin:6px 0;"></p>
+<hr/>
+<p style="margin:6px 0;"></p>
+<h2>9. Anexos</h2>
+<p style="margin:6px 0;"></p>
+<h3>A. Comandos ejecutados</h3>
+<p style="margin:2px 0 2px 18px;">1. <code style="font-family:Consolas,monospace;background:#f6f6f6;">npm test -- --watch=false</code></p>
+<p style="margin:2px 0 2px 18px;">2. <code style="font-family:Consolas,monospace;background:#f6f6f6;">npm run build</code></p>
+<p style="margin:2px 0 2px 18px;">3. <code style="font-family:Consolas,monospace;background:#f6f6f6;">node scripts/verificar-diseno.mjs</code></p>
+<p style="margin:2px 0 2px 18px;">4. <code style="font-family:Consolas,monospace;background:#f6f6f6;">node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit --noUnusedLocals --noUnusedParameters</code></p>
+<p style="margin:2px 0 2px 18px;">5. <code style="font-family:Consolas,monospace;background:#f6f6f6;">node scripts/integracion-api.test.mjs</code></p>
+<p style="margin:6px 0;"></p>
+<h3>B. Artefactos de prueba (repositorio)</h3>
+<p style="margin:2px 0 2px 18px;">? Plan de pruebas: <code style="font-family:Consolas,monospace;background:#f6f6f6;">PLAN_PRUEBAS.md</code></p>
+<p style="margin:2px 0 2px 18px;">? Pruebas sin API (specs): <code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/productos/productos.page.spec.ts</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/retiros-tienda/retiros-tienda.page.spec.ts</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/pages/login/login.page.spec.ts</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">src/app/ecommerce.no-api.spec.ts</code></p>
+<p style="margin:2px 0 2px 18px;">? Script de integración API real: <code style="font-family:Consolas,monospace;background:#f6f6f6;">scripts/integracion-api.test.mjs</code></p>
+<p style="margin:2px 0 2px 18px;">? Salida de integración capturada: <code style="font-family:Consolas,monospace;background:#f6f6f6;">integracion-api-output.txt</code></p>
+<p style="margin:2px 0 2px 18px;">? Contrato/contexto: <code style="font-family:Consolas,monospace;background:#f6f6f6;">CONTRATO_ECOMMERCE.md</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">AGENTS.md</code>, <code style="font-family:Consolas,monospace;background:#f6f6f6;">WEB-FRONEND.md</code></p>
+<p style="margin:6px 0;"></p>
+<h3>C. Nota sobre confidencialidad y formato de entrega</h3>
+<p style="margin:2px 0 2px 18px;">? Las credenciales de administración utilizadas para las pruebas de integración fueron provistas para ejecución y <b>no se incluyen</b> en este documento.</p>
+<p style="margin:2px 0 2px 18px;">? Para entrega formal en <b>PDF</b> conforme al formato indicado, adaptar la estructura del plan/informe, incorporar capturas UI de los casos pendientes ejecutados y registrar firmas/aprobaciones y control de versiones.</p></body></html>

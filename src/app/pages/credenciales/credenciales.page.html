@@ -1,0 +1,114 @@
+﻿<div class="auth-screen">
+  <aside class="auth-story">
+    <a class="auth-brand" href="/login"
+      ><span class="material-symbols-outlined" aria-hidden="true">alt_route</span>RouteOS</a
+    >
+    <div class="auth-intro">
+      <p class="auth-eyebrow">TU CUENTA, PROTEGIDA</p>
+      <h1>Un acceso<br />solo tuyo.</h1>
+      <p>Define tus credenciales personales para continuar con la gestión de tu operación.</p>
+      <div class="auth-route-art" aria-hidden="true">
+        <span class="material-symbols-outlined">route</span><i></i
+        ><span class="material-symbols-outlined">task_alt</span>
+      </div>
+    </div>
+    <small>Centro de operaciones · Panel administrativo</small>
+  </aside>
+  <main class="auth-main">
+    <section class="auth-card">
+      <div class="auth-badge">SEGURIDAD DE LA CUENTA</div>
+      <h2>
+        {{
+          auth.usuario()?.debeCambiarCredenciales
+            ? 'Actualiza tus credenciales'
+            : 'Cambiar credenciales'
+        }}
+      </h2>
+      <p class="auth-description">
+        {{
+          auth.usuario()?.debeCambiarCredenciales
+            ? 'Antes de ingresar al panel, reemplaza tu contraseña temporal.'
+            : 'El cambio cerrará las otras sesiones de tu cuenta.'
+        }}
+      </p>
+      @if (error()) {
+        <div class="auth-error" role="alert">{{ error() }}</div>
+      }
+      <form #credentials="ngForm" (ngSubmit)="submit()">
+        <label
+          >Nombre de usuario<input
+            name="nombreUsuario"
+            [(ngModel)]="nombreUsuario"
+            autocomplete="username"
+            minlength="3"
+            maxlength="100"
+            required
+            [disabled]="busy()" /></label
+        ><label
+          >Contraseña actual<input
+            name="claveActual"
+            [(ngModel)]="claveActual"
+            type="password"
+            autocomplete="current-password"
+            required
+            maxlength="128"
+            [disabled]="busy()" /></label
+        ><label
+          >Nueva contraseña<input
+            name="nuevaClave"
+            [(ngModel)]="nuevaClave"
+            type="password"
+            autocomplete="new-password"
+            required
+            [pattern]="pattern"
+            minlength="12"
+            maxlength="128"
+            [disabled]="busy()"
+        /></label>
+        <p class="password-help">
+          Entre 12 y 128 caracteres, con mayúscula, minúscula, número y símbolo. Debe ser diferente
+          a la actual.
+        </p>
+        <label
+          >Repetir nueva contraseña<input
+            name="confirmacion"
+            [(ngModel)]="confirmacion"
+            type="password"
+            autocomplete="new-password"
+            required
+            maxlength="128"
+            [disabled]="busy()"
+        /></label>
+        @if (confirmacion && confirmacion !== nuevaClave) {
+          <p class="auth-error" role="status">Las contraseñas no coinciden.</p>
+        }
+        <button
+          class="auth-submit"
+          [disabled]="
+            credentials.invalid ||
+            busy() ||
+            nuevaClave !== confirmacion ||
+            nuevaClave === claveActual
+          "
+        >
+          {{ busy() ? 'Guardando…' : 'Guardar y continuar' }} <span>→</span>
+        </button>
+      </form>
+      <div class="auth-links">
+        @if (!auth.usuario()?.debeCambiarCredenciales) {
+          <button
+            type="button"
+            (click)="clearPasswords(); auth.usuario() && goBack()"
+            [disabled]="busy()"
+          >
+            Volver al panel
+          </button>
+        }
+        <button type="button" (click)="logout()" [disabled]="busy()">
+          Cerrar todas mis sesiones
+        </button>
+      </div>
+    </section>
+    <footer>RouteOS · Una operación más conectada.</footer>
+  </main>
+</div>

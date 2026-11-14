@@ -1,0 +1,91 @@
+﻿:host {
+  display: block;
+  border: 1px solid var(--color-separator-hairline-light);
+  border-radius: 10px;
+  padding: 15px;
+  background: var(--color-surface);
+}
+.location-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.location-heading strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+.location-heading .button {
+  background: var(--app-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary-fixed);
+  font-size: 11px;
+  min-height: 34px;
+  padding: 8px 10px;
+}
+.hint,
+small {
+  font-size: 11px;
+  color: var(--color-outline);
+  line-height: 1.8;
+  margin: 10px 0;
+}
+.picker-map {
+  height: 300px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 0;
+  background: var(--color-surface-container-low);
+}
+.location-status {
+  font-size: 12px;
+  color: var(--color-primary);
+  line-height: 1.7;
+  margin: 12px 0 6px;
+}
+.feedback {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--color-on-surface-variant);
+  margin: 10px 0;
+}
+.results {
+  display: grid;
+  gap: 5px;
+  margin: 10px 0;
+  max-height: 180px;
+  overflow: auto;
+}
+.results button {
+  display: flex;
+  gap: 8px;
+  border: 1px solid var(--color-separator-hairline-light);
+  border-radius: 7px;
+  padding: 11px;
+  background: white;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-on-surface-variant);
+}
+.results button > span {
+  color: var(--color-primary);
+}
+.results button:hover {
+  background: var(--app-primary-soft);
+}
+small {
+  display: block;
+  margin-bottom: 0;
+}
+@media (max-width: 480px) {
+  .location-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .picker-map {
+    height: 260px;
+  }
+}

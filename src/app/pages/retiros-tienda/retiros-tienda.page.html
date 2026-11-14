@@ -1,0 +1,67 @@
+<div class="legacy-ui p-gutter-lg space-y-gutter-lg">
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Retiros en Tienda <span class="number-pill">{{ filtrados().length }}</span></h2>
+        <p>Consulta órdenes pagadas para retiro en tienda, verifica la identidad/código y confirma la entrega en mostrador.</p>
+      </div>
+      <button class="button" (click)="cargar()" [disabled]="loading()">Actualizar</button>
+    </div>
+
+    @if (message()) { <div class="notice success" role="status">{{ message() }}</div> }
+    @if (error()) { <div class="notice error" role="alert">{{ error() }} <button (click)="cargar()">Reintentar</button></div> }
+
+    <div class="form-body" style="max-width:420px;margin-bottom:12px;">
+      <label>Buscar por cédula, nombre o código
+        <input name="buscarRetiro" [(ngModel)]="buscar" placeholder="Ej. 1804567890, ORD-..., código" />
+      </label>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ORDEN</th>
+            <th>QUIEN RETIRA</th>
+            <th>FECHA / FRANJA</th>
+            <th>CÓDIGO</th>
+            <th>ESTADO</th>
+            <th>ACCIÓN</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of filtrados(); track r.id) {
+            <tr>
+              <td>
+                <strong>{{ r.numeroOrden || r.id }}</strong>
+                <small>{{ r.estadoPago || r.estadoOrden || 'Pagada' }}</small>
+              </td>
+              <td>
+                <strong>{{ r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '—' }}</strong>
+                <small>Cédula: {{ r.datosRetiroTienda?.cedulaQuienRetira || '—' }} · Tel: {{ r.datosRetiroTienda?.telefonoContacto || '—' }}</small>
+              </td>
+              <td>
+                {{ r.datosRetiroTienda?.fechaRetiro || r.fechaRetiro || '—' }}
+                <small>{{ r.datosRetiroTienda?.franjaHoraria || r.franjaHoraria || '' }}</small>
+              </td>
+              <td><strong>{{ r.codigoRetiro || '—' }}</strong></td>
+              <td>{{ r.estadoEntrega || r.estadoOrden || 'Pendiente de retiro' }}</td>
+              <td>
+                <button class="button primary" (click)="marcarRetirado(r)" [disabled]="loading()">Marcar retirado</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <div class="empty">
+                  <h3>{{ loading() ? 'Cargando retiros…' : 'No hay retiros en tienda para mostrar' }}</h3>
+                  <p>Cuando existan órdenes pagadas con retiro en tienda aparecerán aquí.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

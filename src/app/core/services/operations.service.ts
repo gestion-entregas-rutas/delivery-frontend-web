@@ -1,0 +1,372 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { firstValueFrom, forkJoin } from 'rxjs';
+import { LogisticaApiService } from './logistica-api.service';
+import {
+  PedidoDto,
+  RegistroPedidoDto,
+  RepartidorDto,
+  RutaDto,
+  ZonaDto,
+  EstadoPedido,
+  FiltroPedidos,
+  ResumenPedidosDto,
+  UbicacionRepartidorDto,
+} from '../models/logistica.models';
+import { SeguimientoService } from './seguimiento.service';
+@Injectable({ providedIn: 'root' })
+export class OperationsService {
+  readonly api = inject(LogisticaApiService);
+  readonly view = signal('Resumen');
+  readonly pedidos = signal<PedidoDto[]>([]);
+  readonly repartidores = signal<RepartidorDto[]>([]);
+  readonly rutas = signal<RutaDto[]>([]);
+  readonly zonas = signal<ZonaDto[]>([]);
+  readonly connected = signal(false);
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly message = signal('');
+  readonly lastRegistration = signal<RegistroPedidoDto | null>(null);
+  readonly lastRefresh = signal<string | null>(null);
+  readonly error = signal('');
+  readonly selected = signal<RutaDto | null>(null);
+  readonly seguimiento = inject(SeguimientoService);
+  readonly live = this.seguimiento.live;
+  readonly total = signal(0);
+  readonly resumen = signal<ResumenPedidosDto | null>(null);
+  readonly ubicaciones = signal<UbicacionRepartidorDto[]>([]);
+  readonly gpsError = signal('');
+  readonly page = signal(1);
+  readonly today = this.localDate();
+  fecha = this.today;
+  desde = '';
+  hasta = '';
+  search = '';
+  estado = '';
+  zona = '';
+  pendingId = '';
+  readonly viewMode = signal<'today' | 'sched'>('today');
+  readonly navigation = [
+    { name: 'Resumen', label: 'Centro de Control', icon: 'monitoring', group: 'Principal' },
+    { name: 'Pedidos', label: 'Registro de Pedidos', icon: 'inventory_2', group: 'Principal' },
+    { name: 'Rutas', label: 'Armado y Optimización', icon: 'route', group: 'Operaciones' },
+    { name: 'Zonas', label: 'Zonas Geográficas', icon: 'travel_explore', group: 'Operaciones' },
+    {
+      name: 'Repartidores',
+      label: 'Repartidores y Flota',
+      icon: 'local_shipping',
+      group: 'Operaciones',
+    },
+    {
+      name: 'Productos',
+      label: 'Catálogo y Productos',
+      icon: 'storefront',
+      group: 'Operaciones',
+    },
+    {
+      name: 'RetirosTienda',
+      label: 'Retiros en Tienda',
+      icon: 'store',
+      group: 'Operaciones',
+    },
+    {
+      name: 'Usuarios',
+      label: 'Cuentas y Acceso',
+      icon: 'admin_panel_settings',
+      group: 'Administración',
+    },
+  ];
+  readonly orderStates = ['Pendiente', 'AsignadoARuta', 'EnCamino', 'Entregado', 'Cancelado'];
+
+  scheduledDate() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  setMode(mode: 'today' | 'sched') {
+    this.desde = '';
+    this.hasta = '';
+    this.viewMode.set(mode);
+    this.fecha = mode === 'today' ? this.today : this.scheduledDate();
+    void this.changeDate();
+  }
+
+  get sameDayOrdersCount() {
+    return this.pedidos().filter((p) => p.fechaEntrega === this.today).length;
+  }
+
+  get programmedOrdersCount() {
+    return this.pedidos().filter((p) => p.fechaEntrega > this.today).length;
+  }
+
+  get avgOrdersPerRoute() {
+    const count = this.rutas().length;
+    if (!count) return 0;
+    const totalStops = this.rutas().reduce((acc, r) => acc + r.paradas.length, 0);
+    return +(totalStops / count).toFixed(1);
+  }
+  get availableDrivers() {
+    return this.repartidores().filter((d) => d.estado === 'Disponible').length;
+  }
+  deliveredStops(r: RutaDto) {
+    return r.paradas.filter((s) => s.pedido.estado === 'Entregado').length;
+  }
+  routeProgress(r: RutaDto) {
+    return r.paradas.length ? (this.deliveredStops(r) / r.paradas.length) * 100 : 0;
+  }
+  showOrderRoute(id: string) {
+    const route = this.rutas().find((r) => r.id === id);
+    if (route) {
+      this.navigate('Rutas');
+      this.selectRoute(route);
+    }
+  }
+  private readonly router = inject(Router);
+  private generation = 0;
+  private requestId = 0;
+  start() {
+    void this.refresh();
+    this.seguimiento.onLocation = (p) => this.receiveLocation(p);
+    void this.seguimiento.start(this.fecha, () => this.refresh());
+  }
+  localDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  pedidoFilters(): FiltroPedidos {
+    return {
+      ...(this.desde || this.hasta
+        ? { desde: this.desde || undefined, hasta: this.hasta || undefined }
+        : { fecha: this.fecha }),
+      buscar: this.search.trim().slice(0, 150) || undefined,
+      zonaId: this.zona || undefined,
+      estado: (this.estado || undefined) as EstadoPedido | undefined,
+    };
+  }
+  receiveLocation(p: UbicacionRepartidorDto) {
+    if (
+      !Number.isFinite(p.latitud) ||
+      !Number.isFinite(p.longitud) ||
+      Math.abs(p.latitud) > 90 ||
+      Math.abs(p.longitud) > 180 ||
+      !Number.isFinite(Date.parse(p.capturadaEn))
+    )
+      return;
+    const route = this.rutas().find((r) => r.id === p.rutaId);
+    if (!route) {
+      void this.refresh();
+      return;
+    }
+    if (route.fecha !== this.fecha) return;
+    const old = this.ubicaciones().find((x) => x.repartidorId === p.repartidorId);
+    if (old && Date.parse(old.capturadaEn) >= Date.parse(p.capturadaEn)) return;
+    this.ubicaciones.update((all) => [...all.filter((x) => x.repartidorId !== p.repartidorId), p]);
+  }
+  private async refreshGps(generation: number, requestId: number) {
+    try {
+      const positions = await firstValueFrom(this.api.ubicaciones(this.fecha));
+      if (generation !== this.generation || requestId !== this.requestId) return;
+      for (const p of positions)
+        if (this.rutas().some((r) => r.id === p.rutaId)) this.receiveLocation(p);
+      const routeIds = new Set(this.rutas().map((r) => r.id));
+      this.ubicaciones.update((all) => all.filter((p) => routeIds.has(p.rutaId)));
+      this.gpsError.set('');
+    } catch (e: any) {
+      if (generation === this.generation && requestId === this.requestId)
+        this.gpsError.set(
+          'No se pudieron consultar las ubicaciones GPS.' +
+            (e?.error?.traceId ? ' Referencia: ' + e.error.traceId : ''),
+        );
+    }
+  }
+  label(value: string) {
+    return (
+      (
+        {
+          AsignadoARuta: 'Asignado',
+          EnCamino: 'En camino',
+          EnCurso: 'En curso',
+          NoDisponible: 'No disponible',
+          EnRuta: 'En ruta',
+        } as Record<string, string>
+      )[value] || value
+    );
+  }
+  short(id: string) {
+    return id.slice(0, 8).toUpperCase();
+  }
+  count(state: string) {
+    return this.resumen()?.porEstado.find((p) => p.estado === state)?.cantidad ?? 0;
+  }
+  driver(id: string) {
+    return this.repartidores().find((r) => r.id === id)?.nombre || 'Sin repartidor';
+  }
+  zoneName(id: string) {
+    return this.zonas().find((z) => z.id === id)?.nombre || 'Sin zona';
+  }
+  filteredPedidos() {
+    const q = this.search.toLocaleLowerCase();
+    return this.pedidos().filter(
+      (p) =>
+        (!this.estado || p.estado === this.estado) &&
+        (!this.zona || p.zonaId === this.zona) &&
+        `${p.clienteNombre} ${p.direccion} ${p.id}`.toLocaleLowerCase().includes(q),
+    );
+  }
+  navigate(name: string) {
+    this.view.set(name);
+    void this.router.navigate([
+      (
+        {
+          Resumen: '/resumen',
+          Pedidos: '/pedidos',
+          Repartidores: '/repartidores',
+          Rutas: '/rutas',
+          Zonas: '/zonas',
+          Usuarios: '/usuarios',
+          Credenciales: '/credenciales',
+          Productos: '/productos',
+          RetirosTienda: '/retiros-tienda',
+        } as Record<string, string>
+      )[name] || '/resumen',
+    ]);
+  }
+  async refresh(reset = false) {
+    const generation = this.generation;
+    const requestId = ++this.requestId;
+    if (reset) this.page.set(1);
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      const data = await firstValueFrom(
+        forkJoin({
+          pedidos: this.api.listarPedidos({
+            ...this.pedidoFilters(),
+            pagina: this.page(),
+            tamano: 50,
+            estado: (this.estado || undefined) as EstadoPedido | undefined,
+            zonaId: this.zona || undefined,
+          }),
+          repartidores: this.api.listarRepartidores(),
+          rutas: this.api.listarRutas(this.fecha),
+          zonas: this.api.listarZonas(),
+          resumen: this.api.resumenPedidos(this.pedidoFilters()),
+        }),
+      );
+      if (generation !== this.generation || requestId !== this.requestId) return;
+      this.pedidos.set(data.pedidos.items);
+      this.total.set(data.pedidos.total);
+      this.resumen.set(data.resumen);
+      this.repartidores.set(data.repartidores);
+      this.rutas.set(data.rutas);
+      this.zonas.set(data.zonas);
+      this.connected.set(true);
+      this.lastRefresh.set(new Date().toISOString());
+      if (this.selected())
+        this.selected.set(data.rutas.find((r) => r.id === this.selected()?.id) || null);
+      await this.refreshGps(generation, requestId);
+    } catch (e) {
+      if (generation !== this.generation || requestId !== this.requestId) return;
+      this.connected.set(false);
+      this.showError(e);
+    } finally {
+      if (generation === this.generation && requestId === this.requestId) this.loading.set(false);
+    }
+  }
+  async changeDate() {
+    this.ubicaciones.set([]);
+    await this.seguimiento.subscribeDate(this.fecha);
+    await this.refresh(true);
+  }
+  async paginate(delta: number) {
+    this.page.update((p) => p + delta);
+    await this.refresh();
+  }
+  showError(e: any) {
+    const p = e?.error;
+    this.error.set(
+      e?.status === 0
+        ? 'No se pudo conectar con la API. Verifica que el backend esté activo en localhost:5289.'
+        : [
+            p?.detail || p?.title || e?.message || 'No se pudo completar la operación.',
+            ...Object.values(p?.errors || {}).flat(),
+            ...(p?.traceId ? ['Referencia: ' + p.traceId] : []),
+          ].join(' '),
+    );
+  }
+  async action(request: import('rxjs').Observable<unknown>, success: string): Promise<boolean> {
+    if (this.saving()) return false;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      await firstValueFrom(request);
+      this.message.set(success);
+      await this.refresh();
+      return true;
+    } catch (e) {
+      if ((e as any)?.status === 409) await this.refresh();
+      this.showError(e);
+      return false;
+    } finally {
+      this.saving.set(false);
+    }
+  }
+  async buildRoutes() {
+    if (this.saving()) return null;
+    this.saving.set(true);
+    try {
+      const r = await firstValueFrom(
+        this.api.armarRutas({ fecha: this.fecha, zonaId: this.zona || undefined }),
+      );
+      this.message.set(
+        `${r.rutas.length} rutas generadas · ${r.pedidosSinAsignar} pedidos sin asignar.`,
+      );
+      await this.refresh();
+      return r;
+    } catch (e) {
+      this.showError(e);
+      return null;
+    } finally {
+      this.saving.set(false);
+    }
+  }
+  selectRoute(route: RutaDto) {
+    this.selected.set(route);
+  }
+  canAdvance(p: PedidoDto) {
+    return this.rutas().some((r) => r.id === p.rutaId && r.estado === 'EnCurso');
+  }
+
+  stop() {
+    this.generation++;
+    void this.seguimiento.stop();
+    this.pedidos.set([]);
+    this.repartidores.set([]);
+    this.rutas.set([]);
+    this.zonas.set([]);
+    this.selected.set(null);
+    this.total.set(0);
+    this.resumen.set(null);
+    this.ubicaciones.set([]);
+    this.gpsError.set('');
+    this.desde = '';
+    this.hasta = '';
+    this.page.set(1);
+    this.connected.set(false);
+    this.loading.set(false);
+    this.saving.set(false);
+    this.message.set('');
+    this.error.set('');
+    this.search = '';
+    this.estado = '';
+    this.zona = '';
+    this.pendingId = '';
+    this.lastRegistration.set(null);
+    this.lastRefresh.set(null);
+    this.fecha = this.localDate();
+  }
+  retryLive() {
+    void this.seguimiento.restart(this.fecha, () => this.refresh());
+  }
+}

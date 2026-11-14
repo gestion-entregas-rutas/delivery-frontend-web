@@ -1,0 +1,40 @@
+<div class="legacy-ui"><div class="entity-grid">
+  @for (d of operations.repartidores(); track d.id) {
+    <article class="panel entity-card">
+      <div class="entity-head">
+        <span class="avatar">{{ d.nombre.slice(0, 2).toUpperCase() }}</span
+        ><span class="badge" [attr.data-state]="d.estado">{{ operations.label(d.estado) }}</span>
+      </div>
+      <h2>{{ d.nombre }}</h2>
+      <p>{{ d.telefono }}</p>
+      <div class="entity-info">
+        Capacidad por ruta <strong>{{ d.capacidadMaxima }} pedidos</strong>
+      </div>
+      <button
+        class="button full"
+        [disabled]="d.estado === 'EnRuta' || operations.saving()"
+        (click)="
+          operations.action(
+            operations.api.cambiarDisponibilidad(d.id, d.estado !== 'Disponible'),
+            'Disponibilidad actualizada.'
+          )
+        "
+      >
+        {{
+          d.estado === 'EnRuta'
+            ? 'Realizando entregas'
+            : d.estado === 'Disponible'
+              ? 'Marcar no disponible'
+              : 'Marcar disponible'
+        }}
+      </button>
+    </article>
+  } @empty {
+    <div class="panel empty">
+      <h3>Tu equipo comienza aquí</h3>
+      <p>Registra un repartidor para asignarle rutas de entrega.</p>
+      <button class="button primary" (click)="forms.open('Repartidor')">＋ Nuevo repartidor</button>
+    </div>
+  }
+</div>
+</div>

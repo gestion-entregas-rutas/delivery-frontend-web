@@ -1,0 +1,73 @@
+﻿<div class="min-h-dvh bg-system-background flex items-center justify-center p-6 font-body-md text-on-surface">
+  <main class="w-full max-w-[420px]">
+    <div class="mb-8 text-center">
+      <div class="mx-auto mb-4 w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[26px]" aria-hidden="true">alt_route</span>
+      </div>
+      <h1 class="font-headline-md text-headline-md tracking-tight text-on-surface">RouteOS</h1>
+      <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">Acceso administrativo</p>
+    </div>
+
+    <section class="bg-surface-container-lowest border border-separator-hairline-light rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-8">
+      <h2 class="font-title-md text-title-md text-on-surface">Iniciar sesión</h2>
+
+      @if (auth.aviso()) {
+        <div class="mt-4 rounded-xl border border-primary-fixed bg-primary/5 px-4 py-3 font-body-sm text-body-sm text-primary" role="status">{{ auth.aviso() }}</div>
+      }
+      @if (error()) {
+        <div class="mt-4 rounded-xl border border-status-urgent/20 bg-status-urgent/10 px-4 py-3 font-body-sm text-body-sm text-status-urgent" role="alert">{{ error() }}</div>
+      }
+
+      <form #login="ngForm" (ngSubmit)="submit()" class="mt-6 space-y-4">
+        <label class="block">
+          <span class="block mb-1.5 font-label-sm text-label-sm text-on-surface-variant">Usuario</span>
+          <input
+            class="w-full rounded-xl border border-outline-variant bg-white px-3.5 py-3 font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            name="nombreUsuario"
+            [(ngModel)]="nombreUsuario"
+            autocomplete="username"
+            required
+            maxlength="100"
+            autofocus
+            placeholder="Tu usuario"
+            [disabled]="busy()"
+          />
+        </label>
+
+        <label class="block">
+          <span class="block mb-1.5 font-label-sm text-label-sm text-on-surface-variant">Contraseña</span>
+          <div class="relative">
+            <input
+              class="w-full rounded-xl border border-outline-variant bg-white px-3.5 py-3 pr-20 font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              name="clave"
+              [(ngModel)]="clave"
+              [type]="visible() ? 'text' : 'password'"
+              autocomplete="current-password"
+              required
+              maxlength="128"
+              placeholder="Tu contraseña"
+              [disabled]="busy()"
+            />
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg text-primary font-label-sm text-label-sm hover:bg-primary/5 transition-colors"
+              (click)="visible.set(!visible())"
+              [attr.aria-label]="visible() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              {{ visible() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+        </label>
+
+        <button
+          class="w-full mt-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary px-4 py-3 font-label-md text-label-md shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="login.invalid || busy()"
+        >
+          {{ busy() ? 'Ingresando…' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <p class="mt-5 text-center font-caption text-caption text-outline">¿Necesitas acceso? Contacta a un administrador.</p>
+    </section>
+  </main>
+</div>

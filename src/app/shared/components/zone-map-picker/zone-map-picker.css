@@ -1,0 +1,114 @@
+﻿:host {
+  display: block;
+  border: 1px solid var(--color-separator-hairline-light);
+  border-radius: 10px;
+  padding: 15px;
+  background: var(--color-surface);
+}
+.zone-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.zone-picker-heading strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+.zone-picker-heading > span {
+  font-size: 11px;
+  color: var(--color-primary);
+  background: var(--app-primary-soft);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.zone-hint,
+.zone-status {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--color-outline);
+  margin: 10px 0 12px;
+}
+.zone-map {
+  height: 340px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-surface-container-low);
+  z-index: 0;
+}
+.zone-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.zone-tools button,
+.selected-point button {
+  border: 1px solid var(--color-primary-fixed);
+  background: var(--app-primary-soft);
+  color: var(--color-primary);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.zone-tools .clear {
+  margin-left: auto;
+  background: white;
+  color: var(--color-error);
+  border-color: var(--color-separator-hairline-light);
+}
+.vertex-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 90px;
+  overflow: auto;
+  margin-top: 12px;
+}
+.vertex-list button {
+  border: 1px solid var(--color-separator-hairline-light);
+  border-radius: 6px;
+  background: white;
+  color: var(--color-on-surface-variant);
+  padding: 6px 9px;
+  font-size: 11px;
+}
+.vertex-list button.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.selected-point {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-primary);
+  margin-top: 12px;
+}
+.selected-point button {
+  background: white;
+  color: var(--color-error);
+  border-color: var(--color-separator-hairline-light);
+}
+.zone-status {
+  color: var(--color-primary);
+  margin-bottom: 0;
+}
+.zone-feedback {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--color-error);
+  margin-top: 10px;
+}
+@media (max-width: 480px) {
+  .zone-map {
+    height: 270px;
+  }
+  .zone-tools .clear {
+    margin-left: 0;
+  }
+}

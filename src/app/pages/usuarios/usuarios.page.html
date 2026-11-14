@@ -1,0 +1,174 @@
+<div class="legacy-ui">﻿<section class="panel">
+  <div class="panel-heading">
+    <div>
+      <h2>
+        Cuentas del equipo <span class="number-pill">{{ usuarios().length }}</span>
+      </h2>
+      <p>Administra accesos y credenciales de administradores y conductores.</p>
+    </div>
+    <button class="button primary" (click)="openCreate()" [disabled]="busy() || loading()">
+      ＋ Nueva cuenta
+    </button>
+  </div>
+  @if (message()) {
+    <div class="notice success" role="status">{{ message() }}</div>
+  }
+  @if (error() && !dialog()) {
+    <div class="notice error" role="alert">
+      {{ error() }}<button (click)="load()">Reintentar</button>
+    </div>
+  }
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>USUARIO</th>
+          <th>ROL</th>
+          <th>REPARTIDOR</th>
+          <th>ESTADO</th>
+          <th>CREDENCIALES</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of usuarios(); track user.id) {
+          <tr>
+            <td>
+              <strong>{{ user.nombreUsuario }}</strong>
+              @if (user.id === auth.usuario()?.id) {
+                <small>Tu cuenta</small>
+              }
+            </td>
+            <td>{{ user.rol }}</td>
+            <td>{{ user.rol === 'Conductor' ? driver(user.repartidorId) : '—' }}</td>
+            <td>
+              <span class="badge" [attr.data-state]="user.activo ? 'Disponible' : 'Cancelado'">{{
+                user.activo ? 'Activa' : 'Inactiva'
+              }}</span>
+            </td>
+            <td>{{ user.debeCambiarCredenciales ? 'Cambio pendiente' : 'Actualizadas' }}</td>
+            <td>
+              <button class="text-button" [disabled]="busy()" (click)="openReset(user)">
+                Restablecer clave</button
+              ><button
+                class="text-button"
+                [class.danger]="user.activo"
+                [disabled]="busy() || user.id === auth.usuario()?.id"
+                (click)="toggle(user)"
+              >
+                {{ user.activo ? 'Desactivar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">
+              <div class="empty">
+                <h3>{{ loading() ? 'Cargando cuentas…' : 'No hay cuentas para mostrar' }}</h3>
+                <p>Las cuentas se crean desde este panel. No existe registro público.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+@if (dialog()) {
+  <div class="modal-backdrop" (click)="close()">
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-dialog-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="panel-heading">
+        <div>
+          <div class="eyebrow">ACCESOS DEL EQUIPO</div>
+          <h2 id="user-dialog-title">
+            {{ dialog() === 'crear' ? 'Crear cuenta' : 'Restablecer contraseña' }}
+          </h2>
+        </div>
+        <button class="icon-button" aria-label="Cerrar" [disabled]="busy()" (click)="close()">
+          ×
+        </button>
+      </div>
+      <form #account="ngForm" (ngSubmit)="save()">
+        <div class="form-body">
+          @if (error()) {
+            <div class="notice error" role="alert">{{ error() }}</div>
+          }
+          @if (dialog() === 'crear') {
+            <label
+              >Nombre de usuario<input
+                name="nombreUsuario"
+                [(ngModel)]="nombreUsuario"
+                minlength="3"
+                maxlength="100"
+                autocomplete="off"
+                required
+                [disabled]="busy()" /></label
+            ><label
+              >Rol<select name="rol" [(ngModel)]="rol" required [disabled]="busy()">
+                <option value="Conductor">Conductor</option>
+                <option value="Administrador">Administrador</option>
+              </select></label
+            >
+            @if (rol === 'Conductor') {
+              <label
+                >Repartidor vinculado<select
+                  name="repartidorId"
+                  [(ngModel)]="repartidorId"
+                  required
+                  [disabled]="busy()"
+                >
+                  <option value="">Selecciona un repartidor</option>
+                  @for (driver of disponibles(); track driver.id) {
+                    <option [value]="driver.id">{{ driver.nombre }}</option>
+                  }
+                </select></label
+              >
+              <p class="form-hint">
+                Cada conductor se vincula a un repartidor sin cuenta. Registra primero al repartidor
+                si aún no existe.
+              </p>
+            }
+          } @else {
+            <p>
+              Define una contraseña temporal para <strong>{{ selected?.nombreUsuario }}</strong
+              >.
+            </p>
+            <p class="form-hint">
+              Se cerrarán sus sesiones y deberá cambiar las credenciales antes de volver a operar.
+            </p>
+          }
+          <label
+            >Contraseña temporal<input
+              type="password"
+              name="claveTemporal"
+              [(ngModel)]="claveTemporal"
+              required
+              minlength="12"
+              maxlength="128"
+              [pattern]="pattern"
+              autocomplete="new-password"
+              [disabled]="busy()"
+          /></label>
+          <p class="form-hint">
+            12–128 caracteres con mayúscula, minúscula, número y símbolo. Compártela por el canal
+            acordado; el sistema no envía mensajes.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="button" [disabled]="busy()" (click)="close()">
+            Cancelar</button
+          ><button class="button primary" [disabled]="account.invalid || busy()">
+            {{ busy() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+</div>

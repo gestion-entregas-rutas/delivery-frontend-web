@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="web_dashboard" name="shell-type" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+    <style>
+        @layer base {
+
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                overscroll-behavior: none;
+            }
+
+            main>:first-child {
+                margin-top: 0 !important;
+            }
+
+            main>:last-child {
+                margin-bottom: 0 !important;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+        id="tailwind-config">tailwind.config = { "darkMode": "class", "theme": { "extend": { "colors": { "on-primary-fixed": "#001a41", "tint-teal": "#30B0C7", "secondary": "#4c4aca", "on-error-container": "#93000a", "error-container": "#ffdad6", "surface-container-low": "#f4f3f8", "surface-container-lowest": "#ffffff", "separator-hairline-light": "#E5E5EA", "outline": "#717786", "secondary-fixed-dim": "#c2c1ff", "on-secondary-fixed": "#0c006a", "system-background": "#F2F2F7", "surface": "#faf9fe", "surface-container": "#eeedf3", "tertiary-fixed": "#72fe88", "surface-glass-light": "rgba(255, 255, 255, 0.72)", "status-in-transit": "#FF9500", "inverse-primary": "#adc6ff", "on-tertiary-container": "#f7fff2", "surface-container-high": "#e9e7ed", "on-secondary-container": "#fffbff", "tertiary-fixed-dim": "#53e16f", "on-surface-variant": "#414755", "outline-variant": "#c1c6d7", "surface-bright": "#faf9fe", "on-tertiary": "#ffffff", "on-primary-fixed-variant": "#004493", "surface-dim": "#dad9df", "on-tertiary-fixed": "#002107", "primary-fixed-dim": "#adc6ff", "on-primary-container": "#fefcff", "on-primary": "#ffffff", "tertiary": "#006b27", "tertiary-container": "#008733", "status-routing": "#5856D6", "primary-fixed": "#d8e2ff", "separator-hairline-dark": "#38383A", "surface-container-highest": "#e3e2e7", "status-urgent": "#FF3B30", "surface-tint": "#005bc1", "error": "#ba1a1a", "status-delivered": "#34C759", "inverse-surface": "#2f3034", "inverse-on-surface": "#f1f0f5", "background": "#faf9fe", "on-surface": "#1a1b1f", "surface-glass-dark": "rgba(30, 30, 32, 0.75)", "on-error": "#ffffff", "secondary-container": "#6664e4", "secondary-fixed": "#e2dfff", "on-tertiary-fixed-variant": "#00531c", "on-secondary-fixed-variant": "#3631b4", "primary-container": "#0070eb", "primary": "#0058bc", "on-background": "#1a1b1f", "on-secondary": "#ffffff", "tint-purple": "#AF52DE", "surface-variant": "#e3e2e7" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-2xs": "0.125rem", "gutter-lg": "1.5rem", "margin": "1rem", "gutter": "1rem", "space-lg": "1rem", "space-sm": "0.5rem", "space-xl": "1.5rem", "space-3xl": "3rem", "space-xs": "0.25rem", "margin-md": "1.5rem", "margin-lg": "2rem", "space-2xl": "2rem", "space-md": "0.75rem" }, "fontFamily": { "headline-md": ["Inter"], "display-lg": ["Inter"], "headline-lg": ["Inter"], "body-sm": ["Inter"], "label-md": ["Inter"], "body-lg": ["Inter"], "headline-sm": ["Inter"], "caption": ["Inter"], "title-md": ["Inter"], "body-md": ["Inter"], "headline-lg-mobile": ["Inter"], "label-sm": ["Inter"] }, "fontSize": { "headline-md": ["24px", { "lineHeight": "30px", "letterSpacing": "-0.017em", "fontWeight": "600" }], "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.022em", "fontWeight": "700" }], "headline-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.021em", "fontWeight": "700" }], "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-lg": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.011em", "fontWeight": "400" }], "headline-sm": ["20px", { "lineHeight": "25px", "letterSpacing": "-0.014em", "fontWeight": "600" }], "caption": ["10px", { "lineHeight": "12px", "letterSpacing": "0.03em", "fontWeight": "600" }], "title-md": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.012em", "fontWeight": "600" }], "body-md": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.009em", "fontWeight": "400" }], "headline-lg-mobile": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.019em", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.002em", "fontWeight": "500" }] } } } };</script>
+</head>
+
+<body class="bg-system-background font-body-md text-on-surface antialiased selection:bg-primary-fixed">
+    <aside
+        class="fixed left-0 top-0 h-screen w-64 bg-surface-glass-light backdrop-blur-2xl border-r border-separator-hairline-light z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+        <div class="flex flex-col flex-1 min-h-0">
+            <div class="pt-space-md px-space-lg pb-space-sm flex items-center gap-space-xs">
+                <div class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/40"></div>
+                <div class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/40"></div>
+                <div class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/40"></div>
+            </div>
+            <div class="px-space-lg pt-space-xs pb-space-md flex items-center justify-between">
+                <div class="flex items-center gap-space-sm">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">alt_route</span>
+                    </div>
+                    <div class="flex flex-col"><span
+                            class="font-title-md text-title-md text-on-surface leading-none tracking-tight">RouteOS</span><span
+                            class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mt-0.5">Logistics
+                            Core</span></div>
+                </div><span
+                    class="font-caption text-caption px-space-xs py-space-2xs rounded bg-surface-container text-on-surface-variant font-label-md">v3.4</span>
+            </div>
+            <div class="px-space-md mb-space-sm">
+                <div
+                    class="w-full flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant text-body-sm font-body-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+                    <div class="flex items-center gap-space-xs"><span
+                            class="material-symbols-outlined text-[16px] text-on-surface-variant">search</span><span>Buscar
+                            módulo...</span></div><kbd
+                        class="font-caption text-caption bg-surface-container-lowest px-1.5 py-0.5 rounded shadow-sm text-outline border border-separator-hairline-light">⌘K</kbd>
+                </div>
+            </div>
+            <nav class="flex-1 overflow-y-auto px-space-md space-y-space-md"
+                data-active-classes="bg-primary text-on-primary shadow-sm">
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Principal</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="centro-de-control" href="#"><span
+                            class="material-symbols-outlined text-[18px]">monitoring</span><span>Centro de
+                            Control</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="registro-de-pedidos" href="#"><span
+                            class="material-symbols-outlined text-[18px]">inventory_2</span><span>Registro de
+                            Pedidos</span></a>
+                </div>
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Operaciones</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="armado-y-optimizacion-de-rutas" href="#"><span
+                            class="material-symbols-outlined text-[18px]">route</span><span>Armado y
+                            Optimización</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="zonas-geograficas" href="#"><span
+                            class="material-symbols-outlined text-[18px]">travel_explore</span><span>Zonas
+                            Geográficas</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="gestion-de-repartidores" href="#"><span
+                            class="material-symbols-outlined text-[18px]">local_shipping</span><span>Repartidores y
+                            Flota</span></a>
+                </div>
+                <div class="space-y-space-2xs">
+                    <div
+                        class="px-space-sm py-space-2xs font-caption text-caption text-outline uppercase tracking-wider">
+                        Análisis & SLA</div><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="metricas-y-pruebas-de-carga" href="#"><span
+                            class="material-symbols-outlined text-[18px]">bar_chart</span><span>Métricas &
+                            Carga</span></a><a
+                        class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all"
+                        data-path="configuracion-de-despacho" href="#"><span
+                            class="material-symbols-outlined text-[18px]">settings_input_component</span><span>Ajustes
+                            Algorítmicos</span></a>
+                </div>
+            </nav>
+        </div>
+        <div class="p-space-md border-t border-separator-hairline-light bg-surface-glass-light/50">
+            <div
+                class="flex items-center justify-between p-space-xs rounded-xl bg-surface-container-lowest/80 border border-separator-hairline-light">
+                <div class="flex items-center gap-space-xs"><span class="relative flex h-2 w-2 ml-1"><span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span><span
+                            class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span></span><span
+                        class="font-label-sm text-label-sm text-on-surface font-semibold">Hub Metropolitano</span></div>
+                <span
+                    class="font-caption text-caption px-space-xs py-space-2xs rounded-full bg-surface-container text-tertiary font-bold">99.8%
+                    SLA</span>
+            </div>
+        </div>
+    </aside>
+    <div class="pl-64 flex flex-col min-h-screen">
+        <header
+            class="fixed top-0 left-64 right-0 h-14 bg-surface-glass-light backdrop-blur-2xl border-b border-separator-hairline-light z-40 flex items-center justify-between px-gutter-lg shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-space-sm text-on-surface-variant font-label-md text-label-md"><span
+                    class="text-outline hover:text-on-surface transition-colors cursor-pointer">RouteOS</span><span
+                    class="text-outline-variant font-normal">/</span><span
+                    class="font-label-md text-on-surface">Despacho Principal</span><span
+                    class="inline-flex items-center gap-1 ml-space-xs px-2 py-0.5 rounded-full bg-[#34C759]/15 text-[#34C759] font-caption text-caption font-bold"><span
+                        class="w-1.5 h-1.5 rounded-full bg-[#34C759]"></span>Sincronizado</span></div>
+            <div class="flex items-center gap-space-md">
+                <div
+                    class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-on-surface text-label-md font-label-md border border-separator-hairline-light">
+                    <span
+                        class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span><span>Hoy,
+                        24 Octubre 2024</span><span
+                        class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
+                </div><button
+                    class="flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary px-space-md py-1.5 rounded-lg font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"><span
+                        class="material-symbols-outlined text-[18px]">add</span><span>Nuevo Pedido</span></button>
+                <div class="h-5 w-[1px] bg-separator-hairline-light"></div><button aria-label="Notificaciones"
+                    class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors"><span
+                        class="material-symbols-outlined text-[20px]">notifications</span><span
+                        class="absolute top-1 right-1 w-2 h-2 rounded-full bg-status-urgent"></span></button>
+                <div class="flex items-center gap-space-sm pl-space-xs"><img alt="Profile"
+                        class="w-8 h-8 rounded-full object-cover ring-1 ring-separator-hairline-light shadow-sm"
+                        src="https://lh3.googleusercontent.com/aida/AEtjO1VjH4G2Ruorc7zB6Zcxxc52DoJty3dsuDVop0kW4hl0gDT0uydLJi_Ld-EP4Rl6dWuMm4vFHY3DtOBc7eCbFGHE5CCsPMH37RB-9-tyiSAwHoJ7F4uXILn427rHMDa6tE9ozkeOaj0MUSRUBD1_3fwQlHK0rD_1NifttW5yX174ZccKfqjLNJsN_ZMB1R-bVi51kvKqQnas_ZO9-I_9K0xeTZryc88JFbOReF_GgXnsTVNabH1h2xNQ4MQR" />
+                    <div class="hidden xl:flex flex-col text-left"><span
+                            class="font-label-md text-label-md text-on-surface leading-tight">Sofia Valdés</span><span
+                            class="font-caption text-caption text-outline">Jefe de Operaciones</span></div>
+                </div>
+            </div>
+        </header>
+        <main class="flex-1 pt-14 bg-system-background">
+            <div class="flex flex-col w-full">
+                <!-- Interactive Canvas Container -->
+                <div class="p-gutter-lg space-y-gutter-lg max-w-[1720px] mx-auto w-full">
+                    <!-- Algorithmic Header Banner / Control Bar -->
+                    <section
+                        class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-xl shadow-sm">
+                        <div
+                            class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-space-lg">
+                            <div class="flex flex-col space-y-space-2xs max-w-2xl">
+                                <div class="flex items-center gap-space-xs">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-caption text-caption tracking-wider uppercase font-semibold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                        Algoritmo Heurístico v4.2 Activo
+                                    </span>
+                                    <span class="font-caption text-caption text-outline">Latencia motor: 42ms</span>
+                                </div>
+                                <h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Armado y
+                                    Optimización Inteligente de Rutas</h1>
+                                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                                    Orquestación combinatoria multi-vehículo con balanceo dinámico de carga, ventanas
+                                    horarias críticas y re-asignación heurística continua.
+                                </p>
+                            </div>
+                            <!-- Algorithm Parameters & Primary Trigger -->
+                            <div class="flex flex-wrap items-center gap-space-md">
+                                <div
+                                    class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg shadow-sm">
+                                    <span class="material-symbols-outlined text-outline text-[18px]">tune</span>
+                                    <div class="flex flex-col">
+                                        <span class="font-caption text-caption text-outline leading-tight">Modelo
+                                            Matemático</span>
+                                        <select
+                                            class="bg-transparent font-label-md text-label-md text-on-surface focus:outline-none cursor-pointer pr-space-sm">
+                                            <option selected="">Capacitated VRP con Ventanas Horarias (CVRPTW)</option>
+                                            <option>Clustering K-Means + Vecino Más Cercano (NN)</option>
+                                            <option>Asignación Húngara Bipartita (Mínima Distancia)</option>
+                                            <option>Metaheurística Recocido Simulado (Simulated Annealing)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div
+                                    class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg shadow-sm">
+                                    <span class="material-symbols-outlined text-outline text-[18px]">layers</span>
+                                    <div class="flex flex-col">
+                                        <span class="font-caption text-caption text-outline leading-tight">Lote a
+                                            Procesar</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-label-md text-label-md text-on-surface font-semibold"
+                                                id="batchCountDisplay">48</span>
+                                            <span
+                                                class="font-caption text-caption text-on-surface-variant">pedidos</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    class="flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary px-space-lg py-2.5 rounded-lg font-label-md text-label-md shadow-sm transition-all active:scale-[0.98]"
+                                    id="optimizeTriggerBtn">
+                                    <span class="material-symbols-outlined text-[20px]">bolt</span>
+                                    <span>Disparar Armado Automático</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Operational Constraints & Policy Chips Bar -->
+                        <div
+                            class="relative z-10 mt-space-lg pt-space-md bg-surface-container-low/60 rounded-lg p-space-md flex flex-wrap items-center justify-between gap-space-md">
+                            <div
+                                class="flex flex-wrap items-center gap-space-md text-on-surface-variant font-label-sm text-label-sm">
+                                <span
+                                    class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Reglas
+                                    Operativas Vigentes:</span>
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface shadow-sm">
+                                    <span class="material-symbols-outlined text-primary text-[15px]">inventory</span>
+                                    <span>Límite Estricto: <strong>4 pedidos / repartidor</strong></span>
+                                    <button class="hover:text-primary transition-colors text-outline"
+                                        title="Ajustar límite">
+                                        <span class="material-symbols-outlined text-[13px]">edit</span>
+                                    </button>
+                                </div>
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface shadow-sm">
+                                    <span
+                                        class="material-symbols-outlined text-tertiary text-[15px]">scatter_plot</span>
+                                    <span>Zonas de Baja Densidad: <strong>Rutas 1–2 entregas autorizadas</strong></span>
+                                </div>
+                                <div
+                                    class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface shadow-sm">
+                                    <span class="material-symbols-outlined text-tint-teal text-[15px]">schedule</span>
+                                    <span>Tolerancia de Ventana Horaria: <strong>±15 min</strong></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-space-sm">
+                                <span class="font-caption text-caption text-outline">Balance de Flota:</span>
+                                <div class="w-28 bg-surface-container rounded-full h-2 overflow-hidden flex">
+                                    <div class="bg-status-delivered h-full w-[65%]" title="65% En ruta"></div>
+                                    <div class="bg-status-routing h-full w-[25%]" title="25% Asignado"></div>
+                                    <div class="bg-outline-variant h-full w-[10%]" title="10% Standby"></div>
+                                </div>
+                                <span class="font-label-sm text-label-sm text-on-surface font-semibold">90%
+                                    Activo</span>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- Dynamic Real-Time Same-Day Order Insertion Simulator -->
+                    <section class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-md">
+                            <div class="flex items-center gap-space-sm">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-status-in-transit/15 flex items-center justify-center text-status-in-transit">
+                                    <span class="material-symbols-outlined text-[20px]">dynamic_feed</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-space-xs">
+                                        <h2 class="font-title-md text-title-md text-on-surface">Simulador e Inserción
+                                            Dinámica de Pedidos Same-Day</h2>
+                                        <span
+                                            class="px-space-xs py-0.5 rounded-full bg-status-in-transit/15 text-status-in-transit font-caption text-caption font-bold animate-pulse">
+                                            Live Feed (3 Nuevos)
+                                        </span>
+                                    </div>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant">
+                                        Reoptimización heurística en caliente sin desviar compromisos garantizados ni
+                                        exceder el cupo máximo de 4 pedidos.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-space-xs">
+                                <button
+                                    class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1 shadow-sm">
+                                    <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                                    <span>Simular Inyección +1</span>
+                                </button>
+                                <span class="font-caption text-caption text-outline px-2">Modo Auto-Aplicación:
+                                    Encendido</span>
+                            </div>
+                        </div>
+                        <!-- Live Incident Cards Mosaic -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+                            <!-- Event 1: Auto-Inserted -->
+                            <div
+                                class="rounded-xl bg-surface-container-low p-space-md relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-status-delivered"></div>
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-space-xs">
+                                        <span
+                                            class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">#9841</span>
+                                        <span
+                                            class="px-space-xs py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold">Auto-Insertado</span>
+                                    </div>
+                                    <span class="font-caption text-caption text-outline">Hace 2m</span>
+                                </div>
+                                <div class="mt-space-sm space-y-1">
+                                    <p class="font-label-md text-label-md text-on-surface flex items-center gap-1">
+                                        <span
+                                            class="material-symbols-outlined text-[16px] text-status-delivered">alt_route</span>
+                                        Insertado en <strong class="text-primary">Ruta R-04</strong>
+                                    </p>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                                        Repartidor: Carlos Mendoza (Van EV)
+                                    </p>
+                                </div>
+                                <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                                    <span class="font-caption text-caption text-on-surface-variant">Capacidad
+                                        Resultante</span>
+                                    <span
+                                        class="px-space-xs py-0.5 rounded bg-status-urgent/15 text-status-urgent font-caption text-caption font-bold">
+                                        Cupo 4/4 Completo
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Event 2: Overflow / Dedicated Spill Route -->
+                            <div
+                                class="rounded-xl bg-surface-container-low p-space-md relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-status-routing"></div>
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-space-xs">
+                                        <span
+                                            class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">#9842</span>
+                                        <span
+                                            class="px-space-xs py-0.5 rounded-full bg-status-routing/15 text-status-routing font-caption text-caption font-bold">Nueva
+                                            Ruta Creada</span>
+                                    </div>
+                                    <span class="font-caption text-caption text-outline">Hace 4m</span>
+                                </div>
+                                <div class="mt-space-sm space-y-1">
+                                    <p class="font-label-md text-label-md text-on-surface flex items-center gap-1">
+                                        <span
+                                            class="material-symbols-outlined text-[16px] text-status-routing">add_circle</span>
+                                        Zona Sur saturada → <strong class="text-secondary">Ruta R-19 Generada</strong>
+                                    </p>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                                        Asignado: Diego Morales (Flota de Reserva)
+                                    </p>
+                                </div>
+                                <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                                    <span class="font-caption text-caption text-on-surface-variant">Capacidad
+                                        Inicial</span>
+                                    <span
+                                        class="px-space-xs py-0.5 rounded bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold">
+                                        Cupo 1/4 (3 disponibles)
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- Event 3: Pending Window Match -->
+                            <div
+                                class="rounded-xl bg-surface-container-low p-space-md relative overflow-hidden group hover:shadow-md transition-shadow">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-status-in-transit"></div>
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-space-xs">
+                                        <span
+                                            class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">#9843</span>
+                                        <span
+                                            class="px-space-xs py-0.5 rounded-full bg-status-in-transit/15 text-status-in-transit font-caption text-caption font-bold">Evaluando
+                                            Concurrencia</span>
+                                    </div>
+                                    <span class="font-caption text-caption text-outline">Hace 30s</span>
+                                </div>
+                                <div class="mt-space-sm space-y-1">
+                                    <p class="font-label-md text-label-md text-on-surface flex items-center gap-1">
+                                        <span
+                                            class="material-symbols-outlined text-[16px] text-status-in-transit">sync</span>
+                                        Afinidad: <strong class="text-on-surface">Ruta R-02 (Zona Norte)</strong>
+                                    </p>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                                        Desvío marginal calculado: +1.2 km / 4 min
+                                    </p>
+                                </div>
+                                <div class="mt-space-md pt-space-xs flex items-center justify-between">
+                                    <span class="font-caption text-caption text-on-surface-variant">Decisión
+                                        Heurística</span>
+                                    <button
+                                        class="font-label-sm text-label-sm text-primary hover:underline font-semibold">Validar
+                                        Inserción</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- Two-Column Main Workspace -->
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+                        <!-- LEFT COLUMN: Unassigned Orders Drawer (4 cols) -->
+                        <aside
+                            class="xl:col-span-4 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col space-y-space-md sticky top-16">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-space-xs">
+                                    <h2 class="font-title-md text-title-md text-on-surface">Pedidos Pendientes</h2>
+                                    <span
+                                        class="px-space-xs py-0.5 rounded-full bg-surface-container-high font-label-sm text-label-sm font-semibold text-on-surface">
+                                        7 en cola
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant transition-colors"
+                                        title="Filtrar">
+                                        <span class="material-symbols-outlined text-[18px]">filter_list</span>
+                                    </button>
+                                    <button
+                                        class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant transition-colors"
+                                        title="Selección Múltiple">
+                                        <span class="material-symbols-outlined text-[18px]">checklist</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Filter Segmented Control & Search -->
+                            <div class="space-y-space-xs">
+                                <div class="flex rounded-lg bg-surface-container-low p-0.5 text-center">
+                                    <button
+                                        class="flex-1 py-1 rounded-md bg-surface-container-lowest shadow-sm font-label-sm text-label-sm text-on-surface font-semibold">Todas</button>
+                                    <button
+                                        class="flex-1 py-1 rounded-md text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors">Centro
+                                        (3)</button>
+                                    <button
+                                        class="flex-1 py-1 rounded-md text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors">Norte
+                                        (2)</button>
+                                    <button
+                                        class="flex-1 py-1 rounded-md text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors">Sur
+                                        (2)</button>
+                                </div>
+                                <div
+                                    class="flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant">
+                                    <span class="material-symbols-outlined text-[16px] text-outline">search</span>
+                                    <input
+                                        class="bg-transparent text-body-sm font-body-sm w-full focus:outline-none placeholder:text-outline text-on-surface"
+                                        placeholder="Buscar por cliente, tracking # o comuna..." type="text" />
+                                </div>
+                            </div>
+                            <!-- Drag-and-Drop Orders List -->
+                            <div class="space-y-space-sm max-h-[720px] overflow-y-auto pr-1">
+                                <!-- Pending Order Card 1 -->
+                                <div
+                                    class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center gap-space-xs">
+                                            <span
+                                                class="material-symbols-outlined text-outline text-[18px] group-hover:text-primary transition-colors">drag_indicator</span>
+                                            <span
+                                                class="font-label-md text-label-md text-on-surface font-bold">#ORD-9901</span>
+                                            <span
+                                                class="px-1.5 py-0.2 rounded bg-tint-teal/15 text-tint-teal font-caption text-caption font-semibold">Zona
+                                                Centro</span>
+                                        </div>
+                                        <span
+                                            class="font-caption text-caption text-status-urgent font-bold flex items-center gap-0.5">
+                                            <span class="material-symbols-outlined text-[13px]">alarm</span> Ventana
+                                            11:00 - 12:00
+                                        </span>
+                                    </div>
+                                    <div class="mt-space-xs pl-6">
+                                        <p class="font-label-md text-label-md text-on-surface font-medium">Boutique Los
+                                            Conquistadores</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Av.
+                                            Pedro de Valdivia 1240, Providencia</p>
+                                        <div
+                                            class="flex items-center gap-space-md mt-space-xs text-outline font-caption text-caption">
+                                            <span>2 bultos (3.4 kg)</span>
+                                            <span>•</span>
+                                            <span>Cobro: Pagado</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Pending Order Card 2 -->
+                                <div
+                                    class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center gap-space-xs">
+                                            <span
+                                                class="material-symbols-outlined text-outline text-[18px] group-hover:text-primary transition-colors">drag_indicator</span>
+                                            <span
+                                                class="font-label-md text-label-md text-on-surface font-bold">#ORD-9904</span>
+                                            <span
+                                                class="px-1.5 py-0.2 rounded bg-status-routing/15 text-status-routing font-caption text-caption font-semibold">Zona
+                                                Norte</span>
+                                        </div>
+                                        <span
+                                            class="font-caption text-caption text-on-surface-variant font-medium">Ventana
+                                            12:00 - 13:30</span>
+                                    </div>
+                                    <div class="mt-space-xs pl-6">
+                                        <p class="font-label-md text-label-md text-on-surface font-medium">Clínica
+                                            Odontológica Bellavista</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                                            Constitución 184, Recoleta</p>
+                                        <div
+                                            class="flex items-center gap-space-md mt-space-xs text-outline font-caption text-caption">
+                                            <span>1 paquete delicado (0.8 kg)</span>
+                                            <span>•</span>
+                                            <span>Firma Requerida</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Pending Order Card 3 -->
+                                <div
+                                    class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center gap-space-xs">
+                                            <span
+                                                class="material-symbols-outlined text-outline text-[18px] group-hover:text-primary transition-colors">drag_indicator</span>
+                                            <span
+                                                class="font-label-md text-label-md text-on-surface font-bold">#ORD-9908</span>
+                                            <span
+                                                class="px-1.5 py-0.2 rounded bg-tint-teal/15 text-tint-teal font-caption text-caption font-semibold">Zona
+                                                Centro</span>
+                                        </div>
+                                        <span
+                                            class="font-caption text-caption text-on-surface-variant font-medium">Ventana
+                                            13:00 - 14:00</span>
+                                    </div>
+                                    <div class="mt-space-xs pl-6">
+                                        <p class="font-label-md text-label-md text-on-surface font-medium">Estudio
+                                            Arquitectura PlanV</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">
+                                            Miraflores 455, Of. 802, Santiago</p>
+                                        <div
+                                            class="flex items-center gap-space-md mt-space-xs text-outline font-caption text-caption">
+                                            <span>1 caja planos (1.2 kg)</span>
+                                            <span>•</span>
+                                            <span>Prioritario</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Pending Order Card 4 -->
+                                <div
+                                    class="group p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container hover:shadow-sm transition-all cursor-grab active:cursor-grabbing">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center gap-space-xs">
+                                            <span
+                                                class="material-symbols-outlined text-outline text-[18px] group-hover:text-primary transition-colors">drag_indicator</span>
+                                            <span
+                                                class="font-label-md text-label-md text-on-surface font-bold">#ORD-9912</span>
+                                            <span
+                                                class="px-1.5 py-0.2 rounded bg-tint-purple/15 text-tint-purple font-caption text-caption font-semibold">Zona
+                                                Sur (Baja Densidad)</span>
+                                        </div>
+                                        <span
+                                            class="font-caption text-caption text-on-surface-variant font-medium">Ventana
+                                            14:00 - 16:00</span>
+                                    </div>
+                                    <div class="mt-space-xs pl-6">
+                                        <p class="font-label-md text-label-md text-on-surface font-medium">Residencial
+                                            Valle Lo Campino</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Av.
+                                            Las Parcelas 8802, San Bernardo</p>
+                                        <div
+                                            class="flex items-center gap-space-md mt-space-xs text-outline font-caption text-caption">
+                                            <span>3 bultos (14.0 kg)</span>
+                                            <span>•</span>
+                                            <span>Ruta Simple Permitida</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Smart Dropzone helper text -->
+                            <div
+                                class="p-space-sm rounded-lg bg-surface-container-low/50 text-center text-outline font-caption text-caption flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[15px]">pan_tool</span>
+                                Arrastra un pedido a una ruta a la derecha para transferencia directa.
+                            </div>
+                        </aside>
+                        <!-- RIGHT COLUMN: Grid of Route Cards (8 cols) -->
+                        <main class="xl:col-span-8 flex flex-col space-y-space-md">
+                            <!-- Controls Bar for Route Grid -->
+                            <div
+                                class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+                                <div class="flex items-center gap-space-sm">
+                                    <span class="font-title-md text-title-md text-on-surface">Rutas Activas en
+                                        Despacho</span>
+                                    <span
+                                        class="px-space-xs py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-bold">6
+                                        Generadas</span>
+                                </div>
+                                <div class="flex items-center gap-space-xs">
+                                    <div class="flex items-center rounded-lg bg-surface-container-low p-0.5">
+                                        <button
+                                            class="px- space-sm px-2.5 py-1 rounded bg-surface-container-lowest shadow-sm text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[15px]">grid_view</span>
+                                            <span>Mosaico</span>
+                                        </button>
+                                        <button
+                                            class="px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[15px]">timeline</span>
+                                            <span>Cronograma</span>
+                                        </button>
+                                    </div>
+                                    <button
+                                        class="flex items-center gap-1 px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">lock_open</span>
+                                        <span>Rebalancear Todo</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 6 Bespoke Route Cards Grid (2 columns on large screens) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+                                <!-- RUTA #01 -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <!-- Card Header -->
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Close-up professional portrait of an energetic young female courier in modern blue logistics uniform with lanyard in natural daylight"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNUEdtz55qDQWaOdylbFel_GTgG4azg6E_U4M3u4ogO1qbPH3U7ZT_VUEW75NQGGksbYuVwwHCk85a1h1KiAHa6dEl9slI6Jwye5xN5DHiGQVNdOKidqhwW10Tli596OUh0Hf7hF9_00cJ6fTdPnA5q2zq5-TRBMxY_Sw01XArBr4cMLRGwoiKMb0rp3kRYO4ds6XQPXqA-8nghOygGZCJLHs-T8LHbzKlMJbczDR37h6gvPUgJiqt6w" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #01</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-tint-teal/15 text-tint-teal font-caption text-caption font-semibold">Centro
+                                                            Norte</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Valentina Silva</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">two_wheeler</span>
+                                                            Moto Eléctrica</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-status-delivered"></span> En
+                                                Ruta
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 3/4 Pedidos</span>
+                                                <span class="text-primary font-medium">1 cupo libre</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-primary h-full rounded-full transition-all"
+                                                    style="width: 75%;"></div>
+                                            </div>
+                                        </div>
+                                        <!-- Ordered Delivery Stops Timeline -->
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <!-- Stop 1 (Delivered) -->
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold">1.
+                                                                Av. Libertador Bernardo O'Higgins 1449</span>
+                                                            <span
+                                                                class="font-caption text-caption text-status-delivered font-semibold">10:15
+                                                                hrs • Entregado #9820</span>
+                                                        </div>
+                                                        <span
+                                                            class="material-symbols-outlined text-[16px] text-status-delivered">check_circle</span>
+                                                    </div>
+                                                </div>
+                                                <!-- Stop 2 (Next) -->
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest animate-ping"></span>
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="font-label-md text-label-md text-on-surface font-semibold">2.
+                                                                Los Leones 2200, Providencia</span>
+                                                            <span
+                                                                class="font-caption text-caption text-status-in-transit font-semibold">10:48
+                                                                hrs (Estimado) • En camino</span>
+                                                        </div>
+                                                        <span
+                                                            class="material-symbols-outlined text-[16px] text-outline cursor-grab">drag_indicator</span>
+                                                    </div>
+                                                </div>
+                                                <!-- Stop 3 (Queued) -->
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex flex-col">
+                                                            <span class="font-label-md text-label-md text-on-surface">3.
+                                                                Eliodoro Yáñez 850</span>
+                                                            <span class="font-caption text-caption text-outline">11:20
+                                                                hrs • Pendiente</span>
+                                                        </div>
+                                                        <span
+                                                            class="material-symbols-outlined text-[16px] text-outline cursor-grab">drag_indicator</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Footer Actions -->
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">8.4 km total •
+                                            52 min</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Reordenar
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- RUTA #02 -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Friendly logistics courier in his 30s wearing reflective vest standing beside a clean white electric cargo delivery van"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7m9vutJ11cLZM1KV3A57orgXIoGOo7gdjjUbEFpB6rKXhsCxv54os3on4ffxallw00eXUOavG8huc28hcKcUJxJ1GRAjPZ77T0LFcKaz7wuaTDapGsHhJfr2skNEaS13fjOQBdGQRFq4tzQ_V8v1mIYSBx-xwZ_o8AINHfQG5TrPtKfqybCKc2dmXnIkRzZVuvh_XcSOYd9P8UVOw8LPexUioM7mw_HgeCZvNR0x7A5wuxm0dhpzLlw" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #02</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-tint-teal/15 text-tint-teal font-caption text-caption font-semibold">Zona
+                                                            Centro</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Mateo Alarcón</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">local_shipping</span>
+                                                            Furgón L1</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-in-transit/15 text-status-in-transit font-caption text-caption font-bold flex items-center gap-1">
+                                                En Despacho
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator: Full 4/4 -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 4/4 Pedidos
+                                                    [Lleno]</span>
+                                                <span class="text-status-urgent font-bold">Máximo alcanzado</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-status-urgent h-full rounded-full transition-all"
+                                                    style="width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <!-- Stops Timeline -->
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">1.
+                                                            Moneda 920, Santiago Centro</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-delivered font-semibold">10:05
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span
+                                                            class="font-label-md text-label-md text-on-surface font-semibold">2.
+                                                            Agustinas 1442, Torre B</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-in-transit font-semibold">10:35
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">3.
+                                                            Huérfanos 1102</span>
+                                                        <span class="font-caption text-caption text-outline">11:10
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">4. Mac
+                                                            Iver 325</span>
+                                                        <span class="font-caption text-caption text-outline">11:45
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">11.2 km total •
+                                            1h 15m</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Secuencia
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- RUTA #03 -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Portrait of an experienced senior delivery driver with beard and branded cap smiling in front of metropolitan city skyline"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJDAkXNmjnqTnJviqngVVPVdgWvjy-YgpNVvrHS7FrjsOwuVZgs_lLotUj24ltmf06Bcq7wcSttZ5vK0c998TEoTe7s8fsbFmb22QVBsC0DdFxIs137iN0fOXD3llDHUqWOOmMYRV0V9oB33zOqqmzobMFyEVy2aXvuK1MXmxfU02_7PkXE0EplmJ9RXS7Ee8Ss9augRcQbqfDIPpQsm4qf_MqnpaCrVZRvqZE5PRGkhOdZpDjf7Tfow" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #03</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-tint-purple/15 text-tint-purple font-caption text-caption font-semibold">Zona
+                                                            Oriente</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Gonzalo Parra</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">electric_car</span>
+                                                            Utilitario EV</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-routing/15 text-status-routing font-caption text-caption font-bold flex items-center gap-1">
+                                                En Armado
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator: 2/4 (2 slots available) -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 2/4 Pedidos</span>
+                                                <span class="text-status-delivered font-semibold">2 espacios
+                                                    disponibles</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-status-delivered h-full rounded-full transition-all"
+                                                    style="width: 50%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">1.
+                                                            Alonso de Córdova 3890, Vitacura</span>
+                                                        <span class="font-caption text-caption text-outline">12:15
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">2. Av.
+                                                            Las Condes 10400</span>
+                                                        <span class="font-caption text-caption text-outline">12:50
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <!-- Drop target placeholder slot -->
+                                                <div
+                                                    class="p-space-xs rounded-lg bg-surface-container-low text-center text-primary font-label-sm text-label-sm border border-dashed border-primary/40 cursor-pointer hover:bg-primary-fixed/30 transition-colors">
+                                                    + Soltar Pedido Aquí (Espacio Libre)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">9.1 km total •
+                                            44 min</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Completar
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- RUTA #04 -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Headshot of energetic Hispanic courier with wireless headset inside a modern logistics dispatch center"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP8QnyffdtMLuSR9iTBZ_Ej-LJr2tfWoUeBNxu929c6HFOKb3vicBTmFhoishLg0zjc8ElNs2wNaD6dIQKqIH7rM79sgeMlE0TZa0PKIlP0rOFyBOIZ5ePJup9QGBvuAlYiFFojiQqbn1tw7mr-DrJ7MzkhSraQ13XWMBJu-hHOXcpUQUcMMO5NuU57Y4pOF9mfS3MAjXCGAwj2AKVvPZXNd2_pppUbQALgvni4z9O_-dbrDrCQGdHGg" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #04</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-tint-teal/15 text-tint-teal font-caption text-caption font-semibold">Zona
+                                                            Centro</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Carlos Mendoza</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">local_shipping</span>
+                                                            Van EV Express</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold flex items-center gap-1">
+                                                En Ruta
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator: Auto-inserted 4/4 -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 4/4 [Reoptimizado
+                                                    Same-Day]</span>
+                                                <span class="text-status-urgent font-bold">Completo</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-status-urgent h-full rounded-full transition-all"
+                                                    style="width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">1.
+                                                            Santa Isabel 0412</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-delivered font-semibold">10:10
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span
+                                                            class="font-label-md text-label-md text-on-surface font-semibold">2.
+                                                            Vicuña Mackenna 102</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-in-transit font-semibold">10:40
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">3.
+                                                            Bustamante 88</span>
+                                                        <span class="font-caption text-caption text-outline">11:05
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <!-- Auto-inserted stop badge -->
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-surface-container-lowest"></span>
+                                                    <div
+                                                        class="flex items-center justify-between bg-primary-fixed/20 p-1 rounded">
+                                                        <span
+                                                            class="font-label-md text-label-md text-on-surface font-semibold">4.
+                                                            Portugal 340 (Auto #9841)</span>
+                                                        <span
+                                                            class="font-caption text-caption text-primary font-bold">11:35
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">14.6 km total •
+                                            1h 22m</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Ver Mapa
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- RUTA #05 (Low Density Zone: Allowed 1-2 orders) -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Portrait of an experienced courier driver in blue outerwear smiling warmly with industrial warehouse in background"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuByZE0gqokaAJsf69xkajKdQEPY829dg36AV_aQf_u3SyuZiYK6kHswER7pOgpW6niM7e6nS6_11rg8vb3tannrxmig9yFpOP8Bp4UMIiOpWgcCjo7gWnm-ugEuFooOceZjT6WQN6Atwca_xGjElzxbTrX4_zY54mcKDQu7dEyzlOChafLrZhQngXy5c0aBa9LQ_cR8X-pcXWF2prjSeW3qNVq-0IzqvX5gfejBmO4jhJMxw7-_o6-h9A" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #05</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-tint-purple/15 text-tint-purple font-caption text-caption font-semibold">Periferia
+                                                            Sur</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Felipe Santander</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">local_shipping</span>
+                                                            Camioneta 4x2</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold flex items-center gap-1">
+                                                Excepción Baja Densidad
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator: 2/2 allowed for peripheral zone -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 2/2 Pedidos (Regla
+                                                    Baja Densidad)</span>
+                                                <span class="text-tint-purple font-bold">Ruta Optimizada</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-tint-purple h-full rounded-full transition-all"
+                                                    style="width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span
+                                                            class="font-label-md text-label-md text-on-surface font-semibold">1.
+                                                            Camino Lonquén 10240, Calera de Tango</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-in-transit font-semibold">11:30
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">2. Av.
+                                                            San Ignacio 451, Padre Hurtado</span>
+                                                        <span class="font-caption text-caption text-outline">12:20
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">32.8 km total •
+                                            1h 45m</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Modificar
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- RUTA #06 -->
+                                <div
+                                    class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                    <div>
+                                        <div class="flex items-start justify-between pb-space-sm">
+                                            <div class="flex items-center gap-space-sm">
+                                                <img class="w-10 h-10 rounded-full object-cover"
+                                                    data-alt="Portrait of young delivery rider with safety helmet and bright reflective gear smiling on bright sunny day outdoors"
+                                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUZNwxOCbGRXQgWkMeaBmpHXlDtMpFRdrfu-kWhV5Sm6xSszwaDJRtGYORf7tb0xYCsM0FuPBnBHmWXzeqaubLUU8SUx3LreVShCYyzNi7x7Z56jinC7PBJaByP8wkFm31hhFK28egw16FvMm3kZacNo3zMzeZ1hPjTJcLgyfT38ziRbONKPuOG0Jhap62oyH52fc54TXpzXN_7tj_4nARzUlBNJyXr7hNoHlnP5Eig3B6Xk0XYWkRQ" />
+                                                <div>
+                                                    <div class="flex items-center gap-space-xs">
+                                                        <span
+                                                            class="font-title-md text-title-md text-on-surface font-semibold">Ruta
+                                                            #06</span>
+                                                        <span
+                                                            class="px-1.5 py-0.2 rounded bg-status-routing/15 text-status-routing font-caption text-caption font-semibold">Zona
+                                                            Norte</span>
+                                                    </div>
+                                                    <p
+                                                        class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+                                                        <span>Javiera Núñez</span>
+                                                        <span class="text-outline">•</span>
+                                                        <span class="flex items-center text-outline gap-0.5"><span
+                                                                class="material-symbols-outlined text-[13px]">two_wheeler</span>
+                                                            Scooter Cargo</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="px-space-xs py-0.5 rounded-full bg-status-delivered/15 text-status-delivered font-caption text-caption font-bold flex items-center gap-1">
+                                                En Ruta
+                                            </span>
+                                        </div>
+                                        <!-- Capacity Progress Indicator: 3/4 -->
+                                        <div class="mt-space-sm p-space-xs rounded-lg bg-surface-container-low">
+                                            <div class="flex items-center justify-between text-body-sm font-label-sm">
+                                                <span class="text-on-surface font-semibold">Cupo: 3/4 Pedidos</span>
+                                                <span class="text-primary font-medium">1 cupo libre</span>
+                                            </div>
+                                            <div
+                                                class="mt-1 h-2 w-full bg-surface-container rounded-full overflow-hidden flex">
+                                                <div class="bg-primary h-full rounded-full transition-all"
+                                                    style="width: 75%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-space-md space-y-space-xs">
+                                            <div
+                                                class="font-caption text-caption uppercase text-outline tracking-wider font-semibold">
+                                                Secuencia de Entregas</div>
+                                            <div
+                                                class="relative pl-5 space-y-space-sm before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-separator-hairline-light">
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-delivered ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">1.
+                                                            Santos Dumont 990, Recoleta</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-delivered font-semibold">10:20
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-status-in-transit ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span
+                                                            class="font-label-md text-label-md text-on-surface font-semibold">2.
+                                                            Av. Recoleta 2400</span>
+                                                        <span
+                                                            class="font-caption text-caption text-status-in-transit font-semibold">10:55
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                                <div class="relative group">
+                                                    <span
+                                                        class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></span>
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-label-md text-label-md text-on-surface">3.
+                                                            Dorsal 1340, Independencia</span>
+                                                        <span class="font-caption text-caption text-outline">11:30
+                                                            hrs</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="mt-space-lg pt-space-sm flex items-center justify-between bg-surface-container-low/40 rounded-lg p-space-xs">
+                                        <span class="font-caption text-caption text-outline font-medium">7.9 km total •
+                                            48 min</span>
+                                        <div class="flex items-center gap-1">
+                                            <button
+                                                class="px-space-sm py-1 rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors shadow-sm">
+                                                Reordenar
+                                            </button>
+                                            <button
+                                                class="p-1 rounded text-outline hover:text-primary transition-colors"
+                                                title="Transferir parada">
+                                                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Algorithmic Telemetry Mini Banner -->
+                            <div
+                                class="rounded-xl bg-surface-container-low p-space-md flex flex-wrap items-center justify-between gap-space-sm text-on-surface-variant font-caption text-caption">
+                                <div class="flex items-center gap-space-md">
+                                    <span class="flex items-center gap-1 text-on-surface font-semibold">
+                                        <span
+                                            class="material-symbols-outlined text-tertiary text-[16px]">verified</span>
+                                        Protección Anti-Doble Reserva: Activa
+                                    </span>
+                                    <span>Rutas Cerradas: <strong>4</strong></span>
+                                    <span>Rutas Abiertas a Inserción: <strong>2</strong></span>
+                                    <span>Ahorro Estimado CO2: <strong>18.4 kg</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-outline">Última sincronización global:</span>
+                                    <span class="font-semibold text-on-surface">Hace 14 segundos</span>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+            <script>
+                // Micro-interaction for the automatic optimization trigger button
+                const optimizeBtn = document.getElementById('optimizeTriggerBtn');
+                if (optimizeBtn) {
+                    optimizeBtn.addEventListener('click', () => {
+                        const originalHTML = optimizeBtn.innerHTML;
+                        optimizeBtn.disabled = true;
+                        optimizeBtn.innerHTML = `
+        <span class="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+        <span>Ejecutando Heurística VRP...</span>
+      `;
+                        optimizeBtn.classList.add('opacity-90');
+
+                        setTimeout(() => {
+                            optimizeBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[20px] text-tertiary-fixed">check</span>
+          <span>48 Pedidos Balanceados</span>
+        `;
+                            setTimeout(() => {
+                                optimizeBtn.innerHTML = originalHTML;
+                                optimizeBtn.disabled = false;
+                                optimizeBtn.classList.remove('opacity-90');
+                            }, 2200);
+                        }, 1400);
+                    });
+                }
+            </script>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -260,10 +260,10 @@
             <td class="py-3 px-3">
               <span
                 class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="order.sinRepartidor ? 'bg-[#FF3B30]/10 text-[#FF3B30]' : 'bg-[#007AFF]/10 text-[#007AFF]'"
+                [ngClass]="order.sinRepartidor ? 'bg-[#FF3B30]/10 text-[#FF3B30] border border-[#FF3B30]/20' : 'bg-[#007AFF]/10 text-[#007AFF] border border-[#007AFF]/20'"
               >
                 <span class="w-1.5 h-1.5 rounded-full" [ngClass]="order.sinRepartidor ? 'bg-[#FF3B30]' : 'bg-[#007AFF]'"></span>
-                {{ order.zonaNombre }}
+                <span [style.color]="order.sinRepartidor ? '#D70015' : '#0062CC'">{{ order.zonaNombre }}</span>
               </span>
             </td>
             <td class="py-3 px-3">

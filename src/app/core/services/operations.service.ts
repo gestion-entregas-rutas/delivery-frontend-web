@@ -48,7 +48,7 @@ export class OperationsService {
   readonly viewMode = signal<'today' | 'sched'>('today');
   readonly navigation = [
     { name: 'Resumen', label: 'Centro de Control', icon: 'monitoring', group: 'Principal' },
-    { name: 'Pedidos', label: 'Registro de Pedidos', icon: 'inventory_2', group: 'Principal' },
+    { name: 'Pedidos', label: 'Pedidos', icon: 'inventory_2', group: 'Principal' },
     { name: 'Rutas', label: 'Armado y Optimización', icon: 'route', group: 'Operaciones' },
     { name: 'Zonas', label: 'Zonas Geográficas', icon: 'travel_explore', group: 'Operaciones' },
     {

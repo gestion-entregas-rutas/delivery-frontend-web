@@ -17,6 +17,7 @@ import { RouteOrderService } from '../../core/services/route-order.service';
   selector: 'app-admin-layout',
   imports: [CommonModule, FormsModule, RouterOutlet, OperationForm, RouteAssignment, PedidoDetail, RouteOrder],
   templateUrl: './admin-layout.html',
+  styleUrl: './admin-layout.css',
 })
 export class AdminLayout implements OnDestroy {
   readonly auth = inject(AuthService);

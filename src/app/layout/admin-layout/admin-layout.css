@@ -1,0 +1,16 @@
+/* Ensure primary blue buttons and links retain white text under hover, focus, active */
+:host button[class*="bg-[#007AFF]"],
+:host button[class*="bg-[#007AFF]"]:hover,
+:host button[class*="bg-[#007AFF]"]:focus,
+:host button[class*="bg-[#007AFF]"]:active,
+:host [class*="bg-[#007AFF]"],
+:host [class*="bg-[#007AFF]"]:hover,
+:host [class*="bg-[#007AFF]"]:focus,
+:host [class*="bg-[#007AFF]"]:active {
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"] *,
+:host [class*="bg-[#007AFF]"] * {
+  color: #ffffff !important;
+}

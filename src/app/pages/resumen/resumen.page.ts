@@ -47,6 +47,7 @@ export interface LastMinuteAlertUI {
   standalone: true,
   imports: [CommonModule, FormsModule, OperationsMap],
   templateUrl: './resumen.page.html',
+  styleUrl: './resumen.page.css',
 })
 export class ResumenPage implements OnDestroy {
   readonly operations = inject(OperationsService);
@@ -146,6 +147,19 @@ export class ResumenPage implements OnDestroy {
   }
   activeFleet() {
     return this.operations.repartidores().filter((d) => d.estado !== 'NoDisponible').length;
+  }
+  currentZone() {
+    const id = this.selectedZoneChip();
+    return id === 'todos' ? null : this.operations.zonas().find((z) => z.id === id);
+  }
+  currentZoneName() {
+    return this.currentZone()?.nombre ?? '';
+  }
+  currentZoneOrders() {
+    return this.zoneOrderCount(this.selectedZoneChip());
+  }
+  currentZoneCapacity() {
+    return this.currentZone()?.maxPedidosPorRuta ?? 4;
   }
   zoneOrderCount(id: string | undefined) {
     return this.operations.resumen()?.porZona.find(p=>p.zonaId===id)?.cantidad ?? 0;

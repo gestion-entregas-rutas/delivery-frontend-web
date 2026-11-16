@@ -156,7 +156,7 @@
   },
   "src/app/pages/pedidos/pedidos.page.html": {
     "classes": [
-      "flex flex-col w-full bg-white min-h-screen",
+      "flex-1 flex flex-col w-full bg-white min-h-0",
       "p-6 border-b border-[#E5E5EA] space-y-4 bg-white",
       "flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4",
       "text-[11px] font-bold uppercase tracking-wider text-[#007AFF] flex items-center space-x-1.5",
@@ -216,8 +216,9 @@
       "flex items-center space-x-2 text-[11px]",
       "text-blue-700",
       "font-bold underline text-blue-800 hover:text-blue-950 cursor-pointer",
-      "flex-1 flex flex-col overflow-x-auto",
-      "w-full text-left border-collapse",
+      "flex-1 flex flex-col overflow-auto custom-scrollbar min-h-0",
+      "w-full text-left border-collapse min-w-[900px]",
+      "sticky top-0 bg-[#F8F8FA] z-10",
       "bg-[#F8F8FA] border-b border-[#E5E5EA] text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] select-none",
       "py-2.5 pl-6 pr-2 w-10",
       "rounded border-gray-300 text-[#007AFF] focus:ring-[#007AFF] w-3.5 h-3.5 cursor-pointer",

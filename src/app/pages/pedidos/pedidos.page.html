@@ -1,4 +1,4 @@
-<div class="flex flex-col w-full bg-white min-h-screen">
+<div class="flex-1 flex flex-col w-full bg-white min-h-0">
   <!-- Top Operational Banner & KPI Area -->
   <div class="p-6 border-b border-[#E5E5EA] space-y-4 bg-white">
     <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -189,9 +189,9 @@
   </div>
 
   <!-- Orders Table Structure -->
-  <div class="flex-1 flex flex-col overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-      <thead>
+  <div class="flex-1 flex flex-col overflow-auto custom-scrollbar min-h-0">
+    <table class="w-full text-left border-collapse min-w-[900px]">
+      <thead class="sticky top-0 bg-[#F8F8FA] z-10">
         <tr class="bg-[#F8F8FA] border-b border-[#E5E5EA] text-[10px] font-bold uppercase tracking-wider text-[#8E8E93] select-none">
           <th class="py-2.5 pl-6 pr-2 w-10">
             <input

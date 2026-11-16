@@ -74,7 +74,7 @@ export class PedidosPage implements OnDestroy {
   readonly assignment = inject(RouteAssignmentService);
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
   readonly activeTab = signal<'todos' | 'anticipados' | 'hoy' | 'pendientes'>('todos');
-  readonly searchQuery = signal(this.operations.search);
+  readonly searchQuery = signal(this.operations.search || '');
   readonly selectedIds = signal<Set<string>>(new Set());
   readonly drawerOpen = signal(false);
   readonly toastVisible = signal(false);
@@ -207,7 +207,20 @@ export class PedidosPage implements OnDestroy {
       rawPedido: p,
     })),
   );
-  readonly filteredOrders = this.allOrders;
+  readonly filteredOrders = computed<PedidoItemUI[]>(() => {
+    const orders = this.allOrders();
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter(
+      (o) =>
+        o.codigo.toLowerCase().includes(q) ||
+        o.clienteNombre.toLowerCase().includes(q) ||
+        o.clienteTelefono.toLowerCase().includes(q) ||
+        o.destinatarioNombre.toLowerCase().includes(q) ||
+        o.zonaNombre.toLowerCase().includes(q) ||
+        o.rawPedido.direccion.toLowerCase().includes(q),
+    );
+  });
   readonly anticipadosCount = computed(() => {
     this.operations.resumen();
     return this.operations.desde === this.operations.scheduledDate() && !this.operations.hasta
@@ -228,10 +241,16 @@ export class PedidosPage implements OnDestroy {
     this.operations.view.set('Pedidos');
   }
   @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.key === 'Escape') this.closeOrderSheet();
-    else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
+    if (event.key === 'Escape') {
+      if (document.activeElement === this.searchInput?.nativeElement && this.searchQuery()) {
+        this.onSearchChange('');
+        return;
+      }
+      this.closeOrderSheet();
+    } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       this.searchInput?.nativeElement.focus();
+      this.searchInput?.nativeElement.select();
     }
   }
   setActiveTab(tab: 'todos' | 'anticipados' | 'hoy' | 'pendientes') {
@@ -241,6 +260,10 @@ export class PedidosPage implements OnDestroy {
     this.operations.hasta = '';
     if (tab === 'hoy') this.operations.fecha = this.operations.today;
     void this.operations.changeDate();
+  }
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.searchOnServer(value);
   }
   searchOnServer(value: string) {
     clearTimeout(this.searchTimer);

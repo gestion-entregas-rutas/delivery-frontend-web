@@ -33,7 +33,7 @@ import { drawGpsMarkers } from '../../../core/utils/gps-markers';
       .map-canvas {
         width: 100%;
         height: 100%;
-        min-height: 500px;
+        min-height: 100%;
       }
       p {
         position: absolute;

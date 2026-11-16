@@ -1,4 +1,4 @@
-<div class="flex-1 bg-[#FAFAFC] overflow-y-auto custom-scrollbar flex flex-col p-4 md:p-6 space-y-5" data-purpose="main-dashboard">
+<div class="flex-1 bg-[#FAFAFC] overflow-y-auto custom-scrollbar flex flex-col p-3.5 md:p-4 2xl:p-6 space-y-3.5 2xl:space-y-5 min-h-0" data-purpose="main-dashboard">
   <!-- Header Section with Badges, Title & Segmented Switch -->
   <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4" data-purpose="dashboard-header">
     <!-- Title & Badges -->
@@ -169,7 +169,7 @@
   <!-- END: 4 Metric Cards -->
 
   <!-- BEGIN: Central Split: Interactive Map & Live Feed Panel -->
-  <section class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-[440px]" data-purpose="central-dispatch-viewport">
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-[280px] lg:min-h-[320px] 2xl:min-h-[440px]" data-purpose="central-dispatch-viewport">
     <!-- Left Column (8.5 cols): Interactive Map Container -->
     <div class="lg:col-span-8 xl:col-span-9 bg-white border border-[#E5E5EA] rounded-xl overflow-hidden shadow-card flex flex-col relative">
       <!-- Map Top Bar: Zones Pills & Legend -->
@@ -214,7 +214,7 @@
         </div>
       </div>
       <!-- Map Viewport Surface (Interactive Operations Map) -->
-      <div class="flex-1 relative overflow-hidden min-h-[380px]">
+      <div class="flex-1 relative overflow-hidden min-h-[200px] lg:min-h-[240px] 2xl:min-h-[380px]">
         <app-operations-map [zoneId]="selectedZoneChip()==='todos'?'':selectedZoneChip()" />
       </div>
 
@@ -284,7 +284,7 @@
         
         @if (activeAlerts().length === 0) {
           <!-- Panel Empty Content Body -->
-          <div class="p-5 text-center flex flex-col items-center justify-center min-h-[220px]">
+          <div class="p-4 2xl:p-5 text-center flex flex-col items-center justify-center min-h-[140px] lg:min-h-[160px] 2xl:min-h-[220px]">
             <div class="w-10 h-10 rounded-full bg-[#F2F2F6] flex items-center justify-center text-[#8E8E93] mb-3">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
@@ -372,7 +372,7 @@
           @if (filteredRoutes().length === 0) {
             <!-- Empty State Row -->
             <tr>
-              <td class="py-12 px-4 text-center" colspan="7">
+              <td class="py-6 px-4 text-center" colspan="7">
                 <div class="flex flex-col items-center justify-center space-y-1">
                   <span class="text-xs text-[#8E8E93]">No hay registros para los filtros seleccionados</span>
                 </div>

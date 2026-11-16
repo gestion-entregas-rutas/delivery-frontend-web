@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
 .map-grid-layer {
   background-color: #EBF2F7;
   background-image: 
@@ -30,19 +38,14 @@
 }
 
 /* Blue button guarantee: text must remain white during hover, focus, active */
-:host button[class*="bg-[#007AFF]"],
-:host button[class*="bg-[#007AFF]"]:hover,
-:host button[class*="bg-[#007AFF]"]:focus,
-:host button[class*="bg-[#007AFF]"]:active,
-:host [class*="bg-[#007AFF]"],
-:host [class*="bg-[#007AFF]"]:hover,
-:host [class*="bg-[#007AFF]"]:focus,
-:host [class*="bg-[#007AFF]"]:active {
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]),
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):hover,
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):focus,
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):active {
   color: #ffffff !important;
 }
 
-:host [class*="bg-[#007AFF]"] *,
-:host button[class*="bg-[#007AFF]"] * {
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]) * {
   color: #ffffff !important;
 }
 

@@ -331,7 +331,7 @@
   <!-- END: Central Split -->
 
   <!-- BEGIN: Lower Section: Manifiesto de Rutas Activas Table -->
-  <section class="bg-white border border-[#E5E5EA] rounded-xl shadow-card flex flex-col overflow-hidden" data-purpose="routes-manifest-table">
+  <section class="bg-white border border-[#E5E5EA] rounded-xl shadow-card flex flex-col overflow-hidden flex-shrink-0" data-purpose="routes-manifest-table">
     <!-- Table Header & Controls -->
     <div class="p-4 border-b border-[#E5E5EA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
       <div>
@@ -355,9 +355,9 @@
       </div>
     </div>
     <!-- Structured Table -->
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto overflow-y-auto max-h-[360px] 2xl:max-h-[480px] custom-scrollbar">
       <table class="w-full text-left text-xs border-collapse">
-        <thead>
+        <thead class="sticky top-0 bg-[#F8F8FA] z-10">
           <tr class="bg-[#F8F8FA] border-b border-[#E5E5EA] text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider">
             <th class="py-2.5 px-4 font-semibold" scope="col">Operador / Vehículo</th>
             <th class="py-2.5 px-4 font-semibold" scope="col">Ruta ID &amp; Zona</th>

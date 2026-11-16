@@ -9,16 +9,10 @@ export class OperationFormsService {
   private readonly operations = inject(OperationsService);
   readonly local = inject(LocalLocationService);
   readonly modal = signal('');
-  readonly orderDrawerRequested = signal(false);
   form: any = {};
   zonePoints: PuntoDto[] = [];
   open(type: string, zone?: ZonaDto) {
     if (this.operations.saving()) return;
-    if (type === 'Pedido') {
-      this.orderDrawerRequested.set(true);
-      this.operations.navigate('Pedidos');
-      return;
-    }
     this.operations.error.set('');
     if (type === 'Local') {
       const local = this.local.location();
@@ -74,26 +68,6 @@ export class OperationFormsService {
         this.operations.message.set('Ubicación del local guardada en este navegador.');
         this.modal.set('');
         return;
-      }
-      if (this.modal() === 'Pedido') {
-        if (!this.hasDeliveryLocation())
-          throw new Error('Selecciona la ubicación de entrega en el mapa antes de guardar.');
-        const result = await firstValueFrom(
-          this.operations.api.registrarPedido({
-            ...this.form,
-            zonaId: this.form.zonaId || undefined,
-            horaEntrega:
-              this.form.horaEntrega.length === 5
-                ? this.form.horaEntrega + ':00'
-                : this.form.horaEntrega,
-          }),
-        );
-        this.operations.lastRegistration.set(result);
-        this.operations.message.set(
-          result.asignacion?.tipo === 'EnEspera'
-            ? 'Pedido registrado. En espera de asignación.'
-            : 'Pedido registrado correctamente.',
-        );
       }
       if (this.modal() === 'Repartidor') {
         await firstValueFrom(this.operations.api.crearRepartidor(this.form));

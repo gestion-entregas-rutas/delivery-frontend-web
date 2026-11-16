@@ -92,8 +92,6 @@ export class AdminLayout implements OnDestroy {
       this.operations.navigate('Productos');
     } else if (this.operations.view() === 'RetirosTienda') {
       this.operations.navigate('RetirosTienda');
-    } else {
-      this.forms.open('Pedido');
     }
   }
 
@@ -116,7 +114,6 @@ export class AdminLayout implements OnDestroy {
     this.routeOrder.reset();
     this.assignment.reset();
     this.detail.close();
-    this.forms.orderDrawerRequested.set(false);
     this.operations.stop();
     this.forms.modal.set('');
     this.forms.form = {};

@@ -142,21 +142,6 @@
             <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
           </svg>
         </button>
-
-        <!-- Main CTA Button -->
-        <div class="heading-actions flex items-center">
-          <button
-            type="button"
-            class="primary flex items-center px-4 py-1.5 bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white rounded-full text-xs font-semibold shadow-sm transition active:scale-95 cursor-pointer"
-            style="color: #ffffff !important;"
-            (click)="openOrderSheet()"
-          >
-            <svg class="w-3.5 h-3.5 mr-1.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
-            </svg>
-            <span class="text-white">Registrar Nuevo Pedido</span>
-          </button>
-        </div>
       </div>
     </div>
 
@@ -385,16 +370,8 @@
                 </div>
                 <h3 class="text-sm font-bold text-[#1C1C1E]">Sin pedidos para mostrar</h3>
                 <p class="text-xs text-[#636366] mt-1 max-w-sm">
-                  {{ operations.connected() ? 'Prueba con otra fecha o registra un nuevo pedido para comenzar la optimización de ruta.' : 'Conecta el backend para consultar tu operación.' }}
+                  {{ operations.connected() ? 'Los pedidos ingresan automáticamente desde la tienda de clientes.' : 'Conecta el backend para consultar tu operación.' }}
                 </p>
-                <button
-                  type="button"
-                  class="mt-4 px-4 py-1.5 bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white text-xs font-semibold rounded-full shadow-sm transition active:scale-95 cursor-pointer"
-                  style="color: #ffffff !important;"
-                  (click)="openOrderSheet()"
-                >
-                  + Registrar Primer Pedido
-                </button>
               </div>
             </td>
           </tr>
@@ -454,7 +431,7 @@
       id="new-order-panel"
       role="dialog"
       aria-modal="true"
-      aria-label="Nuevo pedido"
+      aria-label="Editar pedido"
       (click)="$event.stopPropagation()"
     >
       <!-- Sheet Header with Mac Window Controls -->
@@ -466,7 +443,7 @@
             <span class="w-2.5 h-2.5 rounded-full bg-[#27C93F] border border-[#1AAB29]/60 inline-block"></span>
           </div>
           <h2 class="text-sm font-bold text-[#1C1C1E] tracking-tight pl-1">
-            {{ editing() ? 'Editar pedido pendiente' : 'Registro de Nuevo Pedido' }}
+            Editar pedido pendiente
           </h2>
         </div>
         <div class="flex items-center space-x-2">
@@ -872,7 +849,7 @@
             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
             </svg>
-            <span class="text-white">{{ operations.saving() ? 'Guardando…' : editing() ? 'Guardar cambios' : 'Confirmar y Enrutar' }}</span>
+            <span class="text-white">{{ operations.saving() ? 'Guardando…' : 'Guardar cambios' }}</span>
           </button>
         </div>
       </footer>

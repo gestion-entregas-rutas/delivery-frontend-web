@@ -5,7 +5,7 @@
       aria-modal="true"
       aria-labelledby="modal-title"
       class="modal"
-      [class.modal-map]="forms.modal() === 'Pedido' || forms.modal() === 'Zona' || forms.modal() === 'Local'"
+      [class.modal-map]="forms.modal() === 'Zona' || forms.modal() === 'Local'"
       (click)="$event.stopPropagation()"
     >
       <div class="panel-heading">
@@ -40,60 +40,6 @@
             <label>Nombre del local<input name="nombreLocal" [(ngModel)]="forms.form.nombre" required maxlength="150"></label>
             <label>Dirección del local<input name="direccionLocal" [(ngModel)]="forms.form.direccion" required maxlength="300"></label>
             <app-address-picker [address]="forms.form.direccion || ''" [initialPoint]="localPoint()?.ubicacion || null" (locationChange)="forms.setDeliveryLocation($event)" />
-          }
-          @if (forms.modal() === 'Pedido') {
-            <label
-              >Nombre del cliente<input
-                name="clienteNombre"
-                [(ngModel)]="forms.form.clienteNombre"
-                required
-                maxlength="150"
-                autofocus /></label
-            ><label
-              >Teléfono<input
-                name="clienteTelefono"
-                [(ngModel)]="forms.form.clienteTelefono"
-                required
-                maxlength="30"
-                type="tel" /></label
-            ><label
-              >Dirección de entrega<input
-                name="direccion"
-                [(ngModel)]="forms.form.direccion"
-                required
-                maxlength="300"
-            /></label>
-            <div class="form-row">
-              <label
-                >Fecha de entrega<input
-                  name="fechaEntrega"
-                  type="date"
-                  [(ngModel)]="forms.form.fechaEntrega"
-                  [min]="operations.today"
-                  required /></label
-              ><label
-                >Hora de entrega<input
-                  name="horaEntrega"
-                  type="time"
-                  [(ngModel)]="forms.form.horaEntrega"
-                  required
-              /></label>
-            </div>
-            <app-address-picker
-              [address]="forms.form.direccion || ''"
-              (locationChange)="forms.setDeliveryLocation($event)"
-            />
-            <label
-              >Zona<select name="zonaId" [(ngModel)]="forms.form.zonaId">
-                <option [ngValue]="undefined">Resolver automáticamente por ubicación</option>
-                @for (z of operations.zonas(); track z.id) {
-                  @if (z.activa) {
-                    <option [value]="z.id">{{ z.nombre }}</option>
-                  }
-                }
-              </select></label
-            >
-            <p class="form-hint">La ubicación debe estar dentro de una zona activa.</p>
           }
           @if (forms.modal() === 'Repartidor') {
             <label
@@ -167,7 +113,6 @@
               entry.invalid ||
               operations.saving() ||
               (!operations.connected() && forms.modal() !== 'Local') ||
-              (forms.modal() === 'Pedido' && !forms.hasDeliveryLocation()) ||
               (forms.modal() === 'Local' && !forms.hasDeliveryLocation()) ||
               (forms.modal() === 'Zona' && !!forms.zoneError())
             "

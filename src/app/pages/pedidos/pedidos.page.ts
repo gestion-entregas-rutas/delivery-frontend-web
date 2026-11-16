@@ -226,13 +226,6 @@ export class PedidosPage implements OnDestroy {
   readonly totalOrdersCount = computed(() => this.operations.total());
   constructor() {
     this.operations.view.set('Pedidos');
-    effect(() => {
-      if (this.forms.orderDrawerRequested())
-        untracked(() => {
-          this.forms.orderDrawerRequested.set(false);
-          this.openOrderSheet();
-        });
-    });
   }
   @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
     if (event.key === 'Escape') this.closeOrderSheet();
@@ -443,39 +436,23 @@ export class PedidosPage implements OnDestroy {
             : {}),
       };
       const editing = this.editing();
-      if (editing) {
-        if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
-        if (
-          point.latitud === editing.ubicacion.latitud &&
-          point.longitud === editing.ubicacion.longitud
-        )
-          body.zonaId = editing.zonaId;
-        const updated = await firstValueFrom(
-          this.operations.api.actualizarPedido(editing.id, { ...body, version: editing.version }),
-        );
-        this.drawerOpen.set(false);
-        this.operations.fecha = updated.fechaEntrega;
-        await this.operations.changeDate();
-        this.showToast(
-          'Pedido actualizado',
-          'Cambios guardados. La edición no asigna una ruta automáticamente.',
-        );
-        return;
-      }
-      const result = await firstValueFrom(this.operations.api.registrarPedido(body));
-      this.operations.lastRegistration.set(result);
+      if (!editing) return;
+      if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
+      if (
+        point.latitud === editing.ubicacion.latitud &&
+        point.longitud === editing.ubicacion.longitud
+      )
+        body.zonaId = editing.zonaId;
+      const updated = await firstValueFrom(
+        this.operations.api.actualizarPedido(editing.id, { ...body, version: editing.version }),
+      );
       this.drawerOpen.set(false);
-      this.operations.fecha = result.pedido.fechaEntrega;
+      this.operations.fecha = updated.fechaEntrega;
       await this.operations.changeDate();
-      if (!this.destroyed)
-        this.showToast(
-          'Pedido registrado',
-          result.asignacion?.tipo === 'EnEspera'
-            ? 'Registrado correctamente. En espera de asignación.'
-            : result.asignacion?.rutaId
-              ? 'Asignado a la ruta #' + this.operations.short(result.asignacion.rutaId)
-              : 'Registrado para la fecha seleccionada, pendiente de planificación.',
-        );
+      this.showToast(
+        'Pedido actualizado',
+        'Cambios guardados. La edición no asigna una ruta automáticamente.',
+      );
     } catch (e) {
       if ((e as any)?.status === 409 && this.editing()) {
         const editingId = this.editing()!.id;

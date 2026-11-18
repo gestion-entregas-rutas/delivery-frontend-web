@@ -69,10 +69,10 @@
         <div class="text-[10px] text-[#8E8E93] mt-0.5">Requieren reposición</div>
       </div>
 
-      <!-- Inactivos -->
+      <!-- Inactivos / Desactivados -->
       <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
         <div class="text-[11px] font-semibold text-[#8E8E93] flex items-center justify-between">
-          <span>Pausados / Inactivos</span>
+          <span>Desactivados / Inactivos</span>
           <svg class="w-3.5 h-3.5 text-[#8E8E93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
           </svg>
@@ -362,22 +362,22 @@
                     </span>
                   </button>
 
-                  <!-- Activar / Desactivar (Pausar) -->
+                  <!-- Activar / Desactivar -->
                   @if (p.activo) {
                     <button
                       type="button"
                       class="relative group p-1.5 text-[#FF9500] hover:text-[#D97706] hover:bg-[#FFF2E5] rounded-lg transition cursor-pointer disabled:opacity-40"
-                      (click)="abrirModalPausar(p)"
+                      (click)="abrirModalDesactivar(p)"
                       [disabled]="saving()"
-                      title="Pausar"
-                      aria-label="Pausar venta del producto"
+                      title="Desactivar"
+                      aria-label="Desactivar producto"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                       </svg>
                       <!-- Tooltip arriba -->
                       <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
-                        Pausar
+                        Desactivar
                       </span>
                     </button>
                   } @else {
@@ -1101,13 +1101,13 @@
     </div>
   }
 
-  <!-- ==================== PAUSE PRODUCT MODAL (MAC BENTO SHEET) ==================== -->
-  @if (pausarModalAbierto() && productoPausar(); as prod) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarModalPausar()">
+  <!-- ==================== DESACTIVAR PRODUCT MODAL (MAC BENTO SHEET) ==================== -->
+  @if (desactivarModalAbierto() && productoDesactivar(); as prod) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarModalDesactivar()">
       <section
         role="dialog"
         aria-modal="true"
-        aria-labelledby="pausar-modal-title"
+        aria-labelledby="desactivar-modal-title"
         class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] overflow-hidden flex flex-col"
         (click)="$event.stopPropagation()"
       >
@@ -1116,15 +1116,15 @@
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-xl bg-[#FFF2E5] border border-[#FFE0B2] text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
             </div>
             <div>
               <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#FFF2E5] text-[#FF9500] mb-1">
                 <span>CATÁLOGO · ESTADO DE VENTA</span>
               </div>
-              <h2 id="pausar-modal-title" class="text-base font-bold text-[#1C1C1E] tracking-tight">
-                Pausar Publicación
+              <h2 id="desactivar-modal-title" class="text-base font-bold text-[#1C1C1E] tracking-tight">
+                Desactivar Producto
               </h2>
               <p class="text-xs text-[#636366] mt-0.5">
                 Desactivar disponibilidad en la tienda
@@ -1135,8 +1135,8 @@
             type="button"
             class="w-7 h-7 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#636366] hover:text-[#1C1C1E] flex items-center justify-center transition cursor-pointer text-xs font-bold"
             aria-label="Cerrar"
-            [disabled]="guardandoPausar()"
-            (click)="cerrarModalPausar()"
+            [disabled]="guardandoDesactivar()"
+            (click)="cerrarModalDesactivar()"
           >
             ✕
           </button>
@@ -1176,10 +1176,10 @@
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span>¿Confirmas pausar este artículo?</span>
+              <span>¿Confirmas desactivar este artículo?</span>
             </div>
             <p class="text-[#636366] text-[11px] leading-relaxed">
-              El producto quedará en estado <strong>Inactivo</strong> y los clientes ya no podrán encontrarlo ni comprarlo en el catálogo web. Podrás reactivarlo en cualquier momento con un clic.
+              El producto quedará en estado <strong>Inactivo</strong> y los clientes ya no podrán encontrarlo ni comprarlo en el catálogo web. Podrás reactivarlo en cualquier momento con el botón <strong>Activar</strong>.
             </p>
           </div>
         </div>
@@ -1189,28 +1189,28 @@
           <button
             type="button"
             class="px-4 py-2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-xl transition cursor-pointer"
-            (click)="cerrarModalPausar()"
-            [disabled]="guardandoPausar()"
+            (click)="cerrarModalDesactivar()"
+            [disabled]="guardandoDesactivar()"
           >
             Cancelar
           </button>
           <button
             type="button"
             class="px-5 py-2 text-xs font-semibold text-white bg-[#FF9500] hover:bg-[#E08500] active:bg-[#C77700] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
-            (click)="confirmarPausar()"
-            [disabled]="guardandoPausar()"
+            (click)="confirmarDesactivar()"
+            [disabled]="guardandoDesactivar()"
           >
-            @if (guardandoPausar()) {
+            @if (guardandoDesactivar()) {
               <svg class="w-3.5 h-3.5 animate-spin mr-1 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span>Pausando…</span>
+              <span>Desactivando…</span>
             } @else {
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
-              <span>Pausar Producto</span>
+              <span>Desactivar Producto</span>
             }
           </button>
         </div>

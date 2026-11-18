@@ -176,7 +176,7 @@ describe('ProductosPage (sin API real, mocks)', () => {
     confirmSpy.mockRestore();
   });
 
-  it('abre y confirma modales interactivos de stock y pausar', async () => {
+  it('abre y confirma modales interactivos de stock y desactivar', async () => {
     const fixture = TestBed.createComponent(ProductosPage);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -196,13 +196,13 @@ describe('ProductosPage (sin API real, mocks)', () => {
     expect(api.actualizarStockProducto).toHaveBeenCalledWith('prod-1', 8);
     expect(page.stockModalAbierto()).toBe(false);
 
-    // Test Pausar Modal
-    page.abrirModalPausar(producto as any);
-    expect(page.pausarModalAbierto()).toBe(true);
-    expect(page.productoPausar()?.id).toBe('prod-1');
+    // Test Desactivar Modal
+    page.abrirModalDesactivar(producto as any);
+    expect(page.desactivarModalAbierto()).toBe(true);
+    expect(page.productoDesactivar()?.id).toBe('prod-1');
 
-    await page.confirmarPausar();
+    await page.confirmarDesactivar();
     expect(api.desactivarProducto).toHaveBeenCalledWith('prod-1');
-    expect(page.pausarModalAbierto()).toBe(false);
+    expect(page.desactivarModalAbierto()).toBe(false);
   });
 });

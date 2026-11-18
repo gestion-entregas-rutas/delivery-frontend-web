@@ -77,10 +77,15 @@ export class ProductosPage implements OnInit {
   readonly nuevoStock = signal<number>(0);
   readonly guardandoStock = signal(false);
 
-  // Pausar/Desactivar Modal state
-  readonly pausarModalAbierto = signal(false);
-  readonly productoPausar = signal<ProductoDto | null>(null);
-  readonly guardandoPausar = signal(false);
+  // Desactivar Modal state
+  readonly desactivarModalAbierto = signal(false);
+  readonly productoDesactivar = signal<ProductoDto | null>(null);
+  readonly guardandoDesactivar = signal(false);
+
+  // Backward-compatibility aliases
+  readonly pausarModalAbierto = this.desactivarModalAbierto;
+  readonly productoPausar = this.productoDesactivar;
+  readonly guardandoPausar = this.guardandoDesactivar;
 
   // Validation touched states
   readonly nombreTouched = signal(false);
@@ -373,32 +378,44 @@ export class ProductosPage implements OnInit {
     this.abrirModalStock(p);
   }
 
+  abrirModalDesactivar(p: ProductoDto) {
+    this.productoDesactivar.set(p);
+    this.desactivarModalAbierto.set(true);
+  }
+
   abrirModalPausar(p: ProductoDto) {
-    this.productoPausar.set(p);
-    this.pausarModalAbierto.set(true);
+    this.abrirModalDesactivar(p);
+  }
+
+  cerrarModalDesactivar() {
+    if (this.guardandoDesactivar()) return;
+    this.desactivarModalAbierto.set(false);
+    this.productoDesactivar.set(null);
   }
 
   cerrarModalPausar() {
-    if (this.guardandoPausar()) return;
-    this.pausarModalAbierto.set(false);
-    this.productoPausar.set(null);
+    this.cerrarModalDesactivar();
   }
 
-  async confirmarPausar() {
-    const p = this.productoPausar();
+  async confirmarDesactivar() {
+    const p = this.productoDesactivar();
     if (!p) return;
-    this.guardandoPausar.set(true);
+    this.guardandoDesactivar.set(true);
     try {
       await firstValueFrom(this.api.desactivarProducto(p.id));
       await this.cargar();
-      this.message.set(`Producto "${p.nombre}" pausado.`);
-      this.pausarModalAbierto.set(false);
-      this.productoPausar.set(null);
+      this.message.set(`Producto "${p.nombre}" desactivado.`);
+      this.desactivarModalAbierto.set(false);
+      this.productoDesactivar.set(null);
     } catch (e) {
       this.error.set(this.msgError(e));
     } finally {
-      this.guardandoPausar.set(false);
+      this.guardandoDesactivar.set(false);
     }
+  }
+
+  async confirmarPausar() {
+    return this.confirmarDesactivar();
   }
 
   async desactivar(p: ProductoDto) {
@@ -414,7 +431,7 @@ export class ProductosPage implements OnInit {
       }
       return;
     }
-    this.abrirModalPausar(p);
+    this.abrirModalDesactivar(p);
   }
 
   async activar(p: ProductoDto) {

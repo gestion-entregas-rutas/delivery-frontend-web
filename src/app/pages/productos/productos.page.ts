@@ -48,6 +48,7 @@ const CATEGORIAS_OFICIALES = [
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './productos.page.html',
+  styleUrl: './productos.page.css',
 })
 export class ProductosPage implements OnInit {
   readonly api = inject(LogisticaApiService);
@@ -69,6 +70,19 @@ export class ProductosPage implements OnInit {
   readonly editandoId = signal<string | null>(null);
   readonly editandoVersion = signal<string | number | null | undefined>(undefined);
   readonly editandoNombre = signal('');
+
+  // Validation touched states
+  readonly nombreTouched = signal(false);
+  readonly categoriaTouched = signal(false);
+  readonly precioBaseTouched = signal(false);
+  readonly stockTouched = signal(false);
+
+  readonly totalProductos = computed(() => this.productos().length);
+  readonly activosCount = computed(() => this.productos().filter((p) => p.activo && (p.stock ?? 0) > 0).length);
+  readonly agotadosCount = computed(() => this.productos().filter((p) => (p.stock ?? 0) <= 0).length);
+  readonly inactivosCount = computed(() => this.productos().filter((p) => !p.activo).length);
+  readonly totalStock = computed(() => this.productos().reduce((acc, p) => acc + (p.stock || 0), 0));
+  readonly totalCategorias = computed(() => new Set(this.productos().map((p) => p.categoriaId)).size);
 
   readonly categoriasOpciones = computed(() => {
     const fromApi = this.categorias().filter((c) => c.id && c.id !== 0);
@@ -120,6 +134,13 @@ export class ProductosPage implements OnInit {
     };
   }
 
+  resetTouched() {
+    this.nombreTouched.set(false);
+    this.categoriaTouched.set(false);
+    this.precioBaseTouched.set(false);
+    this.stockTouched.set(false);
+  }
+
   async cargar() {
     this.loading.set(true);
     this.error.set('');
@@ -139,6 +160,7 @@ export class ProductosPage implements OnInit {
   }
 
   abrirNuevo() {
+    this.resetTouched();
     this.editandoId.set(null);
     this.editandoVersion.set(undefined);
     this.editandoNombre.set('');
@@ -149,6 +171,7 @@ export class ProductosPage implements OnInit {
   }
 
   async abrirEditar(p: ProductoDto) {
+    this.resetTouched();
     this.error.set('');
     this.conflict.set('');
     this.editorAbierto.set(true);
@@ -184,8 +207,15 @@ export class ProductosPage implements OnInit {
 
   cerrarEditor() {
     if (this.saving()) return;
+    this.resetTouched();
     this.editorAbierto.set(false);
     this.conflict.set('');
+  }
+
+  adjustStock(delta: number) {
+    const current = Number(this.form.stock) || 0;
+    this.form.stock = Math.max(0, current + delta);
+    this.stockTouched.set(true);
   }
 
   addGaleria() { this.form.galeriaMultimedia.push({ tipo: 'imagen', url: '', orden: this.form.galeriaMultimedia.length + 1 }); }
@@ -195,8 +225,19 @@ export class ProductosPage implements OnInit {
   addSobre() { this.form.sobreEsteArticulo.push(''); }
   removeSobre(i: number) { this.form.sobreEsteArticulo.splice(i, 1); }
 
+  limpiarFiltros() {
+    this.buscar.set('');
+    this.categoriaFiltro.set('');
+    this.estadoFiltro.set('todos');
+  }
+
   async guardar() {
     if (this.saving()) return;
+    this.nombreTouched.set(true);
+    this.categoriaTouched.set(true);
+    this.precioBaseTouched.set(true);
+    this.stockTouched.set(true);
+
     if (!this.form.nombre?.trim() || !this.form.categoriaId) {
       this.error.set('Nombre y categoría son obligatorios.');
       return;

@@ -77,6 +77,11 @@ export class ProductosPage implements OnInit {
   readonly nuevoStock = signal<number>(0);
   readonly guardandoStock = signal(false);
 
+  // Pausar/Desactivar Modal state
+  readonly pausarModalAbierto = signal(false);
+  readonly productoPausar = signal<ProductoDto | null>(null);
+  readonly guardandoPausar = signal(false);
+
   // Validation touched states
   readonly nombreTouched = signal(false);
   readonly categoriaTouched = signal(false);
@@ -342,7 +347,8 @@ export class ProductosPage implements OnInit {
       await firstValueFrom(this.api.actualizarStockProducto(p.id, stock));
       await this.cargar();
       this.message.set('Stock actualizado.');
-      this.cerrarModalStock();
+      this.stockModalAbierto.set(false);
+      this.productoStock.set(null);
     } catch (e) {
       this.error.set(this.msgError(e));
     } finally {
@@ -367,10 +373,48 @@ export class ProductosPage implements OnInit {
     this.abrirModalStock(p);
   }
 
+  abrirModalPausar(p: ProductoDto) {
+    this.productoPausar.set(p);
+    this.pausarModalAbierto.set(true);
+  }
+
+  cerrarModalPausar() {
+    if (this.guardandoPausar()) return;
+    this.pausarModalAbierto.set(false);
+    this.productoPausar.set(null);
+  }
+
+  async confirmarPausar() {
+    const p = this.productoPausar();
+    if (!p) return;
+    this.guardandoPausar.set(true);
+    try {
+      await firstValueFrom(this.api.desactivarProducto(p.id));
+      await this.cargar();
+      this.message.set(`Producto "${p.nombre}" pausado.`);
+      this.pausarModalAbierto.set(false);
+      this.productoPausar.set(null);
+    } catch (e) {
+      this.error.set(this.msgError(e));
+    } finally {
+      this.guardandoPausar.set(false);
+    }
+  }
+
   async desactivar(p: ProductoDto) {
-    if (!confirm(`¿Desactivar "${p.nombre}"?`)) return;
-    try { await firstValueFrom(this.api.desactivarProducto(p.id)); await this.cargar(); this.message.set('Producto desactivado.'); }
-    catch (e) { this.error.set(this.msgError(e)); }
+    if (typeof globalThis.confirm === 'function') {
+      const ok = globalThis.confirm(`¿Desactivar "${p.nombre}"?`);
+      if (ok) {
+        try {
+          await firstValueFrom(this.api.desactivarProducto(p.id));
+          await this.cargar();
+          this.message.set('Producto desactivado.');
+        } catch (e) { this.error.set(this.msgError(e)); }
+        return;
+      }
+      return;
+    }
+    this.abrirModalPausar(p);
   }
 
   async activar(p: ProductoDto) {

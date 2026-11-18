@@ -271,7 +271,13 @@
 
               <!-- Stock -->
               <td class="py-3 px-3">
-                <div class="flex items-center space-x-2">
+                <button
+                  type="button"
+                  class="group relative inline-flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg hover:bg-[#F2F2F7] transition cursor-pointer text-left"
+                  (click)="abrirModalStock(p)"
+                  title="Ajustar stock"
+                  aria-label="Ajustar stock"
+                >
                   <span
                     class="font-semibold text-xs"
                     [ngClass]="{
@@ -285,7 +291,14 @@
                   @if ((p.stock ?? 0) <= 0) {
                     <span class="text-[10px] font-semibold text-[#FF3B30] bg-[#FFF2F2] px-1.5 py-0.5 rounded">Agotado</span>
                   }
-                </div>
+                  <svg class="w-3 h-3 text-[#8E8E93] opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <!-- Tooltip superior -->
+                  <span class="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                    Ajustar stock
+                  </span>
+                </button>
               </td>
 
               <!-- Estado -->
@@ -310,51 +323,80 @@
                 </span>
               </td>
 
-              <!-- Acciones -->
+              <!-- Acciones con Iconos y Tooltips superiores -->
               <td class="py-3 px-3 text-right">
                 <div class="flex items-center justify-end space-x-1">
                   <!-- Editar -->
                   <button
                     type="button"
-                    class="px-2.5 py-1 text-xs font-semibold text-[#007AFF] hover:bg-[#E8F1FF] rounded-lg transition cursor-pointer disabled:opacity-40"
+                    class="relative group p-1.5 text-[#007AFF] hover:bg-[#E8F1FF] rounded-lg transition cursor-pointer disabled:opacity-40"
                     (click)="abrirEditar(p)"
                     [disabled]="saving()"
-                    title="Editar producto"
+                    title="Editar"
+                    aria-label="Editar producto"
                   >
-                    Editar
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <!-- Tooltip arriba -->
+                    <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                      Editar
+                    </span>
                   </button>
 
                   <!-- Stock rápido -->
                   <button
                     type="button"
-                    class="px-2.5 py-1 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#F2F2F7] rounded-lg transition cursor-pointer disabled:opacity-40"
+                    class="relative group p-1.5 text-[#636366] hover:text-[#1C1C1E] hover:bg-[#F2F2F7] rounded-lg transition cursor-pointer disabled:opacity-40"
                     (click)="abrirModalStock(p)"
                     [disabled]="saving()"
-                    title="Ajustar stock de inventario"
+                    title="Stock"
+                    aria-label="Ajustar stock"
                   >
-                    Stock
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <!-- Tooltip arriba -->
+                    <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                      Stock
+                    </span>
                   </button>
 
-                  <!-- Activar / Desactivar -->
+                  <!-- Activar / Desactivar (Pausar) -->
                   @if (p.activo) {
                     <button
                       type="button"
-                      class="px-2.5 py-1 text-xs font-semibold text-[#FF3B30] hover:bg-[#FFF2F2] rounded-lg transition cursor-pointer disabled:opacity-40"
-                      (click)="desactivar(p)"
+                      class="relative group p-1.5 text-[#FF9500] hover:text-[#D97706] hover:bg-[#FFF2E5] rounded-lg transition cursor-pointer disabled:opacity-40"
+                      (click)="abrirModalPausar(p)"
                       [disabled]="saving()"
-                      title="Desactivar producto"
+                      title="Pausar"
+                      aria-label="Pausar venta del producto"
                     >
-                      Pausar
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <!-- Tooltip arriba -->
+                      <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                        Pausar
+                      </span>
                     </button>
                   } @else {
                     <button
                       type="button"
-                      class="px-2.5 py-1 text-xs font-semibold text-[#1E9E47] hover:bg-[#EAF8EE] rounded-lg transition cursor-pointer disabled:opacity-40"
+                      class="relative group p-1.5 text-[#1E9E47] hover:text-[#167836] hover:bg-[#EAF8EE] rounded-lg transition cursor-pointer disabled:opacity-40"
                       (click)="activar(p)"
                       [disabled]="saving()"
-                      title="Activar producto"
+                      title="Activar"
+                      aria-label="Activar venta del producto"
                     >
-                      Activar
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <!-- Tooltip arriba -->
+                      <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                        Activar
+                      </span>
                     </button>
                   }
                 </div>
@@ -1052,6 +1094,123 @@
               <span>Guardando…</span>
             } @else {
               <span>Guardar Stock</span>
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- ==================== PAUSE PRODUCT MODAL (MAC BENTO SHEET) ==================== -->
+  @if (pausarModalAbierto() && productoPausar(); as prod) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarModalPausar()">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pausar-modal-title"
+        class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] overflow-hidden flex flex-col"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div class="p-5 pb-4 border-b border-[#E5E5EA] bg-gradient-to-b from-[#FFFDF9] to-white flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#FFF2E5] border border-[#FFE0B2] text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#FFF2E5] text-[#FF9500] mb-1">
+                <span>CATÁLOGO · ESTADO DE VENTA</span>
+              </div>
+              <h2 id="pausar-modal-title" class="text-base font-bold text-[#1C1C1E] tracking-tight">
+                Pausar Publicación
+              </h2>
+              <p class="text-xs text-[#636366] mt-0.5">
+                Desactivar disponibilidad en la tienda
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="w-7 h-7 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#636366] hover:text-[#1C1C1E] flex items-center justify-center transition cursor-pointer text-xs font-bold"
+            aria-label="Cerrar"
+            [disabled]="guardandoPausar()"
+            (click)="cerrarModalPausar()"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+          <!-- Resumen del producto -->
+          <div class="bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-lg bg-white border border-[#E5E5EA] flex items-center justify-center overflow-hidden shrink-0">
+                @if (prod.imagenPrincipalUrl) {
+                  <img [src]="prod.imagenPrincipalUrl" [alt]="prod.nombre" class="w-full h-full object-cover" />
+                } @else {
+                  <svg class="w-5 h-5 text-[#AEAEB2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                }
+              </div>
+              <div class="min-w-0 pr-2">
+                <span class="text-xs font-bold text-[#1C1C1E] block truncate">{{ prod.nombre }}</span>
+                <span class="text-[10px] text-[#8E8E93] block truncate">
+                  {{ prod.categoriaNombre || 'Sin categoría' }}
+                  @if (prod.marca) { <span> · {{ prod.marca }}</span> }
+                </span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-[#8E8E93] block">Stock actual</span>
+              <span class="text-xs font-bold text-[#1C1C1E]">{{ prod.stock ?? 0 }} u.</span>
+            </div>
+          </div>
+
+          <!-- Mensaje explicativo / advertencia -->
+          <div class="bg-[#FFF9F2] border border-[#FFE6CC] rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-[#D97706] font-semibold">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>¿Confirmas pausar este artículo?</span>
+            </div>
+            <p class="text-[#636366] text-[11px] leading-relaxed">
+              El producto quedará en estado <strong>Inactivo</strong> y los clientes ya no podrán encontrarlo ni comprarlo en el catálogo web. Podrás reactivarlo en cualquier momento con un clic.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 px-5 bg-[#F9F9FB] border-t border-[#E5E5EA] flex items-center justify-end space-x-2.5">
+          <button
+            type="button"
+            class="px-4 py-2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-xl transition cursor-pointer"
+            (click)="cerrarModalPausar()"
+            [disabled]="guardandoPausar()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="px-5 py-2 text-xs font-semibold text-white bg-[#FF9500] hover:bg-[#E08500] active:bg-[#C77700] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
+            (click)="confirmarPausar()"
+            [disabled]="guardandoPausar()"
+          >
+            @if (guardandoPausar()) {
+              <svg class="w-3.5 h-3.5 animate-spin mr-1 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Pausando…</span>
+            } @else {
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+              </svg>
+              <span>Pausar Producto</span>
             }
           </button>
         </div>

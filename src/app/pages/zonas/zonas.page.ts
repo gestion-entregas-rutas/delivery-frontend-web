@@ -40,6 +40,7 @@ export interface DriverRosterUI {
   standalone: true,
   imports: [CommonModule, FormsModule, ZoneCoverageMap],
   templateUrl: './zonas.page.html',
+  styleUrl: './zonas.page.css',
 })
 export class ZonasPage implements OnDestroy {
   readonly operations = inject(OperationsService);

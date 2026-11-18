@@ -71,6 +71,12 @@ export class ProductosPage implements OnInit {
   readonly editandoVersion = signal<string | number | null | undefined>(undefined);
   readonly editandoNombre = signal('');
 
+  // Stock Modal state
+  readonly stockModalAbierto = signal(false);
+  readonly productoStock = signal<ProductoDto | null>(null);
+  readonly nuevoStock = signal<number>(0);
+  readonly guardandoStock = signal(false);
+
   // Validation touched states
   readonly nombreTouched = signal(false);
   readonly categoriaTouched = signal(false);
@@ -305,16 +311,60 @@ export class ProductosPage implements OnInit {
     }
   }
 
-  async cambiarStock(p: ProductoDto) {
-    const value = prompt(`Nuevo stock para "${p.nombre}"`, String(p.stock ?? 0));
-    if (value == null) return;
-    const stock = Number(value);
+  abrirModalStock(p: ProductoDto) {
+    this.productoStock.set(p);
+    this.nuevoStock.set(p.stock ?? 0);
+    this.stockModalAbierto.set(true);
+  }
+
+  cerrarModalStock() {
+    if (this.guardandoStock()) return;
+    this.stockModalAbierto.set(false);
+    this.productoStock.set(null);
+  }
+
+  adjustModalStock(delta: number) {
+    const current = Number(this.nuevoStock()) || 0;
+    this.nuevoStock.set(Math.max(0, current + delta));
+  }
+
+  setModalStock(val: number) {
+    this.nuevoStock.set(Math.max(0, val));
+  }
+
+  async confirmarStock() {
+    const p = this.productoStock();
+    if (!p) return;
+    const stock = Number(this.nuevoStock());
     if (!Number.isFinite(stock) || stock < 0) return;
+    this.guardandoStock.set(true);
     try {
       await firstValueFrom(this.api.actualizarStockProducto(p.id, stock));
       await this.cargar();
       this.message.set('Stock actualizado.');
-    } catch (e) { this.error.set(this.msgError(e)); }
+      this.cerrarModalStock();
+    } catch (e) {
+      this.error.set(this.msgError(e));
+    } finally {
+      this.guardandoStock.set(false);
+    }
+  }
+
+  async cambiarStock(p: ProductoDto) {
+    if (typeof globalThis.prompt === 'function') {
+      const value = globalThis.prompt(`Nuevo stock para "${p.nombre}"`, String(p.stock ?? 0));
+      if (value != null) {
+        const stock = Number(value);
+        if (!Number.isFinite(stock) || stock < 0) return;
+        try {
+          await firstValueFrom(this.api.actualizarStockProducto(p.id, stock));
+          await this.cargar();
+          this.message.set('Stock actualizado.');
+        } catch (e) { this.error.set(this.msgError(e)); }
+        return;
+      }
+    }
+    this.abrirModalStock(p);
   }
 
   async desactivar(p: ProductoDto) {

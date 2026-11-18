@@ -185,7 +185,33 @@
           >
             Todos ({{ operations.zonas().length }} zonas)
           </button>
-          @for (zona of operations.zonas().slice(0, 4); track zona.id) {
+
+          <!-- Buscador de Zonas Integrado -->
+          <div class="relative flex items-center">
+            <svg class="w-3.5 h-3.5 absolute left-2.5 text-[#8E8E93] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              class="bg-[#F2F2F7] focus:bg-white text-xs pl-8 pr-6 py-1 rounded-full border border-transparent focus:border-[#007AFF] focus:outline-none transition w-32 sm:w-44 placeholder:text-[#8E8E93]"
+              placeholder="Buscar zona..."
+              [ngModel]="zoneSearchQuery()"
+              (ngModelChange)="zoneSearchQuery.set($event)"
+            />
+            @if (zoneSearchQuery()) {
+              <button
+                type="button"
+                class="absolute right-2 text-[#8E8E93] hover:text-[#1C1C1E] text-xs font-bold cursor-pointer"
+                (click)="zoneSearchQuery.set('')"
+                title="Limpiar búsqueda"
+              >
+                ✕
+              </button>
+            }
+          </div>
+
+          <!-- Todas las zonas agregadas (filtradas en tiempo real sin recorte) -->
+          @for (zona of filteredZones(); track zona.id) {
             <button
               class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer"
               [ngClass]="selectedZoneChip() === zona.id ? 'font-semibold bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white shadow-2xs' : 'font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E]'"
@@ -195,6 +221,10 @@
             >
               {{ zona.nombre }} ({{ zoneOrderCount(zona.id) }})
             </button>
+          } @empty {
+            @if (zoneSearchQuery()) {
+              <span class="text-[11px] text-[#8E8E93] italic px-1.5 py-1">Sin coincidencias para "{{ zoneSearchQuery() }}"</span>
+            }
           }
         </div>
         <!-- Status Dot Legend -->

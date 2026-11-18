@@ -55,6 +55,14 @@ export class ResumenPage implements OnDestroy {
   readonly assignment = inject(RouteAssignmentService);
   readonly selectedZoneChip = signal('todos');
   readonly routeFilterQuery = signal('');
+  readonly zoneSearchQuery = signal('');
+
+  readonly filteredZones = computed(() => {
+    const q = this.zoneSearchQuery().toLocaleLowerCase().trim();
+    const zonas = this.operations.zonas();
+    if (!q) return zonas;
+    return zonas.filter((z) => z.nombre.toLocaleLowerCase().includes(q));
+  });
   readonly toastVisible = signal(false);
   readonly toastTitle = signal('');
   readonly toastMessage = signal('');

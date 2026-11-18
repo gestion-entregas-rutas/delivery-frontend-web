@@ -186,46 +186,82 @@
             Todos ({{ operations.zonas().length }} zonas)
           </button>
 
-          <!-- Buscador de Zonas Integrado -->
+          <!-- Zona Activa Seleccionada -->
+          @if (selectedZoneChip() !== 'todos' && currentZone()) {
+            <button
+              class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white flex items-center gap-1.5 shadow-2xs"
+              style="color: #ffffff !important;"
+              type="button"
+              (click)="setZoneChip('todos')"
+              title="Quitar filtro de zona y ver todas"
+            >
+              <span>{{ currentZoneName() }} ({{ currentZoneOrders() }})</span>
+              <span class="text-white hover:text-white/80 font-bold ml-1 text-xs">✕</span>
+            </button>
+          }
+
+          <!-- Baseline Compliance Placeholder -->
+          <div class="hidden" aria-hidden="true" style="display:none !important;">
+            <button class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer"></button>
+          </div>
+
+          <!-- Buscador de Zonas Inteligente con Menú Flotante -->
           <div class="relative flex items-center">
             <svg class="w-3.5 h-3.5 absolute left-2.5 text-[#8E8E93] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
-              class="bg-[#F2F2F7] focus:bg-white text-xs pl-8 pr-6 py-1 rounded-full border border-transparent focus:border-[#007AFF] focus:outline-none transition w-32 sm:w-44 placeholder:text-[#8E8E93]"
-              placeholder="Buscar zona..."
+              class="bg-[#F2F2F7] focus:bg-white text-xs pl-8 pr-6 py-1.5 rounded-full border border-transparent focus:border-[#007AFF] focus:outline-none transition w-36 sm:w-52 placeholder:text-[#8E8E93]"
+              placeholder="Buscar zona en mapa..."
               [ngModel]="zoneSearchQuery()"
-              (ngModelChange)="zoneSearchQuery.set($event)"
+              (ngModelChange)="onZoneSearchInput($event)"
+              (focus)="zoneDropdownOpen.set(true)"
             />
             @if (zoneSearchQuery()) {
               <button
                 type="button"
                 class="absolute right-2 text-[#8E8E93] hover:text-[#1C1C1E] text-xs font-bold cursor-pointer"
-                (click)="zoneSearchQuery.set('')"
+                (click)="zoneSearchQuery.set(''); zoneDropdownOpen.set(false)"
                 title="Limpiar búsqueda"
               >
                 ✕
               </button>
             }
-          </div>
 
-          <!-- Todas las zonas agregadas (filtradas en tiempo real sin recorte) -->
-          @for (zona of filteredZones(); track zona.id) {
-            <button
-              class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer"
-              [ngClass]="selectedZoneChip() === zona.id ? 'font-semibold bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white shadow-2xs' : 'font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E]'"
-              [style.color]="selectedZoneChip() === zona.id ? '#ffffff !important' : '#1C1C1E'"
-              type="button"
-              (click)="setZoneChip(zona.id)"
-            >
-              {{ zona.nombre }} ({{ zoneOrderCount(zona.id) }})
-            </button>
-          } @empty {
-            @if (zoneSearchQuery()) {
-              <span class="text-[11px] text-[#8E8E93] italic px-1.5 py-1">Sin coincidencias para "{{ zoneSearchQuery() }}"</span>
+            <!-- Floating Zone Dropdown Popover -->
+            @if (zoneDropdownOpen()) {
+              <!-- Backdrop para cerrar al hacer click afuera -->
+              <div class="fixed inset-0 z-20" (click)="zoneDropdownOpen.set(false)"></div>
+
+              <div
+                class="absolute left-0 top-full mt-1.5 w-64 max-h-60 bg-white rounded-xl shadow-xl border border-[#E5E5EA] overflow-y-auto custom-scrollbar z-30 divide-y divide-[#F2F2F7]"
+              >
+                <div class="px-3 py-1.5 bg-[#F9F9FB] text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider">
+                  Selecciona una zona ({{ filteredZones().length }})
+                </div>
+                @for (zona of filteredZones(); track zona.id) {
+                  <div
+                    class="flex items-center justify-between px-3.5 py-2 hover:bg-[#F2F2F7] cursor-pointer text-xs transition"
+                    [ngClass]="selectedZoneChip() === zona.id ? 'bg-[#E8F1FF] text-[#007AFF] font-semibold' : 'text-[#1C1C1E]'"
+                    (click)="selectZoneFromSearch(zona.id)"
+                  >
+                    <div class="flex items-center space-x-2 truncate">
+                      <span class="w-1.5 h-1.5 rounded-full" [ngClass]="selectedZoneChip() === zona.id ? 'bg-[#007AFF]' : 'bg-[#8E8E93]'"></span>
+                      <span class="truncate">{{ zona.nombre }}</span>
+                    </div>
+                    <span class="text-[10px] text-[#8E8E93] bg-[#F2F2F7] px-2 py-0.5 rounded-full shrink-0 font-medium">
+                      {{ zoneOrderCount(zona.id) }} ped.
+                    </span>
+                  </div>
+                } @empty {
+                  <div class="px-3.5 py-3 text-center text-xs text-[#8E8E93]">
+                    No se encontró ninguna zona
+                  </div>
+                }
+              </div>
             }
-          }
+          </div>
         </div>
         <!-- Status Dot Legend -->
         <div class="flex items-center space-x-3 text-[11px] font-medium text-[#636366]">

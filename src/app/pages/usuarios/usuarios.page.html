@@ -14,7 +14,7 @@
           Cuentas y Accesos
         </h1>
         <p class="text-xs text-[#636366] max-w-2xl leading-relaxed">
-          Administra permisos por rol, vinculación de credenciales para conductores y restablecimiento seguro de contraseñas.
+          Administra permisos por rol y vinculación de credenciales para conductores.
         </p>
       </div>
 
@@ -23,13 +23,14 @@
         <button
           type="button"
           class="bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center shadow-sm transition cursor-pointer disabled:opacity-40"
+          style="color: #ffffff !important;"
           (click)="openCreate()"
           [disabled]="busy() || loading()"
         >
-          <svg class="w-3.5 h-3.5 mr-1.5 fill-current" viewBox="0 0 20 20">
+          <svg class="w-3.5 h-3.5 mr-1.5 fill-current text-white" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          Nueva cuenta
+          <span class="text-white font-medium">Nueva cuenta</span>
         </button>
       </div>
     </div>
@@ -154,6 +155,14 @@
         <button
           type="button"
           class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
+          [ngClass]="rolFiltro() === 'Cliente' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
+          (click)="rolFiltro.set('Cliente')"
+        >
+          Clientes ({{ clientesCount() }})
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
           [ngClass]="rolFiltro() === 'Inactivos' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
           (click)="rolFiltro.set('Inactivos')"
         >
@@ -232,9 +241,9 @@
               <td class="py-3 px-3">
                 <span
                   class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
-                  [ngClass]="user.rol === 'Administrador' ? 'bg-[#E8F1FF] text-[#007AFF]' : 'bg-[#F2F0FF] text-[#5856D6]'"
+                  [ngClass]="user.rol === 'Administrador' ? 'bg-[#E8F1FF] text-[#007AFF]' : (user.rol === 'Cliente' ? 'bg-[#EBF7EE] text-[#1E9E47]' : 'bg-[#F2F0FF] text-[#5856D6]')"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="user.rol === 'Administrador' ? 'bg-[#007AFF]' : 'bg-[#5856D6]'"></span>
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="user.rol === 'Administrador' ? 'bg-[#007AFF]' : (user.rol === 'Cliente' ? 'bg-[#1E9E47]' : 'bg-[#5856D6]')"></span>
                   {{ user.rol }}
                 </span>
               </td>
@@ -252,6 +261,8 @@
                   } @else {
                     <span class="text-xs text-[#FF9500] font-medium italic">Sin conductor asignado</span>
                   }
+                } @else if (user.rol === 'Cliente') {
+                  <span class="text-xs text-[#8E8E93]">— N/A (Cliente)</span>
                 } @else {
                   <span class="text-xs text-[#8E8E93]">— N/A (Admin)</span>
                 }
@@ -290,33 +301,15 @@
               <!-- Acciones Centradas con Iconos y Tooltips -->
               <td class="py-3 px-3 text-center">
                 <div class="flex items-center justify-center space-x-1.5">
-                  <!-- Restablecer Contraseña -->
-                  <button
-                    type="button"
-                    class="relative group p-1.5 text-[#007AFF] hover:bg-[#E8F1FF] rounded-lg transition cursor-pointer disabled:opacity-40"
-                    (click)="openReset(user)"
-                    [disabled]="busy()"
-                    title="Restablecer clave"
-                    aria-label="Restablecer clave de usuario"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                    <!-- Tooltip arriba -->
-                    <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
-                      Restablecer clave
-                    </span>
-                  </button>
-
                   <!-- Activar / Desactivar -->
                   @if (user.activo) {
                     <button
                       type="button"
-                      class="relative group p-1.5 rounded-lg transition cursor-pointer"
-                      [ngClass]="user.id === auth.usuario()?.id ? 'text-[#AEAEB2] cursor-not-allowed opacity-40' : 'text-[#FF9500] hover:text-[#D97706] hover:bg-[#FFF2E5]'"
-                      (click)="toggle(user)"
-                      [disabled]="busy() || user.id === auth.usuario()?.id"
-                      [title]="user.id === auth.usuario()?.id ? 'No puedes desactivar tu propia cuenta' : 'Desactivar'"
+                      class="relative group p-1.5 rounded-lg transition"
+                      [ngClass]="user.rol === 'Administrador' ? 'text-[#AEAEB2] cursor-not-allowed opacity-40' : 'text-[#FF9500] hover:text-[#D97706] hover:bg-[#FFF2E5] cursor-pointer'"
+                      (click)="user.rol !== 'Administrador' ? toggle(user) : null"
+                      [disabled]="busy() || user.rol === 'Administrador'"
+                      [title]="user.id === auth.usuario()?.id ? 'No puedes desactivar tu propia cuenta' : (user.rol === 'Administrador' ? 'No se pueden desactivar cuentas de otros administradores' : 'Desactivar')"
                       aria-label="Desactivar cuenta"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +317,7 @@
                       </svg>
                       <!-- Tooltip arriba -->
                       <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
-                        {{ user.id === auth.usuario()?.id ? 'Tu cuenta' : 'Desactivar' }}
+                        {{ user.id === auth.usuario()?.id ? 'Tu cuenta' : (user.rol === 'Administrador' ? 'Protegida (Admin)' : 'Desactivar') }}
                       </span>
                     </button>
                   } @else {

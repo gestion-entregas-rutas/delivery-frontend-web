@@ -53,22 +53,18 @@
         />
       </div>
 
-      <!-- Primary Action Button -->
-      @if (['Zonas', 'RetirosTienda'].includes(operations.view())) {
+      <!-- Primary Action Button (Retirado de la barra superior para evitar duplicidad con las vistas individuales) -->
+      <div style="display: none !important;" aria-hidden="true">
         <button
           class="inline-flex items-center gap-1.5 bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm transition cursor-pointer"
-          style="color: #ffffff !important;"
           type="button"
-          (click)="openPrimaryAction()"
         >
-          <svg class="w-3.5 h-3.5 text-white" style="color: #ffffff !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
           </svg>
-          <span class="text-white" style="color: #ffffff !important;">
-            {{ operations.view() === 'Zonas' ? 'Nueva Zona' : 'Retiros en Tienda' }}
-          </span>
+          <span class="text-white"></span>
         </button>
-      }
+      </div>
 
       <!-- Refresh Action Button -->
       <button

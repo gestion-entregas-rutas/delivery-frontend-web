@@ -56,6 +56,7 @@ export class ResumenPage implements OnDestroy {
   readonly selectedZoneChip = signal('todos');
   readonly routeFilterQuery = signal('');
   readonly zoneSearchQuery = signal('');
+  readonly zoneDropdownOpen = signal(false);
 
   readonly filteredZones = computed(() => {
     const q = this.zoneSearchQuery().toLocaleLowerCase().trim();
@@ -63,6 +64,17 @@ export class ResumenPage implements OnDestroy {
     if (!q) return zonas;
     return zonas.filter((z) => z.nombre.toLocaleLowerCase().includes(q));
   });
+
+  onZoneSearchInput(query: string) {
+    this.zoneSearchQuery.set(query);
+    this.zoneDropdownOpen.set(true);
+  }
+
+  selectZoneFromSearch(id: string) {
+    this.setZoneChip(id);
+    this.zoneSearchQuery.set('');
+    this.zoneDropdownOpen.set(false);
+  }
   readonly toastVisible = signal(false);
   readonly toastTitle = signal('');
   readonly toastMessage = signal('');

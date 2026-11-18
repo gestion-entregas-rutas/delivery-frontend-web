@@ -34,7 +34,7 @@ export class UsuariosPage {
 
   // Search, Filters & UX Signals
   readonly buscar = signal('');
-  readonly rolFiltro = signal<'Todos' | 'Administrador' | 'Conductor' | 'Inactivos'>('Todos');
+  readonly rolFiltro = signal<'Todos' | 'Administrador' | 'Conductor' | 'Cliente' | 'Inactivos'>('Todos');
   readonly verClave = signal(false);
   readonly copiadoExito = signal(false);
 
@@ -42,6 +42,7 @@ export class UsuariosPage {
   readonly totalUsuarios = computed(() => this.usuarios().length);
   readonly adminsCount = computed(() => this.usuarios().filter((u) => u.rol === 'Administrador').length);
   readonly conductoresCount = computed(() => this.usuarios().filter((u) => u.rol === 'Conductor').length);
+  readonly clientesCount = computed(() => this.usuarios().filter((u) => u.rol === 'Cliente').length);
   readonly activosCount = computed(() => this.usuarios().filter((u) => u.activo).length);
   readonly inactivosCount = computed(() => this.usuarios().filter((u) => !u.activo).length);
   readonly pendientesCambioCount = computed(() => this.usuarios().filter((u) => u.debeCambiarCredenciales).length);
@@ -54,6 +55,7 @@ export class UsuariosPage {
       // Filter by role/state tab
       if (filtro === 'Administrador' && u.rol !== 'Administrador') return false;
       if (filtro === 'Conductor' && u.rol !== 'Conductor') return false;
+      if (filtro === 'Cliente' && u.rol !== 'Cliente') return false;
       if (filtro === 'Inactivos' && u.activo) return false;
 
       // Filter by search query
@@ -153,6 +155,14 @@ export class UsuariosPage {
     }
   }
 
+  puedeDesactivar(user: UsuarioDto): boolean {
+    return user.rol !== 'Administrador';
+  }
+
+  puedeModificarClave(user: UsuarioDto): boolean {
+    return user.rol !== 'Administrador' && user.rol !== 'Cliente';
+  }
+
   openCreate() {
     this.error.set('');
     this.nombreUsuario = '';
@@ -164,6 +174,7 @@ export class UsuariosPage {
     this.dialog.set('crear');
   }
   openReset(user: UsuarioDto) {
+    if (!this.puedeModificarClave(user)) return;
     this.error.set('');
     this.selected = user;
     this.claveTemporal = '';
@@ -181,6 +192,10 @@ export class UsuariosPage {
   }
   async save() {
     if (this.busy()) return;
+    if (this.dialog() === 'restablecer' && this.selected && !this.puedeModificarClave(this.selected)) {
+      this.error.set('No está permitido modificar contraseñas de cuentas de administrador.');
+      return;
+    }
     this.busy.set(true);
     this.error.set('');
     try {
@@ -212,7 +227,7 @@ export class UsuariosPage {
     }
   }
   async toggle(user: UsuarioDto) {
-    if (this.busy() || user.id === this.auth.usuario()?.id) return;
+    if (this.busy() || user.rol === 'Administrador' || user.id === this.auth.usuario()?.id) return;
     this.busy.set(true);
     this.error.set('');
     try {

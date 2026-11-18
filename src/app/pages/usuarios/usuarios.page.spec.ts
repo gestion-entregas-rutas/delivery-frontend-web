@@ -36,6 +36,14 @@ describe('UsuariosPage (sin API real, mocks)', () => {
       debeCambiarCredenciales: false,
     },
     {
+      id: 'usr-admin-2',
+      nombreUsuario: 'admin.secundario',
+      rol: 'Administrador',
+      repartidorId: null,
+      activo: true,
+      debeCambiarCredenciales: false,
+    },
+    {
       id: 'usr-driver-2',
       nombreUsuario: 'carlos.chofer',
       rol: 'Conductor',
@@ -49,6 +57,14 @@ describe('UsuariosPage (sin API real, mocks)', () => {
       rol: 'Conductor',
       repartidorId: null,
       activo: false,
+      debeCambiarCredenciales: false,
+    },
+    {
+      id: 'usr-client-4',
+      nombreUsuario: 'ana.cliente@example.com',
+      rol: 'Cliente',
+      repartidorId: null,
+      activo: true,
       debeCambiarCredenciales: false,
     },
   ];
@@ -105,20 +121,26 @@ describe('UsuariosPage (sin API real, mocks)', () => {
     const page = fixture.componentInstance;
     await page.load();
 
-    expect(page.totalUsuarios()).toBe(3);
-    expect(page.adminsCount()).toBe(1);
+    expect(page.totalUsuarios()).toBe(5);
+    expect(page.adminsCount()).toBe(2);
     expect(page.conductoresCount()).toBe(2);
-    expect(page.activosCount()).toBe(2);
+    expect(page.clientesCount()).toBe(1);
+    expect(page.activosCount()).toBe(4);
     expect(page.inactivosCount()).toBe(1);
     expect(page.pendientesCambioCount()).toBe(1);
 
     // Filtros
     page.rolFiltro.set('Administrador');
-    expect(page.filtrados().length).toBe(1);
+    expect(page.filtrados().length).toBe(2);
 
     page.rolFiltro.set('Conductor');
     expect(page.filtrados().length).toBe(2);
 
+    page.rolFiltro.set('Cliente');
+    expect(page.filtrados().length).toBe(1);
+    expect(page.filtrados()[0].nombreUsuario).toBe('ana.cliente@example.com');
+
+    page.rolFiltro.set('Todos');
     page.buscar.set('carlos');
     expect(page.filtrados().length).toBe(1);
     expect(page.filtrados()[0].nombreUsuario).toBe('carlos.chofer');
@@ -156,12 +178,18 @@ describe('UsuariosPage (sin API real, mocks)', () => {
     expect(page.dialog()).toBeNull();
   });
 
-  it('restablece contraseña temporal para un usuario y revoca sesiones previas', async () => {
+  it('previene restablecer contraseña de administradores pero lo permite para conductores', async () => {
     const fixture = TestBed.createComponent(UsuariosPage);
     const page = fixture.componentInstance;
     await page.load();
 
-    page.openReset(fakeUsuarios[1]);
+    // Intentar restablecer a otro administrador: no abre diálogo
+    page.openReset(fakeUsuarios[1]); // usr-admin-2
+    expect(page.dialog()).toBeNull();
+    expect(page.selected).toBeNull();
+
+    // Restablecer a un conductor: abre diálogo y procesa
+    page.openReset(fakeUsuarios[2]); // usr-driver-2
     expect(page.dialog()).toBe('restablecer');
     expect(page.selected?.id).toBe('usr-driver-2');
 
@@ -172,17 +200,25 @@ describe('UsuariosPage (sin API real, mocks)', () => {
     expect(page.dialog()).toBeNull();
   });
 
-  it('cambia el estado activo/inactivo y previene desactivar la propia cuenta', async () => {
+  it('previene desactivar cuentas de administradores pero permite desactivar conductores y clientes', async () => {
     const fixture = TestBed.createComponent(UsuariosPage);
     const page = fixture.componentInstance;
     await page.load();
 
-    // Intentar desactivar su propia cuenta de admin
+    // Intentar desactivar su propia cuenta de admin: bloqueado
     await page.toggle(fakeUsuarios[0]);
     expect(api.cambiarActivo).not.toHaveBeenCalled();
 
-    // Desactivar otra cuenta
+    // Intentar desactivar a otro admin: bloqueado
     await page.toggle(fakeUsuarios[1]);
+    expect(api.cambiarActivo).not.toHaveBeenCalled();
+
+    // Desactivar un conductor: permitido
+    await page.toggle(fakeUsuarios[2]);
     expect(api.cambiarActivo).toHaveBeenCalledWith('usr-driver-2', false);
+
+    // Desactivar un cliente: permitido
+    await page.toggle(fakeUsuarios[4]);
+    expect(api.cambiarActivo).toHaveBeenCalledWith('usr-client-4', false);
   });
 });

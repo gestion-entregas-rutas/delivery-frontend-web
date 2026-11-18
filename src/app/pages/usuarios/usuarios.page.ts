@@ -1,4 +1,5 @@
-﻿import { Component, inject, signal, afterNextRender } from '@angular/core';
+﻿import { Component, inject, signal, computed, afterNextRender } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { UsuariosService } from '../../core/services/usuarios.service';
@@ -14,7 +15,7 @@ import {
 import { RepartidorDto } from '../../core/models/logistica.models';
 @Component({
   selector: 'app-usuarios-page',
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './usuarios.page.html',
 })
 export class UsuariosPage {
@@ -30,6 +31,43 @@ export class UsuariosPage {
   readonly message = signal('');
   readonly dialog = signal<'crear' | 'restablecer' | null>(null);
   readonly pattern = CLAVE_PATTERN;
+
+  // Search, Filters & UX Signals
+  readonly buscar = signal('');
+  readonly rolFiltro = signal<'Todos' | 'Administrador' | 'Conductor' | 'Inactivos'>('Todos');
+  readonly verClave = signal(false);
+  readonly copiadoExito = signal(false);
+
+  // Computeds
+  readonly totalUsuarios = computed(() => this.usuarios().length);
+  readonly adminsCount = computed(() => this.usuarios().filter((u) => u.rol === 'Administrador').length);
+  readonly conductoresCount = computed(() => this.usuarios().filter((u) => u.rol === 'Conductor').length);
+  readonly activosCount = computed(() => this.usuarios().filter((u) => u.activo).length);
+  readonly inactivosCount = computed(() => this.usuarios().filter((u) => !u.activo).length);
+  readonly pendientesCambioCount = computed(() => this.usuarios().filter((u) => u.debeCambiarCredenciales).length);
+
+  readonly filtrados = computed(() => {
+    const q = this.buscar().trim().toLocaleLowerCase();
+    const filtro = this.rolFiltro();
+
+    return this.usuarios().filter((u) => {
+      // Filter by role/state tab
+      if (filtro === 'Administrador' && u.rol !== 'Administrador') return false;
+      if (filtro === 'Conductor' && u.rol !== 'Conductor') return false;
+      if (filtro === 'Inactivos' && u.activo) return false;
+
+      // Filter by search query
+      if (q) {
+        const matchesUser = u.nombreUsuario.toLocaleLowerCase().includes(q);
+        const matchesRol = u.rol.toLocaleLowerCase().includes(q);
+        const driverName = this.driver(u.repartidorId).toLocaleLowerCase();
+        const matchesDriver = driverName.includes(q);
+        return matchesUser || matchesRol || matchesDriver;
+      }
+      return true;
+    });
+  });
+
   selected: UsuarioDto | null = null;
   nombreUsuario = '';
   claveTemporal = '';
@@ -61,18 +99,76 @@ export class UsuariosPage {
   driver(id: string | null) {
     return this.repartidores().find((r) => r.id === id)?.nombre || 'Sin vínculo';
   }
+  iniciales(nombre: string): string {
+    if (!nombre) return 'US';
+    const parts = nombre.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return nombre.slice(0, 2).toUpperCase();
+  }
+
+  generarClaveSegura() {
+    const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lower = 'abcdefghijkmnpqrstuvwxyz';
+    const digits = '23456789';
+    const symbols = '!@#$%^&*-_=+';
+    const all = upper + lower + digits + symbols;
+
+    const pass = [
+      upper[Math.floor(Math.random() * upper.length)],
+      upper[Math.floor(Math.random() * upper.length)],
+      lower[Math.floor(Math.random() * lower.length)],
+      lower[Math.floor(Math.random() * lower.length)],
+      digits[Math.floor(Math.random() * digits.length)],
+      digits[Math.floor(Math.random() * digits.length)],
+      symbols[Math.floor(Math.random() * symbols.length)],
+      symbols[Math.floor(Math.random() * symbols.length)],
+    ];
+
+    while (pass.length < 14) {
+      pass.push(all[Math.floor(Math.random() * all.length)]);
+    }
+
+    // Shuffle
+    for (let i = pass.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pass[i], pass[j]] = [pass[j], pass[i]];
+    }
+
+    this.claveTemporal = pass.join('');
+    this.verClave.set(true);
+  }
+
+  async copiarClave() {
+    if (!this.claveTemporal) return;
+    try {
+      if (typeof navigator?.clipboard?.writeText === 'function') {
+        await navigator.clipboard.writeText(this.claveTemporal);
+      }
+      this.copiadoExito.set(true);
+      setTimeout(() => this.copiadoExito.set(false), 2500);
+    } catch {
+      // fallback
+    }
+  }
+
   openCreate() {
     this.error.set('');
     this.nombreUsuario = '';
     this.claveTemporal = '';
     this.rol = 'Conductor';
     this.repartidorId = '';
+    this.verClave.set(false);
+    this.copiadoExito.set(false);
     this.dialog.set('crear');
   }
   openReset(user: UsuarioDto) {
     this.error.set('');
     this.selected = user;
     this.claveTemporal = '';
+    this.verClave.set(false);
+    this.copiadoExito.set(false);
     this.dialog.set('restablecer');
   }
   close() {
@@ -80,6 +176,8 @@ export class UsuariosPage {
     this.dialog.set(null);
     this.claveTemporal = '';
     this.selected = null;
+    this.verClave.set(false);
+    this.copiadoExito.set(false);
   }
   async save() {
     if (this.busy()) return;

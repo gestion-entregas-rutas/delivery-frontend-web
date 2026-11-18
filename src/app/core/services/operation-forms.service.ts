@@ -70,7 +70,24 @@ export class OperationFormsService {
         return;
       }
       if (this.modal() === 'Repartidor') {
-        await firstValueFrom(this.operations.api.crearRepartidor(this.form));
+        const nombre = String(this.form.nombre || '').trim();
+        const telefono = String(this.form.telefono || '').trim();
+        const capacidadMaxima = Number(this.form.capacidadMaxima);
+        if (!nombre || nombre.length < 3 || nombre.length > 150) {
+          throw new Error('El nombre completo es obligatorio y debe tener entre 3 y 150 caracteres.');
+        }
+        if (!telefono || telefono.replace(/\D/g, '').length < 7) {
+          throw new Error('El teléfono es obligatorio y debe tener un formato válido.');
+        }
+        if (!Number.isInteger(capacidadMaxima) || capacidadMaxima < 1) {
+          throw new Error('La capacidad máxima debe ser un número entero mayor o igual a 1.');
+        }
+        const body = {
+          nombre,
+          telefono,
+          capacidadMaxima,
+        };
+        await firstValueFrom(this.operations.api.crearRepartidor(body));
         this.operations.message.set('Repartidor registrado.');
       }
       if (this.modal() === 'Zona') {

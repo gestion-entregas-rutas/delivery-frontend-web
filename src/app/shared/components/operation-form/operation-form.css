@@ -54,14 +54,14 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #007AFF;
+  color: #7E23DF;
   margin-bottom: 4px;
 }
 
 :host .panel-heading h2 {
   font-size: 18px;
   font-weight: 700;
-  color: #1C1C1E;
+  color: #4A1273;
   letter-spacing: -0.02em;
   margin: 0;
   line-height: 1.25;
@@ -102,7 +102,7 @@
 :host .notice.error {
   background: #FFF2F2;
   border: 1px solid #FFD1D1;
-  color: #D70015;
+  color: #C62828;
   font-size: 12px;
   font-weight: 500;
   padding: 10px 14px;
@@ -148,10 +148,10 @@
   font-size: 12px;
   font-weight: 600;
   color: #ffffff !important;
-  background: #007AFF !important;
-  border: 1px solid #007AFF;
+  background: #6A1B9A !important;
+  border: 1px solid #6A1B9A;
   border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(0, 122, 255, 0.2);
+  box-shadow: 0 1px 2px rgba(106, 27, 154, 0.2);
   cursor: pointer;
   transition: all 0.15s ease;
   display: inline-flex;
@@ -160,12 +160,12 @@
 }
 
 :host .modal-footer .button.primary:hover:not(:disabled) {
-  background: #0062CC !important;
-  border-color: #0062CC;
+  background: #7E23DF !important;
+  border-color: #7E23DF;
 }
 
 :host .modal-footer .button.primary:active:not(:disabled) {
-  background: #0051A8 !important;
+  background: #4A1273 !important;
 }
 
 :host .modal-footer .button.primary:disabled {

@@ -10,7 +10,7 @@ import { LOGISTICA_SERVER_URL } from './core/services/logistica-api.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([authInterceptor])),
-    { provide: LOGISTICA_SERVER_URL, useValue: 'https://delivery-backend-ilpi.onrender.com' },
+    { provide: LOGISTICA_SERVER_URL, useValue: 'https://delivery-backend-ilpi.onrender.com/api' },
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(),

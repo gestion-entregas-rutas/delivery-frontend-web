@@ -28,14 +28,32 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Blue button guarantee: text must remain white during hover, focus, active */
+/* Brand button guarantee: text must remain white during hover, focus, active */
 :host button[class*="bg-[#007AFF]"]:not([class*="/"]),
-:host button[class*="bg-[#007AFF]"]:not([class*="/"]):hover,
-:host button[class*="bg-[#007AFF]"]:not([class*="/"]):focus,
-:host button[class*="bg-[#007AFF]"]:not([class*="/"]):active {
+:host [class*="bg-[#007AFF]"]:not([class*="/"]) {
+  background-color: #6A1B9A !important;
   color: #ffffff !important;
 }
 
-:host button[class*="bg-[#007AFF]"]:not([class*="/"]) * {
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):hover,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):hover {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):focus,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):focus {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):active,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):active {
+  background-color: #4A1273 !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]) *,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]) * {
   color: #ffffff !important;
 }

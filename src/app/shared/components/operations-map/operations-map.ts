@@ -83,10 +83,10 @@ import { drawGpsMarkers } from '../../../core/utils/gps-markers';
         background: #ffffff;
       }
       ::ng-deep .carto-zone-badge.active-zone {
-        background: #007aff !important;
+        background: #6A1B9A !important;
         color: #ffffff !important;
-        border-color: #007aff !important;
-        box-shadow: 0 4px 16px rgba(0, 122, 255, 0.4) !important;
+        border-color: #6A1B9A !important;
+        box-shadow: 0 4px 16px rgba(106, 27, 154, 0.4) !important;
       }
       ::ng-deep .badge-dot {
         width: 7px;
@@ -98,8 +98,8 @@ import { drawGpsMarkers } from '../../../core/utils/gps-markers';
         background-color: #ffffff !important;
       }
       ::ng-deep .badge-count {
-        background: rgba(0, 122, 255, 0.12);
-        color: #007aff;
+        background: rgba(106, 27, 154, 0.12);
+        color: #7E23DF;
         font-size: 10px;
         font-weight: 700;
         padding: 0 5px;
@@ -167,11 +167,11 @@ export class OperationsMap implements OnDestroy {
     this.layers.clearLayers();
 
     const ZONE_COLORS = [
-      '#007AFF', // Azul RouteOS
-      '#5856D6', // Índigo / Púrpura
-      '#34C759', // Verde Esmeralda
-      '#FF9500', // Naranja
-      '#AF52DE', // Magenta
+      '#6A1B9A', // Morado Marca
+      '#7E23DF', // Acción viva
+      '#1E8E4E', // Verde Esmeralda
+      '#B26A00', // Naranja / Ámbar
+      '#4A1273', // Profundo
       '#30B0C7', // Turquesa
     ];
 
@@ -187,7 +187,7 @@ export class OperationsMap implements OnDestroy {
         const poly = L.polygon(
           z.poligono.map((p) => [p.latitud, p.longitud] as [number, number]),
           {
-            color: isSelected ? '#007AFF' : color,
+            color: isSelected ? '#7E23DF' : color,
             weight: isSelected ? 3 : 2,
             dashArray: isSelected ? '6 3' : '5 3',
             fillColor: color,

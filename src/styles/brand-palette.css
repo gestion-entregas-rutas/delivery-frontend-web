@@ -1,0 +1,268 @@
+/* ==========================================================================
+   Brand Tokens Palette (Official Ecosystem Identity)
+   Tokens from Brand Plan:
+   - Marca:       #6A1B9A (morado oficial)
+   - Acción viva: #7E23DF (estado activo, hover, primary CTA)
+   - Profundo:    #4A1273 (cabeceras, títulos estructurados)
+   - Papel:       #FAF7FD (blanco con tinte violeta en lugar de gris frío)
+   - Tinta:       #1B1230 (negro violáceo para texto)
+   - Suave:       #F1E6F8 (fondos de selección, badges y tags activos)
+   - Estados:
+     - Verde:     #1E8E4E (entregado, activo, disponible)
+     - Ámbar:     #B26A00 (en camino, aviso de GPS, alerta de ruta)
+     - Rojo:      #C62828 (error, inactivo, cancelado)
+   ========================================================================== */
+
+:root {
+  /* Brand Tokens */
+  --color-marca: #6A1B9A;
+  --color-accion-viva: #7E23DF;
+  --color-profundo: #4A1273;
+  --color-papel: #FAF7FD;
+  --color-tinta: #1B1230;
+  --color-suave: #F1E6F8;
+  --color-estado-verde: #1E8E4E;
+  --color-estado-ambar: #B26A00;
+  --color-estado-rojo: #C62828;
+
+  /* Standard Theme Token Overrides */
+  --color-primary: #6A1B9A;
+  --color-primary-container: #7E23DF;
+  --color-on-primary-fixed-variant: #4A1273;
+  --color-surface-tint: #6A1B9A;
+  --color-surface: #FAF7FD;
+  --color-surface-bright: #FAF7FD;
+  --color-background: #FAF7FD;
+  --color-surface-container: #F1E6F8;
+  --color-surface-container-low: #FAF7FD;
+  --color-on-surface: #1B1230;
+  --color-on-background: #1B1230;
+  --color-status-delivered: #1E8E4E;
+  --color-status-in-transit: #B26A00;
+  --color-status-urgent: #C62828;
+  --color-status-routing: #7E23DF;
+}
+
+/* ==========================================================================
+   1. PAPEL (Canvas & Backgrounds)
+   ========================================================================== */
+body,
+html,
+.bg-\[\#FAFAFC\],
+.bg-\[\#F5F5F7\],
+.bg-\[\#F6F6F8\],
+.bg-\[\#F8F8FA\],
+.bg-\[\#F9F9FA\],
+.bg-\[\#FAFAFA\],
+.bg-\[\#F9F9FB\],
+.bg-\[\#FBFBFC\],
+[class*="bg-[#FAFAFC]"],
+[class*="bg-[#F5F5F7]"],
+[class*="bg-[#F6F6F8]"],
+[class*="bg-[#F8F8FA]"],
+[class*="bg-[#F9F9FA]"],
+[class*="bg-[#FAFAFA]"],
+[class*="bg-[#F9F9FB]"],
+[class*="bg-[#FBFBFC]"] {
+  background-color: #FAF7FD !important;
+}
+
+/* ==========================================================================
+   2. TINTA (Typography & General Text)
+   ========================================================================== */
+body,
+.text-\[\#1C1C1E\],
+.text-\[\#1a1b1f\],
+[class*="text-[#1C1C1E]"]:not(.text-white),
+[class*="text-[#1a1b1f]"]:not(.text-white) {
+  color: #1B1230 !important;
+}
+
+/* ==========================================================================
+   3. PROFUNDO (Cabeceras, Títulos y Headers)
+   ========================================================================== */
+header[data-purpose="window-titlebar"] span.text-\[\#1C1C1E\],
+header[data-purpose="window-titlebar"] [class*="text-[#1C1C1E]"],
+thead th,
+thead [class*="text-[#1C1C1E]"],
+thead [class*="text-[#636366]"],
+.text-xl.font-bold,
+.text-2xl.font-bold,
+.text-lg.font-bold,
+h1, h2, h3 {
+  color: #4A1273 !important;
+}
+
+/* ==========================================================================
+   4. MARCA & ACCIÓN VIVA (Botones Principales, Estados Activos, Enlaces)
+   ========================================================================== */
+.bg-\[\#007AFF\],
+[class*="bg-[#007AFF]"],
+button.bg-\[\#007AFF\],
+button[class*="bg-[#007AFF]"] {
+  background-color: #6A1B9A !important;
+  color: #ffffff !important;
+}
+
+.bg-\[\#007AFF\]:hover,
+[class*="bg-[#007AFF]"]:hover,
+button.bg-\[\#007AFF\]:hover,
+button[class*="bg-[#007AFF]"]:hover,
+.hover\:bg-\[\#0062CC\]:hover,
+[class*="hover:bg-[#0062CC]"]:hover,
+.bg-\[\#0062CC\],
+[class*="bg-[#0062CC]"] {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+.bg-\[\#007AFF\]:active,
+[class*="bg-[#007AFF]"]:active,
+button.bg-\[\#007AFF\]:active,
+button[class*="bg-[#007AFF]"]:active,
+.active\:bg-\[\#0051A8\]:active,
+[class*="active:bg-[#0051A8]"]:active,
+.bg-\[\#0051A8\],
+[class*="bg-[#0051A8]"] {
+  background-color: #4A1273 !important;
+  color: #ffffff !important;
+}
+
+/* Force white text on primary brand buttons */
+button[class*="bg-[#007AFF]"] *,
+[class*="bg-[#007AFF]"] * {
+  color: #ffffff;
+}
+
+/* Text & Border Links */
+.text-\[\#007AFF\],
+[class*="text-[#007AFF]"]:not([class*="bg-[#007AFF]"]),
+.text-\[\#0051A8\],
+[class*="text-[#0051A8]"] {
+  color: #7E23DF !important;
+}
+
+.border-\[\#007AFF\],
+[class*="border-[#007AFF]"],
+.border-\[\#B3D4FF\],
+[class*="border-[#B3D4FF]"],
+.border-\[\#D0E2FF\],
+[class*="border-[#D0E2FF]"] {
+  border-color: #7E23DF !important;
+}
+
+/* Focus styles */
+.focus\:border-\[\#007AFF\]:focus,
+[class*="focus:border-[#007AFF]"]:focus {
+  border-color: #7E23DF !important;
+}
+
+.focus\:ring-\[\#007AFF\]\/15:focus,
+.focus\:ring-\[\#007AFF\]\/20:focus,
+[class*="focus:ring-[#007AFF]"]:focus {
+  --tw-ring-color: rgba(126, 35, 223, 0.22) !important;
+}
+
+/* SVGs and Icons */
+.fill-\[\#007AFF\],
+[class*="fill-[#007AFF]"] {
+  fill: #7E23DF !important;
+}
+
+/* ==========================================================================
+   5. SUAVE (Fondos de Selección, Badges y Pills)
+   ========================================================================== */
+.bg-\[\#E8F1FF\],
+.bg-\[\#E6F0FA\],
+.bg-\[\#F2F7FF\],
+.bg-\[\#F2F0FF\],
+[class*="bg-[#E8F1FF]"],
+[class*="bg-[#E6F0FA]"],
+[class*="bg-[#F2F7FF]"],
+[class*="bg-[#F2F0FF]"] {
+  background-color: #F1E6F8 !important;
+}
+
+[class*="bg-[#E8F1FF]"] [class*="text-[#007AFF]"],
+[class*="bg-[#F1E6F8]"] [class*="text-[#007AFF]"] {
+  color: #6A1B9A !important;
+}
+
+/* ==========================================================================
+   6. ESTADOS (Verde, Ámbar, Rojo)
+   ========================================================================== */
+/* Estado Verde: #1E8E4E (Entregado, Activo, Conexión viva) */
+.text-\[\#34C759\],
+.text-\[\#1E9E47\],
+.text-\[\#1FA64B\],
+.text-\[\#146c31\],
+.text-\[\#167836\],
+[class*="text-[#34C759]"],
+[class*="text-[#1E9E47]"],
+[class*="text-[#1FA64B]"],
+[class*="text-[#146c31]"],
+[class*="text-[#167836]"] {
+  color: #1E8E4E !important;
+}
+
+.bg-\[\#34C759\],
+.bg-\[\#24C355\],
+.bg-\[\#27C93F\],
+.bg-\[\#1E9E47\],
+[class*="bg-[#34C759]"],
+[class*="bg-[#24C355]"],
+[class*="bg-[#27C93F]"],
+[class*="bg-[#1E9E47]"] {
+  background-color: #1E8E4E !important;
+}
+
+.border-\[\#1AAB29\],
+[class*="border-[#1AAB29]"] {
+  border-color: #1E8E4E !important;
+}
+
+/* Estado Ámbar: #B26A00 (Aviso de GPS, En camino, Alertas) */
+.text-\[\#FF9500\],
+.text-\[\#D97706\],
+[class*="text-[#FF9500]"],
+[class*="text-[#D97706]"] {
+  color: #B26A00 !important;
+}
+
+.bg-\[\#FF9500\],
+.bg-\[\#FFBD2E\],
+[class*="bg-[#FF9500]"],
+[class*="bg-[#FFBD2E]"] {
+  background-color: #B26A00 !important;
+}
+
+.border-\[\#DEA123\],
+[class*="border-[#DEA123]"] {
+  border-color: #B26A00 !important;
+}
+
+/* Estado Rojo: #C62828 (Error, Inactivo, Agotado, Cancelado) */
+.text-\[\#FF3B30\],
+.text-\[\#D70015\],
+.text-\[\#900\],
+[class*="text-[#FF3B30]"],
+[class*="text-[#D70015]"],
+[class*="text-[#900]"] {
+  color: #C62828 !important;
+}
+
+.bg-\[\#FF3B30\],
+.bg-\[\#FF5F56\],
+[class*="bg-[#FF3B30]"],
+[class*="bg-[#FF5F56]"] {
+  background-color: #C62828 !important;
+}
+
+.border-\[\#FF3B30\],
+.border-\[\#E0443E\],
+.border-\[\#FFD1D1\],
+[class*="border-[#FF3B30]"],
+[class*="border-[#E0443E]"],
+[class*="border-[#FFD1D1]"] {
+  border-color: #C62828 !important;
+}

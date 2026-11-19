@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../../core/services/operations.service';
@@ -19,14 +19,33 @@ export class OperationForm {
   readonly forms = inject(OperationFormsService);
   readonly localPoint = this.forms.local.location;
 
+  // Form field signals to ensure Angular computed() tracks all changes reactively
+  readonly nombre = signal('');
+  readonly telefono = signal('');
+  readonly capacidad = signal(4);
+
   // Validation touched states for Repartidor
   readonly nombreTouched = signal(false);
   readonly telefonoTouched = signal(false);
   readonly capacidadTouched = signal(false);
 
+  constructor() {
+    effect(() => {
+      const modal = this.forms.modal();
+      if (modal === 'Repartidor') {
+        untracked(() => {
+          this.nombre.set(this.forms.form?.nombre || '');
+          this.telefono.set(this.forms.form?.telefono || '');
+          this.capacidad.set(Number(this.forms.form?.capacidadMaxima) || 4);
+          this.resetTouched();
+        });
+      }
+    });
+  }
+
   // Field error evaluations
   readonly nombreError = computed(() => {
-    const val = (this.forms.form?.nombre || '').trim();
+    const val = this.nombre().trim();
     if (!val) return 'El nombre completo es obligatorio.';
     if (val.length < 3) return 'El nombre debe tener al menos 3 caracteres.';
     if (val.length > 150) return 'El nombre no puede exceder 150 caracteres.';
@@ -37,7 +56,7 @@ export class OperationForm {
   });
 
   readonly telefonoError = computed(() => {
-    const raw = (this.forms.form?.telefono || '').trim();
+    const raw = this.telefono().trim();
     if (!raw) return 'El número de teléfono es obligatorio.';
     const digits = raw.replace(/\D/g, '');
     if (digits.length < 7 || digits.length > 15) {
@@ -47,11 +66,7 @@ export class OperationForm {
   });
 
   readonly capacidadError = computed(() => {
-    const raw = this.forms.form?.capacidadMaxima;
-    if (raw === undefined || raw === null || raw === '') {
-      return 'La capacidad por salida es obligatoria.';
-    }
-    const val = Number(raw);
+    const val = Number(this.capacidad());
     if (!Number.isInteger(val) || val < 1) {
       return 'La capacidad debe ser un número entero mayor o igual a 1.';
     }
@@ -65,14 +80,35 @@ export class OperationForm {
     return !this.nombreError() && !this.telefonoError() && !this.capacidadError();
   });
 
+  onNombreInput(val: string) {
+    this.nombre.set(val);
+    this.forms.form.nombre = val;
+    this.nombreTouched.set(true);
+  }
+
+  onTelefonoInput(val: string) {
+    this.telefono.set(val);
+    this.forms.form.telefono = val;
+    this.telefonoTouched.set(true);
+  }
+
+  onCapacidadInput(val: any) {
+    const num = Number(val);
+    this.capacidad.set(num);
+    this.forms.form.capacidadMaxima = num;
+    this.capacidadTouched.set(true);
+  }
+
   adjustCapacity(delta: number) {
-    const current = Number(this.forms.form?.capacidadMaxima) || 4;
+    const current = Number(this.capacidad()) || 4;
     const next = Math.max(1, Math.min(50, current + delta));
+    this.capacidad.set(next);
     this.forms.form.capacidadMaxima = next;
     this.capacidadTouched.set(true);
   }
 
   setCapacity(val: number) {
+    this.capacidad.set(val);
     this.forms.form.capacidadMaxima = val;
     this.capacidadTouched.set(true);
   }
@@ -95,6 +131,9 @@ export class OperationForm {
       this.telefonoTouched.set(true);
       this.capacidadTouched.set(true);
       if (!this.isRepartidorValid()) return;
+      this.forms.form.nombre = this.nombre();
+      this.forms.form.telefono = this.telefono();
+      this.forms.form.capacidadMaxima = this.capacidad();
     }
     await this.forms.save();
     if (!this.operations.error()) {

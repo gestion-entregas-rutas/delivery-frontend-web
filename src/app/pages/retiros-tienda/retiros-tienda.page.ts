@@ -29,7 +29,7 @@ export class RetirosTiendaPage implements OnInit {
       const cedula = r.datosRetiroTienda?.cedulaQuienRetira || '';
       const nombre = r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '';
       const codigo = r.codigoRetiro || r.numeroOrden || '';
-      return `${cedula} ${nombre} ${codigo} ${r.id}`.toLocaleLowerCase().includes(q);
+      return `${cedula} ${nombre} ${codigo} ${r.id} ${r.ordenId || ''}`.toLocaleLowerCase().includes(q);
     });
   });
 
@@ -43,7 +43,35 @@ export class RetirosTiendaPage implements OnInit {
     this.error.set('');
     try {
       const res = await firstValueFrom(this.api.listarRetirosTienda());
-      const items = Array.isArray(res) ? res : res?.items || [];
+      const raw = Array.isArray(res) ? res : (res as any)?.items || [];
+      const items = raw.map((r: any) => {
+        const id = r.id || r.ordenId;
+        const nombre = r.retiroNombre || r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '';
+        const cedula = r.retiroCedula || r.datosRetiroTienda?.cedulaQuienRetira || '';
+        const telefono = r.retiroTelefono || r.datosRetiroTienda?.telefonoContacto || '';
+        const fecha = r.retiroFecha || r.fechaRetiro || r.datosRetiroTienda?.fechaRetiro || '';
+        const franja = r.retiroFranja || r.franjaHoraria || r.datosRetiroTienda?.franjaHoraria || '';
+        return {
+          ...r,
+          id,
+          ordenId: r.ordenId || id,
+          numeroOrden: r.numeroOrden,
+          estadoOrden: r.estadoOrden,
+          estadoPago: r.estadoPago || (r.estadoOrden === 'Pagada' ? 'Pagada' : r.estadoOrden),
+          total: r.total ?? r.totalPagado ?? 0,
+          codigoRetiro: r.codigoRetiro,
+          clienteNombre: nombre,
+          fechaRetiro: fecha,
+          franjaHoraria: franja,
+          datosRetiroTienda: {
+            nombreQuienRetira: nombre,
+            cedulaQuienRetira: cedula,
+            telefonoContacto: telefono,
+            fechaRetiro: fecha,
+            franjaHoraria: franja,
+          },
+        };
+      });
       this.retiros.set(items);
     } catch (e) {
       this.error.set(this.msgError(e));
@@ -53,9 +81,14 @@ export class RetirosTiendaPage implements OnInit {
   }
 
   async marcarRetirado(r: OrdenRetiroDto) {
-    if (!confirm(`¿Confirmar entrega en mostrador de la orden ${r.numeroOrden || r.id}?`)) return;
+    const ordenId = r.id || r.ordenId;
+    if (!ordenId) {
+      this.error.set('No se encontró el identificador de la orden.');
+      return;
+    }
+    if (!confirm(`¿Confirmar entrega en mostrador de la orden ${r.numeroOrden || ordenId}?`)) return;
     try {
-      await firstValueFrom(this.api.marcarOrdenRetirada(r.id));
+      await firstValueFrom(this.api.marcarOrdenRetirada(ordenId));
       this.message.set('Orden marcada como retirada en tienda.');
       await this.cargar();
     } catch (e) {

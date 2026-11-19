@@ -94,18 +94,19 @@ h1, h2, h3 {
 }
 
 /* ==========================================================================
-   4. MARCA & ACCIÓN VIVA (Botones Principales, Estados Activos, Enlaces)
+   4. MARCA & ACCIÓN VIVA (Botones Principales Sólidos)
    ========================================================================== */
-.bg-\[\#007AFF\],
-[class*="bg-[#007AFF]"],
+/* Botones primarios sólidos (sin sufijo de opacidad como /10 o /20) */
+.bg-\[\#007AFF\]:not([class*="/"]),
+[class*="bg-[#007AFF]"]:not([class*="/"]),
 button.bg-\[\#007AFF\],
 button[class*="bg-[#007AFF]"] {
   background-color: #6A1B9A !important;
   color: #ffffff !important;
 }
 
-.bg-\[\#007AFF\]:hover,
-[class*="bg-[#007AFF]"]:hover,
+.bg-\[\#007AFF\]:not([class*="/"]):hover,
+[class*="bg-[#007AFF]"]:not([class*="/"]):hover,
 button.bg-\[\#007AFF\]:hover,
 button[class*="bg-[#007AFF]"]:hover,
 .hover\:bg-\[\#0062CC\]:hover,
@@ -116,8 +117,8 @@ button[class*="bg-[#007AFF]"]:hover,
   color: #ffffff !important;
 }
 
-.bg-\[\#007AFF\]:active,
-[class*="bg-[#007AFF]"]:active,
+.bg-\[\#007AFF\]:not([class*="/"]):active,
+[class*="bg-[#007AFF]"]:not([class*="/"]):active,
 button.bg-\[\#007AFF\]:active,
 button[class*="bg-[#007AFF]"]:active,
 .active\:bg-\[\#0051A8\]:active,
@@ -128,15 +129,16 @@ button[class*="bg-[#007AFF]"]:active,
   color: #ffffff !important;
 }
 
-/* Force white text on primary brand buttons */
+/* Forzar texto blanco en botones de marca sólidos */
 button[class*="bg-[#007AFF]"] *,
-[class*="bg-[#007AFF]"] * {
-  color: #ffffff;
+button[class*="bg-[#007AFF]"]:hover *,
+button[class*="bg-[#007AFF]"]:active * {
+  color: #ffffff !important;
 }
 
 /* Text & Border Links */
 .text-\[\#007AFF\],
-[class*="text-[#007AFF]"]:not([class*="bg-[#007AFF]"]),
+[class*="text-[#007AFF]"]:not([class*="bg-[#007AFF]"]:not([class*="/"])),
 .text-\[\#0051A8\],
 [class*="text-[#0051A8]"] {
   color: #7E23DF !important;
@@ -184,14 +186,70 @@ button[class*="bg-[#007AFF]"] *,
 }
 
 [class*="bg-[#E8F1FF]"] [class*="text-[#007AFF]"],
-[class*="bg-[#F1E6F8]"] [class*="text-[#007AFF]"] {
+[class*="bg-[#F1E6F8]"] [class*="text-[#007AFF]"],
+[class*="bg-[#E8F1FF]"].text-\[\#007AFF\] {
   color: #6A1B9A !important;
 }
 
 /* ==========================================================================
-   6. ESTADOS (Verde, Ámbar, Rojo)
+   6. ESTADOS Y PASTILLAS CON OPACIDAD (Alta Legibilidad Garantizada)
    ========================================================================== */
-/* Estado Verde: #1E8E4E (Entregado, Activo, Conexión viva) */
+
+/* --- Rojo / Urgente / Error / Novedades --- */
+/* Pastillas con tinte / opacidad (bg-[#FF3B30]/10, bg-[#FF3B30]/20, bg-[#FF3B30]/5) */
+[class*="bg-[#FF3B30]/"],
+.bg-\[\#FF3B30\]\/10,
+.bg-\[\#FF3B30\]\/20,
+.bg-\[\#FF3B30\]\/5 {
+  background-color: rgba(198, 40, 40, 0.12) !important;
+  color: #C62828 !important;
+}
+
+[class*="bg-[#FF3B30]/"] *,
+[class*="bg-[#FF3B30]/"] span {
+  color: #C62828 !important;
+}
+
+/* Botones y badges sólidos en Rojo */
+.bg-\[\#FF3B30\]:not([class*="/"]),
+.bg-\[\#FF5F56\]:not([class*="/"]),
+[class*="bg-[#FF3B30]"]:not([class*="/"]),
+[class*="bg-[#FF5F56]"]:not([class*="/"]) {
+  background-color: #C62828 !important;
+  color: #ffffff !important;
+}
+
+.text-\[\#FF3B30\],
+.text-\[\#D70015\],
+.text-\[\#900\],
+[class*="text-[#FF3B30]"],
+[class*="text-[#D70015]"],
+[class*="text-[#900]"] {
+  color: #C62828 !important;
+}
+
+.border-\[\#FF3B30\],
+.border-\[\#E0443E\],
+.border-\[\#FFD1D1\],
+[class*="border-[#FF3B30]"],
+[class*="border-[#E0443E]"],
+[class*="border-[#FFD1D1]"] {
+  border-color: #C62828 !important;
+}
+
+/* --- Verde / Entregado / Activo --- */
+[class*="bg-[#34C759]/"],
+.bg-\[\#34C759\]\/10,
+.bg-\[\#34C759\]\/20,
+.bg-\[\#E8F8EE\],
+.bg-\[\#EAF8EE\],
+.bg-\[\#EBF7EE\],
+[class*="bg-[#E8F8EE]"],
+[class*="bg-[#EAF8EE]"],
+[class*="bg-[#EBF7EE]"] {
+  background-color: rgba(30, 142, 78, 0.12) !important;
+}
+
 .text-\[\#34C759\],
 .text-\[\#1E9E47\],
 .text-\[\#1FA64B\],
@@ -205,23 +263,40 @@ button[class*="bg-[#007AFF]"] *,
   color: #1E8E4E !important;
 }
 
-.bg-\[\#34C759\],
-.bg-\[\#24C355\],
-.bg-\[\#27C93F\],
-.bg-\[\#1E9E47\],
-[class*="bg-[#34C759]"],
-[class*="bg-[#24C355]"],
-[class*="bg-[#27C93F]"],
-[class*="bg-[#1E9E47]"] {
+.bg-\[\#34C759\]:not([class*="/"]),
+.bg-\[\#24C355\]:not([class*="/"]),
+.bg-\[\#27C93F\]:not([class*="/"]),
+.bg-\[\#1E9E47\]:not([class*="/"]),
+[class*="bg-[#34C759]"]:not([class*="/"]),
+[class*="bg-[#24C355]"]:not([class*="/"]),
+[class*="bg-[#27C93F]"]:not([class*="/"]),
+[class*="bg-[#1E9E47]"]:not([class*="/"]) {
   background-color: #1E8E4E !important;
+  color: #ffffff !important;
 }
 
 .border-\[\#1AAB29\],
-[class*="border-[#1AAB29]"] {
+.border-\[\#C5EED0\],
+.border-\[\#C6EFD2\],
+[class*="border-[#1AAB29]"],
+[class*="border-[#C5EED0]"],
+[class*="border-[#C6EFD2]"] {
   border-color: #1E8E4E !important;
 }
 
-/* Estado Ámbar: #B26A00 (Aviso de GPS, En camino, Alertas) */
+/* --- Ámbar / GPS / En Tránsito --- */
+[class*="bg-[#FF9500]/"],
+.bg-\[\#FF9500\]\/10,
+.bg-\[\#FF9500\]\/20,
+.bg-\[\#FFF4E5\],
+.bg-\[\#FFF2E5\],
+.bg-\[\#FFF9F2\],
+[class*="bg-[#FFF4E5]"],
+[class*="bg-[#FFF2E5]"],
+[class*="bg-[#FFF9F2]"] {
+  background-color: rgba(178, 106, 0, 0.12) !important;
+}
+
 .text-\[\#FF9500\],
 .text-\[\#D97706\],
 [class*="text-[#FF9500]"],
@@ -229,40 +304,31 @@ button[class*="bg-[#007AFF]"] *,
   color: #B26A00 !important;
 }
 
-.bg-\[\#FF9500\],
-.bg-\[\#FFBD2E\],
-[class*="bg-[#FF9500]"],
-[class*="bg-[#FFBD2E]"] {
+.bg-\[\#FF9500\]:not([class*="/"]),
+.bg-\[\#FFBD2E\]:not([class*="/"]),
+[class*="bg-[#FF9500]"]:not([class*="/"]),
+[class*="bg-[#FFBD2E]"]:not([class*="/"]) {
   background-color: #B26A00 !important;
+  color: #ffffff !important;
 }
 
 .border-\[\#DEA123\],
-[class*="border-[#DEA123]"] {
+.border-\[\#FFE0B2\],
+.border-\[\#FFE6CC\],
+[class*="border-[#DEA123]"],
+[class*="border-[#FFE0B2]"],
+[class*="border-[#FFE6CC]"] {
   border-color: #B26A00 !important;
 }
 
-/* Estado Rojo: #C62828 (Error, Inactivo, Agotado, Cancelado) */
-.text-\[\#FF3B30\],
-.text-\[\#D70015\],
-.text-\[\#900\],
-[class*="text-[#FF3B30]"],
-[class*="text-[#D70015]"],
-[class*="text-[#900]"] {
-  color: #C62828 !important;
+/* --- Tinte Primario Violeta (/10, /15, /20) --- */
+[class*="bg-[#007AFF]/"],
+.bg-\[\#007AFF\]\/10,
+.bg-\[\#007AFF\]\/15,
+.bg-\[\#007AFF\]\/20 {
+  background-color: rgba(126, 35, 223, 0.12) !important;
+  color: #7E23DF !important;
 }
-
-.bg-\[\#FF3B30\],
-.bg-\[\#FF5F56\],
-[class*="bg-[#FF3B30]"],
-[class*="bg-[#FF5F56]"] {
-  background-color: #C62828 !important;
-}
-
-.border-\[\#FF3B30\],
-.border-\[\#E0443E\],
-.border-\[\#FFD1D1\],
-[class*="border-[#FF3B30]"],
-[class*="border-[#E0443E]"],
-[class*="border-[#FFD1D1]"] {
-  border-color: #C62828 !important;
+[class*="bg-[#007AFF]/"] * {
+  color: #7E23DF !important;
 }

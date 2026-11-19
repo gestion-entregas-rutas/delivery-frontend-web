@@ -3,7 +3,7 @@
   <aside class="w-full lg:w-[46%] xl:w-[48%] bg-gradient-to-br from-white via-[#F9F9FB] to-[#EEF5FF] border-b lg:border-b-0 lg:border-r border-[#E5E5EA] p-8 lg:p-12 xl:p-16 flex flex-col justify-between">
     <!-- Brand Logo -->
     <div class="flex items-center space-x-3.5">
-      <div class="w-11 h-11 rounded-2xl bg-[#007AFF] text-white flex items-center justify-center shadow-sm">
+      <div class="w-11 h-11 rounded-2xl bg-[#6A1B9A] text-white flex items-center justify-center shadow-sm">
         <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
           <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
         </svg>
@@ -21,17 +21,17 @@
         <svg viewBox="0 0 400 240" class="w-full max-w-[420px] lg:max-w-[460px] xl:max-w-[480px] h-auto drop-shadow-sm select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="secGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#007AFF" stop-opacity="0.2" />
-              <stop offset="60%" stop-color="#007AFF" stop-opacity="0.06" />
-              <stop offset="100%" stop-color="#007AFF" stop-opacity="0" />
+              <stop offset="0%" stop-color="#7E23DF" stop-opacity="0.25" />
+              <stop offset="60%" stop-color="#6A1B9A" stop-opacity="0.08" />
+              <stop offset="100%" stop-color="#4A1273" stop-opacity="0" />
             </radialGradient>
             <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#007AFF" />
-              <stop offset="100%" stop-color="#0051A8" />
+              <stop offset="0%" stop-color="#7E23DF" />
+              <stop offset="100%" stop-color="#4A1273" />
             </linearGradient>
             <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#007AFF" stop-opacity="0.32" />
-              <stop offset="100%" stop-color="#007AFF" stop-opacity="0" />
+              <stop offset="0%" stop-color="#7E23DF" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#6A1B9A" stop-opacity="0" />
             </linearGradient>
           </defs>
 
@@ -44,24 +44,24 @@
           <!-- Spinning Orbit Ring 1 (Clockwise) -->
           <g>
             <animateTransform attributeName="transform" type="rotate" from="0 200 120" to="360 200 120" dur="26s" repeatCount="indefinite" />
-            <circle cx="200" cy="120" r="76" stroke="#007AFF" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="8 12" />
+            <circle cx="200" cy="120" r="76" stroke="#6A1B9A" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="8 12" />
             <!-- Orbit Node 1: Logistics Route Point -->
-            <circle cx="276" cy="120" r="6" fill="#007AFF" />
-            <circle cx="276" cy="120" r="10" stroke="#007AFF" stroke-width="1.5" stroke-opacity="0.4">
+            <circle cx="276" cy="120" r="6" fill="#7E23DF" />
+            <circle cx="276" cy="120" r="10" stroke="#7E23DF" stroke-width="1.5" stroke-opacity="0.4">
               <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite" />
               <animate attributeName="stroke-opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
             </circle>
             <!-- Orbit Node 2: Sub-node -->
-            <circle cx="124" cy="120" r="4.5" fill="#34C759" />
+            <circle cx="124" cy="120" r="4.5" fill="#1E8E4E" />
           </g>
 
           <!-- Spinning Orbit Ring 2 (Counter-Clockwise) -->
           <g>
             <animateTransform attributeName="transform" type="rotate" from="360 200 120" to="0 200 120" dur="18s" repeatCount="indefinite" />
-            <circle cx="200" cy="120" r="54" stroke="#5856D6" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="6 8" />
+            <circle cx="200" cy="120" r="54" stroke="#7E23DF" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="6 8" />
             <!-- Orbit Node 3: Security keypoint -->
-            <circle cx="200" cy="66" r="4" fill="#5856D6" />
-            <circle cx="200" cy="174" r="4" fill="#007AFF" />
+            <circle cx="200" cy="66" r="4" fill="#4A1273" />
+            <circle cx="200" cy="174" r="4" fill="#7E23DF" />
           </g>
 
           <!-- Radar Scanning Cone -->
@@ -71,20 +71,20 @@
           </g>
 
           <!-- Connecting animated dashed route lines -->
-          <path d="M 90 60 C 130 60, 160 100, 180 115" stroke="#007AFF" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="6 6">
+          <path d="M 90 60 C 130 60, 160 100, 180 115" stroke="#7E23DF" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="6 6">
             <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="2s" repeatCount="indefinite" />
           </path>
-          <path d="M 310 180 C 270 180, 240 140, 220 125" stroke="#34C759" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="6 6">
+          <path d="M 310 180 C 270 180, 240 140, 220 125" stroke="#1E8E4E" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="6 6">
             <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="2s" repeatCount="indefinite" />
           </path>
 
           <!-- Center Shield / Vault with subtle pulse -->
           <g>
-            <circle cx="200" cy="120" r="32" fill="#E8F1FF">
+            <circle cx="200" cy="120" r="32" fill="#F1E6F8">
               <animate attributeName="r" values="32;36;32" dur="3s" repeatCount="indefinite" />
               <animate attributeName="fill-opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite" />
             </circle>
-            <circle cx="200" cy="120" r="28" fill="#FFFFFF" stroke="#D0E2FF" stroke-width="2" />
+            <circle cx="200" cy="120" r="28" fill="#FFFFFF" stroke="#E8DCF5" stroke-width="2" />
             
             <!-- Shield Icon in Center -->
             <path d="M 200 102 L 216 109 C 216 123 209 135 200 139 C 191 135 184 123 184 109 Z" fill="url(#shieldGrad)" />
@@ -97,51 +97,51 @@
           <g>
             <animateTransform attributeName="transform" type="translate" values="24 35; 24 27; 24 35" dur="4s" repeatCount="indefinite" />
             <rect width="124" height="28" rx="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
-            <circle cx="14" cy="14" r="4" fill="#34C759" />
-            <circle cx="14" cy="14" r="8" stroke="#34C759" stroke-width="1.5" stroke-opacity="0.3">
+            <circle cx="14" cy="14" r="4" fill="#1E8E4E" />
+            <circle cx="14" cy="14" r="8" stroke="#1E8E4E" stroke-width="1.5" stroke-opacity="0.3">
               <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" />
               <animate attributeName="stroke-opacity" values="0.8;0.1;0.8" dur="2s" repeatCount="indefinite" />
             </circle>
-            <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#1C1C1E">AES-256 Activo</text>
+            <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#1B1230">AES-256 Activo</text>
           </g>
 
           <!-- Floating Badge 2: Bottom Right - Route Node OK -->
           <g>
             <animateTransform attributeName="transform" type="translate" values="250 175; 250 183; 250 175" dur="4.5s" repeatCount="indefinite" />
             <rect width="124" height="28" rx="8" fill="#FFFFFF" stroke="#E5E5EA" stroke-width="1" />
-            <circle cx="14" cy="14" r="4" fill="#007AFF" />
-            <circle cx="14" cy="14" r="8" stroke="#007AFF" stroke-width="1.5" stroke-opacity="0.3">
+            <circle cx="14" cy="14" r="4" fill="#7E23DF" />
+            <circle cx="14" cy="14" r="8" stroke="#7E23DF" stroke-width="1.5" stroke-opacity="0.3">
               <animate attributeName="r" values="4;8;4" dur="2.4s" repeatCount="indefinite" />
               <animate attributeName="stroke-opacity" values="0.8;0.1;0.8" dur="2.4s" repeatCount="indefinite" />
             </circle>
-            <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#1C1C1E">Ruta Blindada</text>
+            <text x="26" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#1B1230">Ruta Blindada</text>
           </g>
         </svg>
       </div>
 
-      <div class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase bg-[#E8F1FF] text-[#007AFF]">
+      <div class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase bg-[#F1E6F8] text-[#6A1B9A]">
         TU CUENTA, PROTEGIDA
       </div>
       <h1 class="text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight text-[#1C1C1E] leading-tight text-center">
-        Un acceso<br /><span class="text-[#007AFF]">solo tuyo.</span>
+        Un acceso<br /><span class="text-[#7E23DF]">solo tuyo.</span>
       </h1>
       <p class="text-sm lg:text-base text-[#636366] leading-relaxed text-center max-w-md lg:max-w-lg">
         Define tus credenciales personales para continuar con la gestión operativa y logística de tu panel administrativo.
       </p>
 
       <!-- Stepper Route Art with Flow Animation (Escalado) -->
-      <div class="pt-4 flex items-center space-x-4 text-[#007AFF] w-full max-w-sm lg:max-w-md justify-center">
-        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-white border border-[#D0E2FF] shadow-xs flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="pt-4 flex items-center space-x-4 text-[#7E23DF] w-full max-w-sm lg:max-w-md justify-center">
+        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-white border border-[#E8DCF5] shadow-xs flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-[#7E23DF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
         </div>
-        <div class="flex-1 relative h-2.5 lg:h-3 bg-[#E8F1FF] rounded-full overflow-hidden">
-          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#007AFF] via-[#4DA0FF] to-[#34C759] rounded-full w-2/3"></div>
+        <div class="flex-1 relative h-2.5 lg:h-3 bg-[#F1E6F8] rounded-full overflow-hidden">
+          <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#6A1B9A] via-[#7E23DF] to-[#1E8E4E] rounded-full w-2/3"></div>
           <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent animate-pulse"></div>
         </div>
-        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-[#E8F1FF] border border-[#B3D4FF] flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-[#F1E6F8] border border-[#E8DCF5] flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-[#7E23DF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -150,15 +150,15 @@
       <!-- Trust & Security Signals -->
       <div class="pt-3 flex flex-wrap gap-2.5 text-xs text-[#636366] justify-center">
         <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#E5E5EA] shadow-2xs">
-          <span class="w-2 h-2 rounded-full bg-[#34C759] animate-ping"></span>
+          <span class="w-2 h-2 rounded-full bg-[#1E8E4E] animate-ping"></span>
           Cifrado E2E activo
         </span>
         <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#E5E5EA] shadow-2xs">
-          <span class="w-2 h-2 rounded-full bg-[#007AFF]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#7E23DF]"></span>
           Auditoría de acceso
         </span>
         <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#E5E5EA] shadow-2xs">
-          <span class="w-2 h-2 rounded-full bg-[#5856D6]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#4A1273]"></span>
           Canal TLS 1.3
         </span>
       </div>
@@ -176,18 +176,18 @@
       <div class="mb-5 flex items-center justify-between">
         <button
           type="button"
-          class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#007AFF] hover:text-[#0051A8] hover:bg-[#E8F1FF] px-4 py-2.5 rounded-xl transition cursor-pointer shadow-2xs bg-white border border-[#E5E5EA]"
+          class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#7E23DF] hover:text-[#4A1273] hover:bg-[#F1E6F8] px-4 py-2.5 rounded-xl transition cursor-pointer shadow-2xs bg-white border border-[#E5E5EA]"
           (click)="goBack()"
           [disabled]="busy()"
           title="Regresar al panel de operaciones"
         >
-          <svg class="w-4 h-4 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-[#7E23DF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           <span>Regresar al panel</span>
         </button>
 
-        <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#E8F1FF] text-[#007AFF]">
+        <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#F1E6F8] text-[#6A1B9A]">
           SEGURIDAD DE ACCESO
         </span>
       </div>

@@ -11,10 +11,65 @@
     @if (message()) { <div class="notice success" role="status">{{ message() }}</div> }
     @if (error()) { <div class="notice error" role="alert">{{ error() }} <button (click)="cargar()">Reintentar</button></div> }
 
-    <div class="form-body" style="max-width:420px;margin-bottom:12px;">
-      <label>Buscar por cédula, nombre o código
-        <input name="buscarRetiro" [(ngModel)]="buscar" placeholder="Ej. 1804567890, ORD-..., código" />
-      </label>
+    <!-- Filtros de pestañas y búsqueda -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;">
+      <div style="display:inline-flex;align-items:center;background:#F1E6F8;padding:4px;border-radius:10px;gap:4px;">
+        <button
+          type="button"
+          class="button"
+          [style.background]="tab() === 'pendientes' ? '#7E23DF' : 'transparent'"
+          [style.color]="tab() === 'pendientes' ? '#FFFFFF' : '#4A1273'"
+          [style.font-weight]="tab() === 'pendientes' ? '600' : '500'"
+          [style.border]="'none'"
+          [style.padding]="'6px 14px'"
+          [style.border-radius]="'8px'"
+          [style.font-size]="'12px'"
+          [style.cursor]="'pointer'"
+          (click)="tab.set('pendientes')"
+        >
+          Pendientes ({{ conteoPendientes() }})
+        </button>
+        <button
+          type="button"
+          class="button"
+          [style.background]="tab() === 'completadas' ? '#7E23DF' : 'transparent'"
+          [style.color]="tab() === 'completadas' ? '#FFFFFF' : '#4A1273'"
+          [style.font-weight]="tab() === 'completadas' ? '600' : '500'"
+          [style.border]="'none'"
+          [style.padding]="'6px 14px'"
+          [style.border-radius]="'8px'"
+          [style.font-size]="'12px'"
+          [style.cursor]="'pointer'"
+          (click)="tab.set('completadas')"
+        >
+          Entregadas ({{ conteoCompletadas() }})
+        </button>
+        <button
+          type="button"
+          class="button"
+          [style.background]="tab() === 'todas' ? '#7E23DF' : 'transparent'"
+          [style.color]="tab() === 'todas' ? '#FFFFFF' : '#4A1273'"
+          [style.font-weight]="tab() === 'todas' ? '600' : '500'"
+          [style.border]="'none'"
+          [style.padding]="'6px 14px'"
+          [style.border-radius]="'8px'"
+          [style.font-size]="'12px'"
+          [style.cursor]="'pointer'"
+          (click)="tab.set('todas')"
+        >
+          Todas ({{ retiros().length }})
+        </button>
+      </div>
+
+      <div class="form-body" style="padding:0;margin:0;width:340px;max-width:100%;">
+        <input
+          name="buscarRetiro"
+          [ngModel]="buscar()"
+          (ngModelChange)="buscar.set($event)"
+          placeholder="Buscar cédula, nombre o código..."
+          style="padding:8px 12px;font-size:13px;border-radius:8px;"
+        />
+      </div>
     </div>
 
     <div class="table-scroll">
@@ -30,7 +85,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (r of filtrados(); track r.id) {
+          @for (r of filtrados(); track (r.id || r.ordenId)) {
             <tr>
               <td>
                 <strong>{{ r.numeroOrden || r.id }}</strong>
@@ -44,10 +99,32 @@
                 {{ r.datosRetiroTienda?.fechaRetiro || r.fechaRetiro || '—' }}
                 <small>{{ r.datosRetiroTienda?.franjaHoraria || r.franjaHoraria || '' }}</small>
               </td>
-              <td><strong>{{ r.codigoRetiro || '—' }}</strong></td>
-              <td>{{ r.estadoEntrega || r.estadoOrden || 'Pendiente de retiro' }}</td>
               <td>
-                <button class="button primary" (click)="marcarRetirado(r)" [disabled]="loading()">Marcar retirado</button>
+                <span style="font-family:monospace;font-size:13px;font-weight:700;color:#7E23DF;">
+                  {{ r.codigoRetiro || '—' }}
+                </span>
+              </td>
+              <td>
+                @if (esRetirada(r)) {
+                  <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(30,142,78,0.12);color:#1E8E4E;">
+                    ✓ Retirada
+                  </span>
+                } @else {
+                  <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(126,35,223,0.1);color:#7E23DF;">
+                    Pendiente
+                  </span>
+                }
+              </td>
+              <td>
+                @if (esRetirada(r)) {
+                  <span style="display:inline-flex;align-items:center;gap:4px;color:#1E8E4E;font-size:12px;font-weight:600;">
+                    ✓ Entregado
+                  </span>
+                } @else {
+                  <button class="button primary" (click)="abrirModalConfirmacion(r)" [disabled]="loading()">
+                    Marcar retirado
+                  </button>
+                }
               </td>
             </tr>
           } @empty {
@@ -55,7 +132,15 @@
               <td colspan="6">
                 <div class="empty">
                   <h3>{{ loading() ? 'Cargando retiros…' : 'No hay retiros en tienda para mostrar' }}</h3>
-                  <p>Cuando existan órdenes pagadas con retiro en tienda aparecerán aquí.</p>
+                  <p>
+                    @if (tab() === 'pendientes') {
+                      No hay órdenes pendientes de retiro en mostrador.
+                    } @else if (tab() === 'completadas') {
+                      Aún no se han registrado órdenes entregadas en mostrador.
+                    } @else {
+                      Cuando existan órdenes pagadas con retiro en tienda aparecerán aquí.
+                    }
+                  </p>
                 </div>
               </td>
             </tr>
@@ -64,4 +149,85 @@
       </table>
     </div>
   </section>
+
+  <!-- Modal in-app de confirmación -->
+  @if (ordenAConfirmar(); as orden) {
+    <div class="modal-backdrop" (click)="cerrarModal()">
+      <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-retiro-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="modal-retiro-title">Confirmar entrega en mostrador</h2>
+            <p>Verifica los datos del cliente y el código antes de entregar el paquete.</p>
+          </div>
+          <button type="button" class="button" (click)="cerrarModal()" [disabled]="loading()" aria-label="Cerrar modal">✕</button>
+        </div>
+
+        <div class="form-body">
+          <div style="background:rgba(126,35,223,0.06);border-left:3px solid #7E23DF;padding:12px 14px;border-radius:8px;">
+            <div style="font-size:11px;font-weight:600;color:#7E23DF;text-transform:uppercase;letter-spacing:0.5px;">Orden en Tienda</div>
+            <strong style="font-size:15px;color:#1B1230;display:block;margin-top:2px;">{{ orden.numeroOrden || orden.id }}</strong>
+            <div style="font-size:12px;color:#636366;margin-top:2px;">
+              Monto pagado: <strong style="color:#1B1230;">${{ orden.total | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Persona que retira</label>
+              <div style="font-size:14px;font-weight:600;color:#1B1230;">
+                {{ orden.datosRetiroTienda?.nombreQuienRetira || orden.clienteNombre || 'No especificado' }}
+              </div>
+            </div>
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Cédula / Documento</label>
+              <div style="font-size:14px;font-weight:600;color:#1B1230;">
+                {{ orden.datosRetiroTienda?.cedulaQuienRetira || '—' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Código de Retiro</label>
+              <div style="font-family:monospace;font-size:16px;font-weight:700;color:#7E23DF;letter-spacing:1px;">
+                {{ orden.codigoRetiro || '—' }}
+              </div>
+            </div>
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Teléfono</label>
+              <div style="font-size:13px;color:#1B1230;">
+                {{ orden.datosRetiroTienda?.telefonoContacto || '—' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Fecha Programada</label>
+              <div style="font-size:13px;color:#1B1230;">
+                {{ orden.datosRetiroTienda?.fechaRetiro || orden.fechaRetiro || '—' }}
+              </div>
+            </div>
+            <div>
+              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Franja Horaria</label>
+              <div style="font-size:13px;color:#1B1230;">
+                {{ orden.datosRetiroTienda?.franjaHoraria || orden.franjaHoraria || '—' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-hint" style="background:#FAF7FD;padding:10px 12px;border-radius:6px;border:1px solid #F1E6F8;">
+            ℹ Al confirmar, la orden se marcará como <strong>Retirada</strong>. Esta acción no se puede deshacer y retirará el pedido de la cola de pendientes.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="button" (click)="cerrarModal()" [disabled]="loading()">Cancelar</button>
+          <button type="button" class="button primary" (click)="confirmarModal()" [disabled]="loading()">
+            {{ loading() ? 'Guardando entrega...' : 'Confirmar entrega' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

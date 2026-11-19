@@ -175,4 +175,34 @@ describe('ProductosPage (sin API real, mocks)', () => {
     promptSpy.mockRestore();
     confirmSpy.mockRestore();
   });
+
+  it('abre y confirma modales interactivos de stock y desactivar', async () => {
+    const fixture = TestBed.createComponent(ProductosPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await fixture.componentInstance.cargar();
+    const page = fixture.componentInstance;
+
+    // Test Stock Modal
+    page.abrirModalStock(producto as any);
+    expect(page.stockModalAbierto()).toBe(true);
+    expect(page.productoStock()?.id).toBe('prod-1');
+    expect(page.nuevoStock()).toBe(5);
+
+    page.adjustModalStock(3);
+    expect(page.nuevoStock()).toBe(8);
+
+    await page.confirmarStock();
+    expect(api.actualizarStockProducto).toHaveBeenCalledWith('prod-1', 8);
+    expect(page.stockModalAbierto()).toBe(false);
+
+    // Test Desactivar Modal
+    page.abrirModalDesactivar(producto as any);
+    expect(page.desactivarModalAbierto()).toBe(true);
+    expect(page.productoDesactivar()?.id).toBe('prod-1');
+
+    await page.confirmarDesactivar();
+    expect(api.desactivarProducto).toHaveBeenCalledWith('prod-1');
+    expect(page.desactivarModalAbierto()).toBe(false);
+  });
 });

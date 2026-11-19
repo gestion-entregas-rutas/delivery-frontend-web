@@ -1,89 +1,431 @@
-<div class="legacy-ui p-gutter-lg space-y-gutter-lg">
-  <section class="panel">
-    <div class="panel-heading">
-      <div>
-        <h2>Catálogo y Productos <span class="number-pill">{{ filtrados().length }}</span></h2>
-        <p>Administra productos, precios, stock y disponibilidad. La edición usa concurrencia optimista por versión.</p>
+<div class="flex-1 bg-[#F5F5F7] p-5 space-y-4 overflow-y-auto custom-scrollbar min-h-0" data-purpose="productos-workspace">
+  <!-- BEGIN: Header & Operational Controls Card -->
+  <section class="bg-white rounded-xl border border-[#E5E5EA] p-5 shadow-subtle" data-purpose="productos-header">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4">
+      <!-- Left: Title, Tag & Subtitle -->
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E8F1FF] text-[#007AFF]">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#007AFF] mr-1.5"></span>
+            E-COMMERCE · CATÁLOGO Y GESTIÓN DE PRODUCTOS
+          </span>
+          <span class="text-[11px] text-[#8E8E93]">Gestión de inventario y catálogo oficial</span>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight text-[#1C1C1E]">
+          Catálogo y Productos
+        </h1>
+        <p class="text-xs text-[#636366] max-w-2xl leading-relaxed">
+          Administración centralizada de artículos, precios, ofertas, inventario disponible y especificaciones técnicas con control estricto de concurrencia optimista.
+        </p>
       </div>
-      <button class="button primary" (click)="abrirNuevo()" [disabled]="saving() || loading()">＋ Nuevo producto</button>
+
+      <!-- Right: Action Button -->
+      <div class="flex items-center gap-2.5">
+        <button
+          type="button"
+          class="bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center shadow-sm transition cursor-pointer"
+          (click)="abrirNuevo()"
+          [disabled]="saving() || loading()"
+        >
+          <svg class="w-3.5 h-3.5 mr-1.5 fill-current" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+          </svg>
+          <span>Nuevo Producto</span>
+        </button>
+      </div>
     </div>
 
-    @if (message()) {
-      <div class="notice success" role="status">{{ message() }}</div>
-    }
-    @if (error() && !editorAbierto()) {
-      <div class="notice error" role="alert">{{ error() }} <button (click)="cargar()">Reintentar</button></div>
-    }
+    <!-- BEGIN: Quick KPI Bento Cards -->
+    <div class="pt-4 border-t border-[#E5E5EA] grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" data-purpose="productos-kpi-bar">
+      <!-- Total Productos -->
+      <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
+        <div class="text-[11px] font-semibold text-[#8E8E93] flex items-center justify-between">
+          <span>Total Artículos</span>
+          <svg class="w-3.5 h-3.5 text-[#8E8E93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div class="text-xl font-bold text-[#1C1C1E] mt-1">{{ totalProductos() }}</div>
+        <div class="text-[10px] text-[#8E8E93] mt-0.5">En catálogo general</div>
+      </div>
 
-    <div class="form-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;">
-      <label>Buscar
-        <input name="buscarProducto" [(ngModel)]="buscar" placeholder="Nombre, marca o subcategoría" />
-      </label>
-      <label>Categoría
-        <select name="categoriaFiltro" [(ngModel)]="categoriaFiltro">
-          <option [ngValue]="''">Todas las categorías</option>
-          @for (cat of categoriasOpciones(); track cat.id) {
-            <option [ngValue]="cat.id">{{ cat.nombre }}</option>
-          }
-        </select>
-      </label>
-      <label>Estado
-        <select name="estadoFiltro" [(ngModel)]="estadoFiltro">
-          <option value="todos">Todos</option>
-          <option value="activo">Activo</option>
-          <option value="agotado">Agotado</option>
-          <option value="inactivo">Inactivo</option>
-        </select>
-      </label>
+      <!-- Activos con Stock -->
+      <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
+        <div class="text-[11px] font-semibold text-[#1E9E47] flex items-center justify-between">
+          <span>Activos en Tienda</span>
+          <span class="w-2 h-2 rounded-full bg-[#34C759]"></span>
+        </div>
+        <div class="text-xl font-bold text-[#1C1C1E] mt-1">{{ activosCount() }}</div>
+        <div class="text-[10px] text-[#8E8E93] mt-0.5">Visibles para compra</div>
+      </div>
+
+      <!-- Agotados (Stock 0) -->
+      <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
+        <div class="text-[11px] font-semibold text-[#FF9500] flex items-center justify-between">
+          <span>Sin Stock (Agotados)</span>
+          <span class="w-2 h-2 rounded-full bg-[#FF9500]"></span>
+        </div>
+        <div class="text-xl font-bold text-[#1C1C1E] mt-1">{{ agotadosCount() }}</div>
+        <div class="text-[10px] text-[#8E8E93] mt-0.5">Requieren reposición</div>
+      </div>
+
+      <!-- Inactivos / Desactivados -->
+      <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
+        <div class="text-[11px] font-semibold text-[#8E8E93] flex items-center justify-between">
+          <span>Desactivados / Inactivos</span>
+          <svg class="w-3.5 h-3.5 text-[#8E8E93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
+          </svg>
+        </div>
+        <div class="text-xl font-bold text-[#1C1C1E] mt-1">{{ inactivosCount() }}</div>
+        <div class="text-[10px] text-[#8E8E93] mt-0.5">Ocultos al cliente</div>
+      </div>
+
+      <!-- Total Unidades Inventario -->
+      <div class="bg-[#F9F9FB] rounded-lg border border-[#E5E5EA] p-3 flex flex-col justify-between">
+        <div class="text-[11px] font-semibold text-[#007AFF] flex items-center justify-between">
+          <span>Inventario Físico</span>
+          <svg class="w-3.5 h-3.5 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+        <div class="text-xl font-bold text-[#1C1C1E] mt-1">{{ totalStock() }} <span class="text-xs font-normal text-[#8E8E93]">unidades</span></div>
+        <div class="text-[10px] text-[#8E8E93] mt-0.5">Stock global acumulado</div>
+      </div>
+    </div>
+  </section>
+  <!-- END: Header & Operational Controls Card -->
+
+  <!-- Feedback Banners -->
+  @if (message()) {
+    <div class="bg-[#EAF8EE] border border-[#C6EFD2] text-[#1E9E47] text-xs font-medium px-4 py-2.5 rounded-xl flex items-center justify-between shadow-2xs" role="status">
+      <div class="flex items-center space-x-2">
+        <svg class="w-4 h-4 text-[#1E9E47] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        <span>{{ message() }}</span>
+      </div>
+      <button type="button" class="text-[#1E9E47] hover:text-[#146c31] font-bold cursor-pointer" (click)="message.set('')">✕</button>
+    </div>
+  }
+  @if (error() && !editorAbierto()) {
+    <div class="bg-[#FFF2F2] border border-[#FFD1D1] text-[#D70015] text-xs font-medium px-4 py-2.5 rounded-xl flex items-center justify-between shadow-2xs" role="alert">
+      <div class="flex items-center space-x-2">
+        <svg class="w-4 h-4 text-[#D70015] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <span>{{ error() }}</span>
+      </div>
+      <button type="button" class="text-[#007AFF] hover:underline font-semibold cursor-pointer ml-3" (click)="cargar()">Reintentar</button>
+    </div>
+  }
+
+  <!-- BEGIN: Filters & Products Table Section -->
+  <section class="bg-white rounded-xl border border-[#E5E5EA] p-5 shadow-subtle space-y-4" data-purpose="productos-list">
+    <!-- Toolbar: Search, Category Selector & Segmented Status Filter -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#E5E5EA]">
+      <!-- Status Tabs -->
+      <div class="inline-flex bg-[#F2F2F7] p-0.5 rounded-lg text-xs overflow-x-auto">
+        <button
+          type="button"
+          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
+          [ngClass]="estadoFiltro() === 'todos' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
+          (click)="estadoFiltro.set('todos')"
+        >
+          Todos ({{ totalProductos() }})
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
+          [ngClass]="estadoFiltro() === 'activo' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
+          (click)="estadoFiltro.set('activo')"
+        >
+          Activos ({{ activosCount() }})
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
+          [ngClass]="estadoFiltro() === 'agotado' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
+          (click)="estadoFiltro.set('agotado')"
+        >
+          Agotados ({{ agotadosCount() }})
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
+          [ngClass]="estadoFiltro() === 'inactivo' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
+          (click)="estadoFiltro.set('inactivo')"
+        >
+          Inactivos ({{ inactivosCount() }})
+        </button>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+        <!-- Category Filter Select -->
+        <div class="relative min-w-[200px]">
+          <select
+            name="categoriaFiltro"
+            class="w-full bg-[#F2F2F7] focus:bg-white text-xs text-[#1C1C1E] font-medium pl-3 pr-8 py-1.5 rounded-lg border border-transparent focus:border-[#007AFF] focus:outline-none transition appearance-none cursor-pointer"
+            [ngModel]="categoriaFiltro()"
+            (ngModelChange)="categoriaFiltro.set($event)"
+          >
+            <option [ngValue]="''">Todas las categorías</option>
+            @for (cat of categoriasOpciones(); track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+            }
+          </select>
+          <svg class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8E8E93] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+
+        <!-- Quick Search Input -->
+        <div class="relative min-w-[240px]">
+          <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8E93]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            name="buscarProducto"
+            class="w-full bg-[#F2F2F7] focus:bg-white text-xs pl-8 pr-3 py-1.5 rounded-lg border border-transparent focus:border-[#007AFF] focus:outline-none transition"
+            placeholder="Buscar por nombre, marca o subcategoría..."
+            [ngModel]="buscar()"
+            (ngModelChange)="buscar.set($event)"
+          />
+        </div>
+
+        <!-- Limpiar filtros -->
+        @if (buscar() || categoriaFiltro() !== '' || estadoFiltro() !== 'todos') {
+          <button
+            type="button"
+            class="px-2.5 py-1.5 text-xs text-[#007AFF] hover:bg-[#F2F2F7] rounded-lg transition font-medium cursor-pointer"
+            (click)="limpiarFiltros()"
+            title="Limpiar filtros"
+          >
+            Restablecer
+          </button>
+        }
+      </div>
     </div>
 
-    <div class="table-scroll">
-      <table>
+    <!-- Products Table -->
+    <div class="overflow-x-auto w-full custom-scrollbar">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr>
-            <th>PRODUCTO</th>
-            <th>CATEGORÍA</th>
-            <th>PRECIO</th>
-            <th>STOCK</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+          <tr class="bg-[#F9F9FB] text-[#8E8E93] text-[10px] font-bold uppercase tracking-wider border-b border-[#E5E5EA] select-none">
+            <th class="py-2.5 px-3 font-semibold">Producto</th>
+            <th class="py-2.5 px-3 font-semibold">Categoría & Subcategoría</th>
+            <th class="py-2.5 px-3 font-semibold">Precio</th>
+            <th class="py-2.5 px-3 font-semibold">Stock</th>
+            <th class="py-2.5 px-3 font-semibold">Estado</th>
+            <th class="py-2.5 px-3 text-center font-semibold">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-[#E5E5EA] text-xs">
           @for (p of filtrados(); track p.id) {
-            <tr>
-              <td>
-                <strong>{{ p.nombre }}</strong>
-                <small>{{ p.marca || 'Sin marca' }} · {{ p.subcategoria || 'Sin subcategoría' }}</small>
+            <tr class="hover:bg-[#F9F9FB] transition-colors">
+              <!-- Producto: Miniatura + Nombre + Marca -->
+              <td class="py-3 px-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-lg bg-[#F2F2F7] border border-[#E5E5EA] flex items-center justify-center shrink-0 overflow-hidden">
+                    @if (p.imagenPrincipalUrl) {
+                      <img [src]="p.imagenPrincipalUrl" [alt]="p.nombre" class="w-full h-full object-cover" />
+                    } @else {
+                      <svg class="w-5 h-5 text-[#AEAEB2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                    }
+                  </div>
+                  <div class="flex flex-col max-w-xs">
+                    <span class="font-bold text-[#1C1C1E] leading-tight line-clamp-1">{{ p.nombre }}</span>
+                    <span class="text-[11px] text-[#8E8E93] mt-0.5">
+                      {{ p.marca || 'Sin marca' }}
+                      @if (p.subcategoria) {
+                        <span> · {{ p.subcategoria }}</span>
+                      }
+                    </span>
+                  </div>
+                </div>
               </td>
-              <td>{{ p.categoriaNombre || ('ID ' + p.categoriaId) }}</td>
-              <td>
-                @if (p.precioOferta != null) {
-                  <strong>${{ p.precioOferta }}</strong> <small style="text-decoration:line-through;">${{ p.precioBase }}</small>
+
+              <!-- Categoría -->
+              <td class="py-3 px-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#E8F1FF] text-[#007AFF]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#007AFF]"></span>
+                  {{ p.categoriaNombre || ('Categoría #' + p.categoriaId) }}
+                </span>
+              </td>
+
+              <!-- Precio -->
+              <td class="py-3 px-3">
+                @if (p.precioOferta != null && p.precioOferta < p.precioBase) {
+                  <div class="flex flex-col">
+                    <span class="font-bold text-sm text-[#1C1C1E]">${{ p.precioOferta | number:'1.2-2' }}</span>
+                    <span class="text-[10px] text-[#8E8E93] line-through">${{ p.precioBase | number:'1.2-2' }}</span>
+                  </div>
                 } @else {
-                  <strong>${{ p.precioBase }}</strong>
+                  <span class="font-bold text-sm text-[#1C1C1E]">${{ p.precioBase | number:'1.2-2' }}</span>
                 }
               </td>
-              <td>{{ p.stock }}</td>
-              <td>
-                <span class="badge" [attr.data-state]="estadoProducto(p) === 'Activo' ? 'Disponible' : 'Cancelado'">{{ estadoProducto(p) }}</span>
+
+              <!-- Stock -->
+              <td class="py-3 px-3">
+                <button
+                  type="button"
+                  class="group relative inline-flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg hover:bg-[#F2F2F7] transition cursor-pointer text-left"
+                  (click)="abrirModalStock(p)"
+                  title="Ajustar stock"
+                  aria-label="Ajustar stock"
+                >
+                  <span
+                    class="font-semibold text-xs"
+                    [ngClass]="{
+                      'text-[#1E9E47]': (p.stock ?? 0) > 5,
+                      'text-[#FF9500]': (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 5,
+                      'text-[#FF3B30]': (p.stock ?? 0) <= 0
+                    }"
+                  >
+                    {{ p.stock ?? 0 }} u.
+                  </span>
+                  @if ((p.stock ?? 0) <= 0) {
+                    <span class="text-[10px] font-semibold text-[#FF3B30] bg-[#FFF2F2] px-1.5 py-0.5 rounded">Agotado</span>
+                  }
+                  <svg class="w-3 h-3 text-[#8E8E93] opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <!-- Tooltip superior -->
+                  <span class="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                    Ajustar stock
+                  </span>
+                </button>
               </td>
-              <td>
-                <button class="text-button" (click)="abrirEditar(p)" [disabled]="saving()">Editar</button>
-                <button class="text-button" (click)="cambiarStock(p)" [disabled]="saving()">Stock</button>
-                @if (p.activo) {
-                  <button class="text-button danger" (click)="desactivar(p)" [disabled]="saving()">Desactivar</button>
-                } @else {
-                  <button class="text-button" (click)="activar(p)" [disabled]="saving()">Activar</button>
-                }
+
+              <!-- Estado -->
+              <td class="py-3 px-3">
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                  [ngClass]="{
+                    'bg-[#EAF8EE] text-[#1E9E47]': estadoProducto(p) === 'Activo',
+                    'bg-[#FFF2E5] text-[#FF9500]': estadoProducto(p) === 'Agotado',
+                    'bg-[#F2F2F7] text-[#8E8E93]': estadoProducto(p) === 'Inactivo'
+                  }"
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="{
+                      'bg-[#24C355]': estadoProducto(p) === 'Activo',
+                      'bg-[#FF9500]': estadoProducto(p) === 'Agotado',
+                      'bg-[#8E8E93]': estadoProducto(p) === 'Inactivo'
+                    }"
+                  ></span>
+                  {{ estadoProducto(p) }}
+                </span>
+              </td>
+
+              <!-- Acciones con Iconos y Tooltips superiores -->
+              <td class="py-3 px-3 text-center">
+                <div class="flex items-center justify-center space-x-1">
+                  <!-- Editar -->
+                  <button
+                    type="button"
+                    class="relative group p-1.5 text-[#007AFF] hover:bg-[#E8F1FF] rounded-lg transition cursor-pointer disabled:opacity-40"
+                    (click)="abrirEditar(p)"
+                    [disabled]="saving()"
+                    title="Editar"
+                    aria-label="Editar producto"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <!-- Tooltip arriba -->
+                    <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                      Editar
+                    </span>
+                  </button>
+
+                  <!-- Stock rápido -->
+                  <button
+                    type="button"
+                    class="relative group p-1.5 text-[#636366] hover:text-[#1C1C1E] hover:bg-[#F2F2F7] rounded-lg transition cursor-pointer disabled:opacity-40"
+                    (click)="abrirModalStock(p)"
+                    [disabled]="saving()"
+                    title="Stock"
+                    aria-label="Ajustar stock"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <!-- Tooltip arriba -->
+                    <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                      Stock
+                    </span>
+                  </button>
+
+                  <!-- Activar / Desactivar -->
+                  @if (p.activo) {
+                    <button
+                      type="button"
+                      class="relative group p-1.5 text-[#FF9500] hover:text-[#D97706] hover:bg-[#FFF2E5] rounded-lg transition cursor-pointer disabled:opacity-40"
+                      (click)="abrirModalDesactivar(p)"
+                      [disabled]="saving()"
+                      title="Desactivar"
+                      aria-label="Desactivar producto"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                      <!-- Tooltip arriba -->
+                      <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                        Desactivar
+                      </span>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="relative group p-1.5 text-[#1E9E47] hover:text-[#167836] hover:bg-[#EAF8EE] rounded-lg transition cursor-pointer disabled:opacity-40"
+                      (click)="activar(p)"
+                      [disabled]="saving()"
+                      title="Activar"
+                      aria-label="Activar venta del producto"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <!-- Tooltip arriba -->
+                      <span class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center px-2 py-0.5 rounded text-[10px] font-semibold text-white bg-[#1C1C1E] shadow-md whitespace-nowrap z-30">
+                        Activar
+                      </span>
+                    </button>
+                  }
+                </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6">
-                <div class="empty">
-                  <h3>{{ loading() ? 'Cargando productos…' : 'No hay productos para mostrar' }}</h3>
-                  <p>Ajusta los filtros o crea un producto nuevo.</p>
+              <td colspan="6" class="py-12 text-center">
+                <div class="flex flex-col items-center justify-center space-y-2">
+                  <div class="w-12 h-12 rounded-full bg-[#E8F1FF] text-[#007AFF] flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-sm font-bold text-[#1C1C1E]">
+                    {{ loading() ? 'Cargando catálogo…' : 'No se encontraron productos' }}
+                  </h3>
+                  <p class="text-xs text-[#8E8E93] max-w-sm">
+                    {{ loading() ? 'Obteniendo artículos del servidor...' : 'Ajusta los filtros de búsqueda o registra un nuevo producto en la tienda.' }}
+                  </p>
+                  @if (!loading()) {
+                    <button
+                      type="button"
+                      class="mt-2 bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium px-4 py-2 rounded-lg inline-flex items-center shadow-sm cursor-pointer"
+                      (click)="abrirNuevo()"
+                    >
+                      + Crear primer producto
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -92,109 +434,786 @@
       </table>
     </div>
   </section>
+  <!-- END: Filters & Products Table Section -->
 
+  <!-- ==================== PRODUCT EDITOR MODAL (APPLE MAC BENTO SHEET) ==================== -->
   @if (editorAbierto()) {
-    <div class="modal-backdrop" (click)="cerrarEditor()">
-      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="producto-dialog-title" style="max-width:920px;width:95vw;max-height:92vh;overflow:auto;" (click)="$event.stopPropagation()">
-        <div class="panel-heading">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarEditor()">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="producto-dialog-title"
+        class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] overflow-hidden flex flex-col max-h-[90vh]"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Modal Header -->
+        <div class="p-6 pb-4 border-b border-[#E5E5EA] bg-gradient-to-b from-[#F9F9FB] to-white flex items-start justify-between gap-4">
           <div>
-            <div class="eyebrow">CATÁLOGO</div>
-            <h2 id="producto-dialog-title">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
-            @if (editandoId()) { <p>Versión actual: <strong>{{ editandoVersion() ?? '—' }}</strong></p> }
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#E8F1FF] text-[#007AFF] mb-1.5">
+              <span>E-COMMERCE · CATÁLOGO</span>
+              @if (editandoId()) {
+                <span>· VERSIÓN: {{ editandoVersion() ?? '—' }}</span>
+              }
+            </div>
+            <h2 id="producto-dialog-title" class="text-lg font-bold text-[#1C1C1E] tracking-tight">
+              {{ editandoId() ? 'Editar Producto' : 'Nuevo Producto' }}
+            </h2>
+            <p class="text-xs text-[#636366] mt-0.5">
+              Completa los datos del producto para sincronizarlo con el catálogo web y la app móvil.
+            </p>
           </div>
-          <button class="icon-button" aria-label="Cerrar" [disabled]="saving()" (click)="cerrarEditor()">×</button>
+
+          <!-- Close Button -->
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#636366] hover:text-[#1C1C1E] flex items-center justify-center transition cursor-pointer text-sm font-bold"
+            aria-label="Cerrar"
+            [disabled]="saving()"
+            (click)="cerrarEditor()"
+          >
+            ✕
+          </button>
         </div>
 
-        <form #f="ngForm" (ngSubmit)="guardar()">
-          <div class="form-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <!-- Form Body -->
+        <form #f="ngForm" (ngSubmit)="guardar()" class="flex flex-col flex-1 overflow-hidden">
+          <div class="p-6 overflow-y-auto custom-scrollbar space-y-5">
+            <!-- 409 CONCURRENCY CONFLICT BANNER (MANDATORY FROM CONTRATO) -->
             @if (conflict()) {
-              <div class="notice error" role="alert" style="grid-column:1/-1;">
-                {{ conflict() }}
-                <button type="button" class="button" (click)="recargarProductoActual()" [disabled]="saving() || loading()">Recargar datos</button>
+              <div class="bg-[#FFF9E6] border border-[#FFE082] text-[#8C6D00] p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs" role="alert">
+                <div class="flex items-center space-x-2.5">
+                  <svg class="w-5 h-5 text-[#FF9500] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span class="text-xs font-semibold">{{ conflict() }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="px-3.5 py-1.5 bg-[#FF9500] hover:bg-[#E08500] active:bg-[#C77700] text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer shrink-0"
+                  (click)="recargarProductoActual()"
+                  [disabled]="saving() || loading()"
+                >
+                  Recargar datos del servidor
+                </button>
               </div>
             }
+
             @if (error()) {
-              <div class="notice error" role="alert" style="grid-column:1/-1;">{{ error() }}</div>
+              <div class="bg-[#FFF2F2] border border-[#FFD1D1] text-[#D70015] text-xs font-medium p-3 rounded-xl flex items-center space-x-2" role="alert">
+                <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>{{ error() }}</span>
+              </div>
             }
 
-            <label>Categoría *
-              <select name="categoriaId" [(ngModel)]="form.categoriaId" required [disabled]="saving()">
-                <option [ngValue]="0">Selecciona una categoría</option>
-                @for (cat of categoriasOpciones(); track cat.id) {
-                  <option [ngValue]="cat.id">{{ cat.nombre }}</option>
-                }
-              </select>
-            </label>
-            <label>Subcategoría
-              <input name="subcategoria" [(ngModel)]="form.subcategoria" [disabled]="saving()" />
-            </label>
-            <label style="grid-column:1/-1;">Nombre *
-              <input name="nombre" [(ngModel)]="form.nombre" required [disabled]="saving()" />
-            </label>
-            <label>Marca
-              <input name="marca" [(ngModel)]="form.marca" [disabled]="saving()" />
-            </label>
-            <label>Stock
-              <input type="number" min="0" name="stock" [(ngModel)]="form.stock" [disabled]="saving()" />
-            </label>
-            <label>Precio base *
-              <input type="number" min="0" step="0.01" name="precioBase" [(ngModel)]="form.precioBase" required [disabled]="saving()" />
-            </label>
-            <label>Precio oferta
-              <input type="number" min="0" step="0.01" name="precioOferta" [(ngModel)]="form.precioOferta" [disabled]="saving()" />
-            </label>
-            <label>Activo
-              <select name="activo" [(ngModel)]="form.activo" [disabled]="saving()">
-                <option [ngValue]="true">Activo</option>
-                <option [ngValue]="false">Inactivo</option>
-              </select>
-            </label>
-            <label style="grid-column:1/-1;">Descripción corta
-              <textarea name="descripcionCorta" rows="2" [(ngModel)]="form.descripcionCorta" [disabled]="saving()"></textarea>
-            </label>
-            <label style="grid-column:1/-1;">Imagen principal (URL)
-              <input name="imagenPrincipalUrl" [(ngModel)]="form.imagenPrincipalUrl" [disabled]="saving()" />
-            </label>
+            <!-- SECCIÓN 1: INFORMACIÓN PRINCIPAL -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Información Básica</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Categoría -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Categoría Oficial <span class="text-[#FF3B30]">*</span>
+                  </label>
+                  <select
+                    name="categoriaId"
+                    [(ngModel)]="form.categoriaId"
+                    required
+                    [disabled]="saving()"
+                    class="w-full text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition cursor-pointer"
+                  >
+                    <option [ngValue]="0">Selecciona una categoría oficial</option>
+                    @for (cat of categoriasOpciones(); track cat.id) {
+                      <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+                    }
+                  </select>
+                </div>
 
-            <div style="grid-column:1/-1;">
-              <div class="panel-heading"><h3>Galería multimedia</h3><button type="button" class="button" (click)="addGaleria()" [disabled]="saving()">Agregar</button></div>
+                <!-- Subcategoría -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Subcategoría
+                  </label>
+                  <input
+                    type="text"
+                    name="subcategoria"
+                    [(ngModel)]="form.subcategoria"
+                    placeholder="Ej. Laptops, Velas, Calzado"
+                    [disabled]="saving()"
+                    class="w-full text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+
+                <!-- Nombre -->
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Nombre del Producto <span class="text-[#FF3B30]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    [(ngModel)]="form.nombre"
+                    required
+                    autofocus
+                    placeholder="Ej. Vela Aromática de Vainilla y Canela 250g"
+                    [disabled]="saving()"
+                    class="w-full text-xs font-semibold bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+
+                <!-- Marca -->
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Marca del Fabricante
+                  </label>
+                  <input
+                    type="text"
+                    name="marca"
+                    [(ngModel)]="form.marca"
+                    placeholder="Ej. Apple, Samsung, Artesanal"
+                    [disabled]="saving()"
+                    class="w-full text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 2: PRECIOS, STOCK Y ESTADO -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Precios & Inventario</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <!-- Precio Base -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Precio Base ($) <span class="text-[#FF3B30]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="precioBase"
+                    [(ngModel)]="form.precioBase"
+                    required
+                    placeholder="0.00"
+                    [disabled]="saving()"
+                    class="w-full text-xs font-semibold bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+
+                <!-- Precio Oferta -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Precio Oferta ($)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="precioOferta"
+                    [(ngModel)]="form.precioOferta"
+                    placeholder="Opcional"
+                    [disabled]="saving()"
+                    class="w-full text-xs font-semibold bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+
+                <!-- Stock -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Stock Disponible
+                  </label>
+                  <div class="flex items-center gap-1">
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-lg bg-[#E5E5EA] hover:bg-[#D1D1D6] text-[#1C1C1E] font-bold text-xs flex items-center justify-center cursor-pointer select-none"
+                      (click)="adjustStock(-1)"
+                      [disabled]="saving() || (form.stock || 0) <= 0"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min="0"
+                      name="stock"
+                      [(ngModel)]="form.stock"
+                      [disabled]="saving()"
+                      class="w-full text-xs font-semibold text-center bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] rounded-xl py-2 outline-none"
+                    />
+                    <button
+                      type="button"
+                      class="w-8 h-8 rounded-lg bg-[#E5E5EA] hover:bg-[#D1D1D6] text-[#1C1C1E] font-bold text-xs flex items-center justify-center cursor-pointer select-none"
+                      (click)="adjustStock(1)"
+                      [disabled]="saving()"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="space-y-1">
+                  <label class="block text-xs font-semibold text-[#1C1C1E]">
+                    Visibilidad en Tienda
+                  </label>
+                  <select
+                    name="activo"
+                    [(ngModel)]="form.activo"
+                    [disabled]="saving()"
+                    class="w-full text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] rounded-xl px-3 py-2 outline-none cursor-pointer"
+                  >
+                    <option [ngValue]="true">Activo</option>
+                    <option [ngValue]="false">Inactivo (Oculto)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 3: MULTIMEDIA & DESCRIPCIÓN -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Descripción & Multimedia</h3>
+              <!-- Descripción Corta -->
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-[#1C1C1E]">
+                  Descripción Corta del Producto
+                </label>
+                <textarea
+                  name="descripcionCorta"
+                  rows="2"
+                  [(ngModel)]="form.descripcionCorta"
+                  placeholder="Resumen atractivo para la ficha de producto..."
+                  [disabled]="saving()"
+                  class="w-full text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl p-3 outline-none transition"
+                ></textarea>
+              </div>
+
+              <!-- Imagen Principal URL -->
+              <div class="space-y-1">
+                <label class="block text-xs font-semibold text-[#1C1C1E]">
+                  URL de Imagen Principal
+                </label>
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-white border border-[#E5E5EA] flex items-center justify-center overflow-hidden shrink-0">
+                    @if (form.imagenPrincipalUrl) {
+                      <img [src]="form.imagenPrincipalUrl" alt="Vista previa" class="w-full h-full object-cover" />
+                    } @else {
+                      <svg class="w-6 h-6 text-[#AEAEB2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                    }
+                  </div>
+                  <input
+                    type="url"
+                    name="imagenPrincipalUrl"
+                    [(ngModel)]="form.imagenPrincipalUrl"
+                    placeholder="https://ejemplo.com/imagenes/producto.jpg"
+                    [disabled]="saving()"
+                    class="flex-1 text-xs bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl px-3 py-2 outline-none transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 4: GALERÍA MULTIMEDIA DINÁMICA -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Galería Multimedia Adicional</h3>
+                  <p class="text-[11px] text-[#8E8E93]">Imágenes secundarias o videos promocionales.</p>
+                </div>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 text-xs font-semibold text-[#007AFF] bg-[#E8F1FF] hover:bg-[#D0E2FF] rounded-lg transition cursor-pointer"
+                  (click)="addGaleria()"
+                  [disabled]="saving()"
+                >
+                  + Agregar medio
+                </button>
+              </div>
+
               @for (m of form.galeriaMultimedia; track $index) {
-                <div style="display:grid;grid-template-columns:140px 1fr 100px auto;gap:8px;align-items:end;margin-bottom:8px;">
-                  <label>Tipo<select [(ngModel)]="m.tipo" [name]="'tipo'+$index" [disabled]="saving()"><option value="imagen">Imagen</option><option value="video">Video</option></select></label>
-                  <label>URL<input [(ngModel)]="m.url" [name]="'murl'+$index" [disabled]="saving()" /></label>
-                  <label>Orden<input type="number" [(ngModel)]="m.orden" [name]="'morden'+$index" [disabled]="saving()" /></label>
-                  <button type="button" class="text-button danger" (click)="removeGaleria($index)" [disabled]="saving()">Quitar</button>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 bg-white rounded-lg border border-[#E5E5EA]">
+                  <select
+                    [(ngModel)]="m.tipo"
+                    [name]="'tipo' + $index"
+                    [disabled]="saving()"
+                    class="text-xs bg-[#F2F2F7] text-[#1C1C1E] border border-[#E5E5EA] rounded-lg px-2 py-1.5 outline-none cursor-pointer sm:w-28"
+                  >
+                    <option value="imagen">Imagen</option>
+                    <option value="video">Video</option>
+                  </select>
+                  <input
+                    type="url"
+                    [(ngModel)]="m.url"
+                    [name]="'murl' + $index"
+                    placeholder="URL del recurso multimedia"
+                    [disabled]="saving()"
+                    class="flex-1 text-xs bg-[#F9F9FB] focus:bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] rounded-lg px-3 py-1.5 outline-none"
+                  />
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="number"
+                      [(ngModel)]="m.orden"
+                      [name]="'morden' + $index"
+                      placeholder="Orden"
+                      [disabled]="saving()"
+                      class="w-16 text-xs text-center bg-[#F2F2F7] text-[#1C1C1E] border border-[#E5E5EA] rounded-lg py-1.5 outline-none"
+                    />
+                    <button
+                      type="button"
+                      class="p-1.5 text-[#FF3B30] hover:bg-[#FFF2F2] rounded-lg transition cursor-pointer"
+                      (click)="removeGaleria($index)"
+                      [disabled]="saving()"
+                      title="Eliminar este recurso"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
+              } @empty {
+                <p class="text-[11px] text-[#AEAEB2] italic">Sin medios adicionales agregados.</p>
               }
             </div>
 
-            <div style="grid-column:1/-1;">
-              <div class="panel-heading"><h3>Ficha técnica</h3><button type="button" class="button" (click)="addFicha()" [disabled]="saving()">Agregar fila</button></div>
+            <!-- SECCIÓN 5: FICHA TÉCNICA DINÁMICA -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Ficha Técnica (Atributos Clave-Valor)</h3>
+                  <p class="text-[11px] text-[#8E8E93]">Especificaciones como material, color, peso o dimensiones.</p>
+                </div>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 text-xs font-semibold text-[#007AFF] bg-[#E8F1FF] hover:bg-[#D0E2FF] rounded-lg transition cursor-pointer"
+                  (click)="addFicha()"
+                  [disabled]="saving()"
+                >
+                  + Agregar atributo
+                </button>
+              </div>
+
               @for (f of form.fichaTecnica; track $index) {
-                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
-                  <label>Clave<input [(ngModel)]="f.clave" [name]="'fclave'+$index" [disabled]="saving()" /></label>
-                  <label>Valor<input [(ngModel)]="f.valor" [name]="'fvalor'+$index" [disabled]="saving()" /></label>
-                  <button type="button" class="text-button danger" (click)="removeFicha($index)" [disabled]="saving()">Quitar</button>
+                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border border-[#E5E5EA]">
+                  <input
+                    type="text"
+                    [(ngModel)]="f.clave"
+                    [name]="'fclave' + $index"
+                    placeholder="Atributo (Ej. Material)"
+                    [disabled]="saving()"
+                    class="flex-1 text-xs bg-[#F9F9FB] focus:bg-white text-[#1C1C1E] font-medium border border-[#E5E5EA] focus:border-[#007AFF] rounded-lg px-3 py-1.5 outline-none"
+                  />
+                  <span class="text-[#8E8E93] text-xs font-bold">:</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="f.valor"
+                    [name]="'fvalor' + $index"
+                    placeholder="Valor (Ej. Algodón 100%)"
+                    [disabled]="saving()"
+                    class="flex-1 text-xs bg-[#F9F9FB] focus:bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] rounded-lg px-3 py-1.5 outline-none"
+                  />
+                  <button
+                    type="button"
+                    class="p-1.5 text-[#FF3B30] hover:bg-[#FFF2F2] rounded-lg transition cursor-pointer"
+                    (click)="removeFicha($index)"
+                    [disabled]="saving()"
+                    title="Eliminar atributo"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
                 </div>
+              } @empty {
+                <p class="text-[11px] text-[#AEAEB2] italic">Sin ficha técnica configurada.</p>
               }
             </div>
 
-            <div style="grid-column:1/-1;">
-              <div class="panel-heading"><h3>Sobre este artículo</h3><button type="button" class="button" (click)="addSobre()" [disabled]="saving()">Agregar ítem</button></div>
-              @for (s of form.sobreEsteArticulo; track $index) {
-                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
-                  <label>Texto<textarea rows="2" [(ngModel)]="form.sobreEsteArticulo[$index]" [name]="'sobre'+$index" [disabled]="saving()"></textarea></label>
-                  <button type="button" class="text-button danger" (click)="removeSobre($index)" [disabled]="saving()">Quitar</button>
+            <!-- SECCIÓN 6: SOBRE ESTE ARTÍCULO (BULLETS) -->
+            <div class="bg-[#F9F9FB] rounded-xl border border-[#E5E5EA] p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#8E8E93]">Sobre este artículo (Puntos Destacados)</h3>
+                  <p class="text-[11px] text-[#8E8E93]">Características clave mostradas en viñetas en la tienda online.</p>
                 </div>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 text-xs font-semibold text-[#007AFF] bg-[#E8F1FF] hover:bg-[#D0E2FF] rounded-lg transition cursor-pointer"
+                  (click)="addSobre()"
+                  [disabled]="saving()"
+                >
+                  + Agregar punto
+                </button>
+              </div>
+
+              @for (s of form.sobreEsteArticulo; track $index) {
+                <div class="flex items-start gap-2 p-2 bg-white rounded-lg border border-[#E5E5EA]">
+                  <span class="w-2 h-2 rounded-full bg-[#007AFF] mt-2 shrink-0"></span>
+                  <textarea
+                    rows="2"
+                    [(ngModel)]="form.sobreEsteArticulo[$index]"
+                    [name]="'sobre' + $index"
+                    placeholder="Describe un beneficio o característica destacada..."
+                    [disabled]="saving()"
+                    class="flex-1 text-xs bg-[#F9F9FB] focus:bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] rounded-lg p-2 outline-none"
+                  ></textarea>
+                  <button
+                    type="button"
+                    class="p-1.5 text-[#FF3B30] hover:bg-[#FFF2F2] rounded-lg transition cursor-pointer mt-1"
+                    (click)="removeSobre($index)"
+                    [disabled]="saving()"
+                    title="Eliminar este punto"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
+              } @empty {
+                <p class="text-[11px] text-[#AEAEB2] italic">Sin puntos destacados configurados.</p>
               }
             </div>
           </div>
 
-          <div class="modal-footer">
-            <button type="button" class="button" (click)="cerrarEditor()" [disabled]="saving()">Cancelar</button>
-            <button class="button primary" [disabled]="f.invalid || saving()">{{ saving() ? 'Guardando…' : 'Guardar' }}</button>
+          <!-- Modal Footer -->
+          <div class="p-4 px-6 bg-[#F9F9FB] border-t border-[#E5E5EA] flex items-center justify-between">
+            <span class="text-[11px] text-[#8E8E93]">* Campos obligatorios para el catálogo</span>
+            <div class="flex items-center space-x-2.5">
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-xl transition cursor-pointer"
+                (click)="cerrarEditor()"
+                [disabled]="saving()"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-2 text-xs font-semibold text-white bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
+                [disabled]="f.invalid || saving() || !form.nombre?.trim() || !form.categoriaId"
+              >
+                @if (saving()) {
+                  <svg class="w-3.5 h-3.5 animate-spin mr-1 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>Guardando…</span>
+                } @else {
+                  <span>{{ editandoId() ? 'Actualizar Producto' : 'Crear Producto' }}</span>
+                }
+              </button>
+            </div>
           </div>
         </form>
+      </section>
+    </div>
+  }
+
+  <!-- ==================== STOCK ADJUSTMENT MODAL (MAC BENTO SHEET) ==================== -->
+  @if (stockModalAbierto() && productoStock(); as prod) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarModalStock()">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="stock-modal-title"
+        class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] overflow-hidden flex flex-col"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div class="p-5 pb-4 border-b border-[#E5E5EA] bg-gradient-to-b from-[#F9F9FB] to-white flex items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#E8F1FF] text-[#007AFF] mb-1">
+              <span>INVENTARIO · ACTUALIZACIÓN DE STOCK</span>
+            </div>
+            <h2 id="stock-modal-title" class="text-base font-bold text-[#1C1C1E] tracking-tight">
+              Ajustar Stock Disponible
+            </h2>
+            <p class="text-xs text-[#636366] mt-0.5 line-clamp-1">
+              {{ prod.nombre }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="w-7 h-7 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#636366] hover:text-[#1C1C1E] flex items-center justify-center transition cursor-pointer text-xs font-bold"
+            aria-label="Cerrar"
+            [disabled]="guardandoStock()"
+            (click)="cerrarModalStock()"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+          <!-- Resumen del producto -->
+          <div class="bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 rounded-lg bg-white border border-[#E5E5EA] flex items-center justify-center overflow-hidden shrink-0">
+                @if (prod.imagenPrincipalUrl) {
+                  <img [src]="prod.imagenPrincipalUrl" [alt]="prod.nombre" class="w-full h-full object-cover" />
+                } @else {
+                  <svg class="w-4 h-4 text-[#AEAEB2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                }
+              </div>
+              <div>
+                <span class="text-xs font-bold text-[#1C1C1E] line-clamp-1">{{ prod.nombre }}</span>
+                <span class="text-[10px] text-[#8E8E93]">{{ prod.categoriaNombre || 'Sin categoría' }}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-[#8E8E93] block">Actual</span>
+              <span class="text-xs font-bold text-[#1C1C1E]">{{ prod.stock ?? 0 }} u.</span>
+            </div>
+          </div>
+
+          <!-- Stepper de ajuste -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-[#1C1C1E]">
+              Nuevo Stock Disponible (unidades)
+            </label>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="w-11 h-11 rounded-xl bg-[#F2F2F7] hover:bg-[#E5E5EA] active:bg-[#D1D1D6] text-[#1C1C1E] font-bold text-lg flex items-center justify-center transition cursor-pointer select-none"
+                (click)="adjustModalStock(-1)"
+                [disabled]="guardandoStock() || nuevoStock() <= 0"
+                title="Disminuir en 1"
+              >
+                −
+              </button>
+              <div class="relative flex-1">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [ngModel]="nuevoStock()"
+                  (ngModelChange)="nuevoStock.set(+$event)"
+                  [disabled]="guardandoStock()"
+                  class="w-full text-base font-bold text-center bg-[#F9F9FB] focus:bg-white text-[#1C1C1E] border border-[#E5E5EA] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/15 rounded-xl py-2.5 outline-none transition"
+                />
+              </div>
+              <button
+                type="button"
+                class="w-11 h-11 rounded-xl bg-[#F2F2F7] hover:bg-[#E5E5EA] active:bg-[#D1D1D6] text-[#1C1C1E] font-bold text-lg flex items-center justify-center transition cursor-pointer select-none"
+                (click)="adjustModalStock(1)"
+                [disabled]="guardandoStock()"
+                title="Aumentar en 1"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Preajustes rápidos -->
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-semibold text-[#8E8E93] block">Ajustes directos:</span>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                class="px-2.5 py-1 text-xs font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] rounded-lg transition cursor-pointer"
+                (click)="adjustModalStock(5)"
+                [disabled]="guardandoStock()"
+              >
+                +5
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 text-xs font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] rounded-lg transition cursor-pointer"
+                (click)="adjustModalStock(10)"
+                [disabled]="guardandoStock()"
+              >
+                +10
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 text-xs font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] rounded-lg transition cursor-pointer"
+                (click)="adjustModalStock(25)"
+                [disabled]="guardandoStock()"
+              >
+                +25
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 text-xs font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] rounded-lg transition cursor-pointer"
+                (click)="adjustModalStock(50)"
+                [disabled]="guardandoStock()"
+              >
+                +50
+              </button>
+              <button
+                type="button"
+                class="px-2.5 py-1 text-xs font-semibold bg-[#FFF2F2] hover:bg-[#FFE5E5] text-[#FF3B30] rounded-lg transition cursor-pointer ml-auto"
+                (click)="setModalStock(0)"
+                [disabled]="guardandoStock()"
+              >
+                Agotar (0)
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado informativo según stock -->
+          <div class="pt-1">
+            @if (nuevoStock() <= 0) {
+              <div class="text-[11px] text-[#FF9500] bg-[#FFF2E5] border border-[#FFE0B2] px-3 py-2 rounded-xl flex items-center space-x-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#FF9500]"></span>
+                <span>El producto pasará a estar <strong>Agotado</strong> en la tienda.</span>
+              </div>
+            } @else {
+              <div class="text-[11px] text-[#1E9E47] bg-[#EAF8EE] border border-[#C6EFD2] px-3 py-2 rounded-xl flex items-center space-x-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#34C759]"></span>
+                <span>El producto estará disponible con <strong>{{ nuevoStock() }} unidades</strong> para venta.</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 px-5 bg-[#F9F9FB] border-t border-[#E5E5EA] flex items-center justify-end space-x-2.5">
+          <button
+            type="button"
+            class="px-4 py-2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-xl transition cursor-pointer"
+            (click)="cerrarModalStock()"
+            [disabled]="guardandoStock()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="px-5 py-2 text-xs font-semibold text-white bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
+            (click)="confirmarStock()"
+            [disabled]="guardandoStock() || nuevoStock() < 0"
+          >
+            @if (guardandoStock()) {
+              <svg class="w-3.5 h-3.5 animate-spin mr-1 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Guardando…</span>
+            } @else {
+              <span>Guardar Stock</span>
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- ==================== DESACTIVAR PRODUCT MODAL (MAC BENTO SHEET) ==================== -->
+  @if (desactivarModalAbierto() && productoDesactivar(); as prod) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm animate-fade-in" (click)="cerrarModalDesactivar()">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="desactivar-modal-title"
+        class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] overflow-hidden flex flex-col"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div class="p-5 pb-4 border-b border-[#E5E5EA] bg-gradient-to-b from-[#FFFDF9] to-white flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#FFF2E5] border border-[#FFE0B2] text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+            </div>
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#FFF2E5] text-[#FF9500] mb-1">
+                <span>CATÁLOGO · ESTADO DE VENTA</span>
+              </div>
+              <h2 id="desactivar-modal-title" class="text-base font-bold text-[#1C1C1E] tracking-tight">
+                Desactivar Producto
+              </h2>
+              <p class="text-xs text-[#636366] mt-0.5">
+                Desactivar disponibilidad en la tienda
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="w-7 h-7 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#636366] hover:text-[#1C1C1E] flex items-center justify-center transition cursor-pointer text-xs font-bold"
+            aria-label="Cerrar"
+            [disabled]="guardandoDesactivar()"
+            (click)="cerrarModalDesactivar()"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+          <!-- Resumen del producto -->
+          <div class="bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-lg bg-white border border-[#E5E5EA] flex items-center justify-center overflow-hidden shrink-0">
+                @if (prod.imagenPrincipalUrl) {
+                  <img [src]="prod.imagenPrincipalUrl" [alt]="prod.nombre" class="w-full h-full object-cover" />
+                } @else {
+                  <svg class="w-5 h-5 text-[#AEAEB2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                }
+              </div>
+              <div class="min-w-0 pr-2">
+                <span class="text-xs font-bold text-[#1C1C1E] block truncate">{{ prod.nombre }}</span>
+                <span class="text-[10px] text-[#8E8E93] block truncate">
+                  {{ prod.categoriaNombre || 'Sin categoría' }}
+                  @if (prod.marca) { <span> · {{ prod.marca }}</span> }
+                </span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-[#8E8E93] block">Stock actual</span>
+              <span class="text-xs font-bold text-[#1C1C1E]">{{ prod.stock ?? 0 }} u.</span>
+            </div>
+          </div>
+
+          <!-- Mensaje explicativo / advertencia -->
+          <div class="bg-[#FFF9F2] border border-[#FFE6CC] rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-[#D97706] font-semibold">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>¿Confirmas desactivar este artículo?</span>
+            </div>
+            <p class="text-[#636366] text-[11px] leading-relaxed">
+              El producto quedará en estado <strong>Inactivo</strong> y los clientes ya no podrán encontrarlo ni comprarlo en el catálogo web. Podrás reactivarlo en cualquier momento con el botón <strong>Activar</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 px-5 bg-[#F9F9FB] border-t border-[#E5E5EA] flex items-center justify-end space-x-2.5">
+          <button
+            type="button"
+            class="px-4 py-2 text-xs font-semibold text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-xl transition cursor-pointer"
+            (click)="cerrarModalDesactivar()"
+            [disabled]="guardandoDesactivar()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="px-5 py-2 text-xs font-semibold text-white bg-[#FF9500] hover:bg-[#E08500] active:bg-[#C77700] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
+            (click)="confirmarDesactivar()"
+            [disabled]="guardandoDesactivar()"
+          >
+            @if (guardandoDesactivar()) {
+              <svg class="w-3.5 h-3.5 animate-spin mr-1 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Desactivando…</span>
+            } @else {
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              <span>Desactivar Producto</span>
+            }
+          </button>
+        </div>
       </section>
     </div>
   }

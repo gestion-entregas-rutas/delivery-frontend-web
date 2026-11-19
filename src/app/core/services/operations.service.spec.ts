@@ -36,23 +36,22 @@ describe('Panel de operaciones', () => {
     expect(app.error()).toContain('Solo se permite cancelar');
     expect(app.saving()).toBe(false);
   });
-  it('muestra el alta en espera como registro exitoso', async () => {
+  it('muestra el alta de repartidor como registro exitoso', async () => {
     forms.form = {
-      clienteNombre: 'Cliente',
-      horaEntrega: '12:00',
-      latitud: -2.18,
-      longitud: -79.9,
+      nombre: 'Repartidor Test',
+      telefono: '0990000000',
+      capacidadMaxima: 4,
     };
-    forms.modal.set('Pedido');
+    forms.modal.set('Repartidor');
     const refresh = vi.spyOn(app, 'refresh').mockResolvedValue();
     const task = forms.save();
     const req = TestBed.inject(HttpTestingController).expectOne(
-      'http://localhost:5289/api/pedidos',
+      'http://localhost:5289/api/repartidores',
     );
-    expect(req.request.body.horaEntrega).toBe('12:00:00');
-    req.flush({ pedido: { id: 'nuevo' }, asignacion: { tipo: 'EnEspera', rutaId: null } });
+    expect(req.request.body.nombre).toBe('Repartidor Test');
+    req.flush({ id: 'nuevo', ...forms.form, estado: 'Disponible' });
     await task;
-    expect(app.message()).toContain('En espera de asignación');
+    expect(app.message()).toContain('Repartidor registrado');
     expect(forms.modal()).toBe('');
     expect(refresh).toHaveBeenCalled();
   });

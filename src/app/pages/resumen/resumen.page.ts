@@ -47,6 +47,7 @@ export interface LastMinuteAlertUI {
   standalone: true,
   imports: [CommonModule, FormsModule, OperationsMap],
   templateUrl: './resumen.page.html',
+  styleUrl: './resumen.page.css',
 })
 export class ResumenPage implements OnDestroy {
   readonly operations = inject(OperationsService);
@@ -54,6 +55,26 @@ export class ResumenPage implements OnDestroy {
   readonly assignment = inject(RouteAssignmentService);
   readonly selectedZoneChip = signal('todos');
   readonly routeFilterQuery = signal('');
+  readonly zoneSearchQuery = signal('');
+  readonly zoneDropdownOpen = signal(false);
+
+  readonly filteredZones = computed(() => {
+    const q = this.zoneSearchQuery().toLocaleLowerCase().trim();
+    const zonas = this.operations.zonas();
+    if (!q) return zonas;
+    return zonas.filter((z) => z.nombre.toLocaleLowerCase().includes(q));
+  });
+
+  onZoneSearchInput(query: string) {
+    this.zoneSearchQuery.set(query);
+    this.zoneDropdownOpen.set(true);
+  }
+
+  selectZoneFromSearch(id: string) {
+    this.setZoneChip(id);
+    this.zoneSearchQuery.set('');
+    this.zoneDropdownOpen.set(false);
+  }
   readonly toastVisible = signal(false);
   readonly toastTitle = signal('');
   readonly toastMessage = signal('');
@@ -146,6 +167,19 @@ export class ResumenPage implements OnDestroy {
   }
   activeFleet() {
     return this.operations.repartidores().filter((d) => d.estado !== 'NoDisponible').length;
+  }
+  currentZone() {
+    const id = this.selectedZoneChip();
+    return id === 'todos' ? null : this.operations.zonas().find((z) => z.id === id);
+  }
+  currentZoneName() {
+    return this.currentZone()?.nombre ?? '';
+  }
+  currentZoneOrders() {
+    return this.zoneOrderCount(this.selectedZoneChip());
+  }
+  currentZoneCapacity() {
+    return this.currentZone()?.maxPedidosPorRuta ?? 4;
   }
   zoneOrderCount(id: string | undefined) {
     return this.operations.resumen()?.porZona.find(p=>p.zonaId===id)?.cantidad ?? 0;

@@ -24,6 +24,7 @@ const pedido: PedidoDto = {
   rutaId: null,
   registradoEn: '2026-10-24T12:00:00-05:00',
   entregadoEn: null,
+  version: 1,
 };
 const ruta: RutaDto = {
   id: 'ruta-real',
@@ -70,7 +71,8 @@ describe('Funcionalidad sobre diseños aprobados', () => {
     http.verify();
   });
   function fill() {
-    page.openOrderSheet();
+    page.editing.set({ ...pedido });
+    page.drawerOpen.set(true);
     page.formCliente.set(pedido.clienteNombre);
     page.formTelefono.set(pedido.clienteTelefono);
     page.formDireccion.set(pedido.direccion);
@@ -78,30 +80,34 @@ describe('Funcionalidad sobre diseños aprobados', () => {
     page.formHora.set('12:30');
     page.formPoint.set({ ...pedido.ubicacion });
   }
-  it('registra desde el panel lateral con coordenadas exactas y refleja EnEspera sin inventar una ruta', async () => {
+  it('actualiza desde el panel lateral con coordenadas exactas y versión vigente', async () => {
     fill();
     vi.spyOn(operations, 'changeDate').mockResolvedValue();
     const task = page.saveOrderAndRoute();
-    const req = http.expectOne(base + '/pedidos');
+    const req = http.expectOne(base + '/pedidos/' + pedido.id);
     expect(req.request.body).toEqual({
       clienteNombre: pedido.clienteNombre,
       clienteTelefono: pedido.clienteTelefono,
       direccion: pedido.direccion,
       fechaEntrega: pedido.fechaEntrega,
       horaEntrega: '12:30:00',
-      ...pedido.ubicacion,
+      zonaId: pedido.zonaId,
+      latitud: pedido.ubicacion.latitud,
+      longitud: pedido.ubicacion.longitud,
+      detalles: null,
+      version: 1,
     });
-    req.flush({ pedido, asignacion: { tipo: 'EnEspera', rutaId: null } });
+    req.flush({ ...pedido });
     await task;
     expect(page.drawerOpen()).toBe(false);
-    expect(page.toastMessage()).toContain('En espera');
-    expect(operations.lastRegistration()?.pedido.id).toBe('pedido-real');
+    expect(page.toastTitle()).toBe('Pedido actualizado');
+    expect(page.toastMessage()).toContain('Cambios guardados');
   });
-  it('no simula un registro exitoso cuando el backend rechaza la ubicación', async () => {
+  it('no simula una actualización exitosa cuando el backend rechaza la ubicación', async () => {
     fill();
     const task = page.saveOrderAndRoute();
     http
-      .expectOne(base + '/pedidos')
+      .expectOne(base + '/pedidos/' + pedido.id)
       .flush(
         { detail: 'La ubicación no pertenece a una zona activa.' },
         { status: 422, statusText: 'Regla de negocio' },
@@ -110,23 +116,22 @@ describe('Funcionalidad sobre diseños aprobados', () => {
     expect(page.drawerOpen()).toBe(true);
     expect(page.toastVisible()).toBe(false);
     expect(operations.error()).toContain('zona activa');
-    expect(operations.lastRegistration()).toBeNull();
   });
-  it('impide registrar sin seleccionar un punto del mapa', async () => {
+  it('impide actualizar sin seleccionar un punto del mapa', async () => {
     fill();
     page.formPoint.set(null);
     await page.saveOrderAndRoute();
-    http.expectNone(base + '/pedidos');
+    http.expectNone(base + '/pedidos/' + pedido.id);
     expect(operations.error()).toContain('ubicación');
   });
-  it('evita POST duplicados mientras se está guardando', async () => {
+  it('evita PUT duplicados mientras se está guardando', async () => {
     fill();
     vi.spyOn(operations, 'changeDate').mockResolvedValue();
     const first = page.saveOrderAndRoute();
     await page.saveOrderAndRoute();
-    const requests = http.match(base + '/pedidos');
+    const requests = http.match(base + '/pedidos/' + pedido.id);
     expect(requests).toHaveLength(1);
-    requests[0].flush({ pedido, asignacion: null });
+    requests[0].flush({ ...pedido });
     await first;
   });
   it('mantiene en cero las vistas sin datos del backend', () => {

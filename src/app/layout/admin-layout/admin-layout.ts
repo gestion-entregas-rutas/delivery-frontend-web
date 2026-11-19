@@ -17,6 +17,7 @@ import { RouteOrderService } from '../../core/services/route-order.service';
   selector: 'app-admin-layout',
   imports: [CommonModule, FormsModule, RouterOutlet, OperationForm, RouteAssignment, PedidoDetail, RouteOrder],
   templateUrl: './admin-layout.html',
+  styleUrl: './admin-layout.css',
 })
 export class AdminLayout implements OnDestroy {
   readonly auth = inject(AuthService);
@@ -91,8 +92,6 @@ export class AdminLayout implements OnDestroy {
       this.operations.navigate('Productos');
     } else if (this.operations.view() === 'RetirosTienda') {
       this.operations.navigate('RetirosTienda');
-    } else {
-      this.forms.open('Pedido');
     }
   }
 
@@ -115,7 +114,6 @@ export class AdminLayout implements OnDestroy {
     this.routeOrder.reset();
     this.assignment.reset();
     this.detail.close();
-    this.forms.orderDrawerRequested.set(false);
     this.operations.stop();
     this.forms.modal.set('');
     this.forms.form = {};

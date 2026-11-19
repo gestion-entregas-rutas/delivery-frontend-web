@@ -1,0 +1,29 @@
+/* Brand Palette overrides for Admin Layout (Marca: #6A1B9A, Acción viva: #7E23DF, Profundo: #4A1273) */
+:host button[class*="bg-[#007AFF]"],
+:host [class*="bg-[#007AFF]"] {
+  background-color: #6A1B9A !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:hover,
+:host [class*="bg-[#007AFF]"]:hover {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:focus,
+:host [class*="bg-[#007AFF]"]:focus {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:active,
+:host [class*="bg-[#007AFF]"]:active {
+  background-color: #4A1273 !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"] *,
+:host [class*="bg-[#007AFF]"] * {
+  color: #ffffff !important;
+}

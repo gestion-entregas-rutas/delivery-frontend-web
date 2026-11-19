@@ -75,6 +75,7 @@ export interface RouteCardItem {
   standalone: true,
   imports: [CommonModule, FormsModule, RouteWorkspace],
   templateUrl: './rutas.page.html',
+  styleUrl: './rutas.page.css',
 })
 export class RutasPage implements OnDestroy {
   readonly operations = inject(OperationsService);
@@ -199,6 +200,9 @@ export class RutasPage implements OnDestroy {
   });
   constructor() {
     this.operations.view.set('Rutas');
+    if (this.operations.selected()) {
+      this.viewMode.set('mapa');
+    }
   }
   completedRoutes() {
     return this.operations.rutas().filter((r) => r.estado === 'Completada').length;

@@ -48,6 +48,7 @@ const CATEGORIAS_OFICIALES = [
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './productos.page.html',
+  styleUrl: './productos.page.css',
 })
 export class ProductosPage implements OnInit {
   readonly api = inject(LogisticaApiService);
@@ -69,6 +70,35 @@ export class ProductosPage implements OnInit {
   readonly editandoId = signal<string | null>(null);
   readonly editandoVersion = signal<string | number | null | undefined>(undefined);
   readonly editandoNombre = signal('');
+
+  // Stock Modal state
+  readonly stockModalAbierto = signal(false);
+  readonly productoStock = signal<ProductoDto | null>(null);
+  readonly nuevoStock = signal<number>(0);
+  readonly guardandoStock = signal(false);
+
+  // Desactivar Modal state
+  readonly desactivarModalAbierto = signal(false);
+  readonly productoDesactivar = signal<ProductoDto | null>(null);
+  readonly guardandoDesactivar = signal(false);
+
+  // Backward-compatibility aliases
+  readonly pausarModalAbierto = this.desactivarModalAbierto;
+  readonly productoPausar = this.productoDesactivar;
+  readonly guardandoPausar = this.guardandoDesactivar;
+
+  // Validation touched states
+  readonly nombreTouched = signal(false);
+  readonly categoriaTouched = signal(false);
+  readonly precioBaseTouched = signal(false);
+  readonly stockTouched = signal(false);
+
+  readonly totalProductos = computed(() => this.productos().length);
+  readonly activosCount = computed(() => this.productos().filter((p) => p.activo && (p.stock ?? 0) > 0).length);
+  readonly agotadosCount = computed(() => this.productos().filter((p) => (p.stock ?? 0) <= 0).length);
+  readonly inactivosCount = computed(() => this.productos().filter((p) => !p.activo).length);
+  readonly totalStock = computed(() => this.productos().reduce((acc, p) => acc + (p.stock || 0), 0));
+  readonly totalCategorias = computed(() => new Set(this.productos().map((p) => p.categoriaId)).size);
 
   readonly categoriasOpciones = computed(() => {
     const fromApi = this.categorias().filter((c) => c.id && c.id !== 0);
@@ -120,6 +150,13 @@ export class ProductosPage implements OnInit {
     };
   }
 
+  resetTouched() {
+    this.nombreTouched.set(false);
+    this.categoriaTouched.set(false);
+    this.precioBaseTouched.set(false);
+    this.stockTouched.set(false);
+  }
+
   async cargar() {
     this.loading.set(true);
     this.error.set('');
@@ -139,6 +176,7 @@ export class ProductosPage implements OnInit {
   }
 
   abrirNuevo() {
+    this.resetTouched();
     this.editandoId.set(null);
     this.editandoVersion.set(undefined);
     this.editandoNombre.set('');
@@ -149,6 +187,7 @@ export class ProductosPage implements OnInit {
   }
 
   async abrirEditar(p: ProductoDto) {
+    this.resetTouched();
     this.error.set('');
     this.conflict.set('');
     this.editorAbierto.set(true);
@@ -184,8 +223,15 @@ export class ProductosPage implements OnInit {
 
   cerrarEditor() {
     if (this.saving()) return;
+    this.resetTouched();
     this.editorAbierto.set(false);
     this.conflict.set('');
+  }
+
+  adjustStock(delta: number) {
+    const current = Number(this.form.stock) || 0;
+    this.form.stock = Math.max(0, current + delta);
+    this.stockTouched.set(true);
   }
 
   addGaleria() { this.form.galeriaMultimedia.push({ tipo: 'imagen', url: '', orden: this.form.galeriaMultimedia.length + 1 }); }
@@ -195,8 +241,19 @@ export class ProductosPage implements OnInit {
   addSobre() { this.form.sobreEsteArticulo.push(''); }
   removeSobre(i: number) { this.form.sobreEsteArticulo.splice(i, 1); }
 
+  limpiarFiltros() {
+    this.buscar.set('');
+    this.categoriaFiltro.set('');
+    this.estadoFiltro.set('todos');
+  }
+
   async guardar() {
     if (this.saving()) return;
+    this.nombreTouched.set(true);
+    this.categoriaTouched.set(true);
+    this.precioBaseTouched.set(true);
+    this.stockTouched.set(true);
+
     if (!this.form.nombre?.trim() || !this.form.categoriaId) {
       this.error.set('Nombre y categoría son obligatorios.');
       return;
@@ -264,22 +321,117 @@ export class ProductosPage implements OnInit {
     }
   }
 
-  async cambiarStock(p: ProductoDto) {
-    const value = prompt(`Nuevo stock para "${p.nombre}"`, String(p.stock ?? 0));
-    if (value == null) return;
-    const stock = Number(value);
+  abrirModalStock(p: ProductoDto) {
+    this.productoStock.set(p);
+    this.nuevoStock.set(p.stock ?? 0);
+    this.stockModalAbierto.set(true);
+  }
+
+  cerrarModalStock() {
+    if (this.guardandoStock()) return;
+    this.stockModalAbierto.set(false);
+    this.productoStock.set(null);
+  }
+
+  adjustModalStock(delta: number) {
+    const current = Number(this.nuevoStock()) || 0;
+    this.nuevoStock.set(Math.max(0, current + delta));
+  }
+
+  setModalStock(val: number) {
+    this.nuevoStock.set(Math.max(0, val));
+  }
+
+  async confirmarStock() {
+    const p = this.productoStock();
+    if (!p) return;
+    const stock = Number(this.nuevoStock());
     if (!Number.isFinite(stock) || stock < 0) return;
+    this.guardandoStock.set(true);
     try {
       await firstValueFrom(this.api.actualizarStockProducto(p.id, stock));
       await this.cargar();
       this.message.set('Stock actualizado.');
-    } catch (e) { this.error.set(this.msgError(e)); }
+      this.stockModalAbierto.set(false);
+      this.productoStock.set(null);
+    } catch (e) {
+      this.error.set(this.msgError(e));
+    } finally {
+      this.guardandoStock.set(false);
+    }
+  }
+
+  async cambiarStock(p: ProductoDto) {
+    if (typeof globalThis.prompt === 'function') {
+      const value = globalThis.prompt(`Nuevo stock para "${p.nombre}"`, String(p.stock ?? 0));
+      if (value != null) {
+        const stock = Number(value);
+        if (!Number.isFinite(stock) || stock < 0) return;
+        try {
+          await firstValueFrom(this.api.actualizarStockProducto(p.id, stock));
+          await this.cargar();
+          this.message.set('Stock actualizado.');
+        } catch (e) { this.error.set(this.msgError(e)); }
+        return;
+      }
+    }
+    this.abrirModalStock(p);
+  }
+
+  abrirModalDesactivar(p: ProductoDto) {
+    this.productoDesactivar.set(p);
+    this.desactivarModalAbierto.set(true);
+  }
+
+  abrirModalPausar(p: ProductoDto) {
+    this.abrirModalDesactivar(p);
+  }
+
+  cerrarModalDesactivar() {
+    if (this.guardandoDesactivar()) return;
+    this.desactivarModalAbierto.set(false);
+    this.productoDesactivar.set(null);
+  }
+
+  cerrarModalPausar() {
+    this.cerrarModalDesactivar();
+  }
+
+  async confirmarDesactivar() {
+    const p = this.productoDesactivar();
+    if (!p) return;
+    this.guardandoDesactivar.set(true);
+    try {
+      await firstValueFrom(this.api.desactivarProducto(p.id));
+      await this.cargar();
+      this.message.set(`Producto "${p.nombre}" desactivado.`);
+      this.desactivarModalAbierto.set(false);
+      this.productoDesactivar.set(null);
+    } catch (e) {
+      this.error.set(this.msgError(e));
+    } finally {
+      this.guardandoDesactivar.set(false);
+    }
+  }
+
+  async confirmarPausar() {
+    return this.confirmarDesactivar();
   }
 
   async desactivar(p: ProductoDto) {
-    if (!confirm(`¿Desactivar "${p.nombre}"?`)) return;
-    try { await firstValueFrom(this.api.desactivarProducto(p.id)); await this.cargar(); this.message.set('Producto desactivado.'); }
-    catch (e) { this.error.set(this.msgError(e)); }
+    if (typeof globalThis.confirm === 'function') {
+      const ok = globalThis.confirm(`¿Desactivar "${p.nombre}"?`);
+      if (ok) {
+        try {
+          await firstValueFrom(this.api.desactivarProducto(p.id));
+          await this.cargar();
+          this.message.set('Producto desactivado.');
+        } catch (e) { this.error.set(this.msgError(e)); }
+        return;
+      }
+      return;
+    }
+    this.abrirModalDesactivar(p);
   }
 
   async activar(p: ProductoDto) {

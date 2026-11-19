@@ -1,0 +1,59 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-2xs {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Brand button guarantee: text must remain white during hover, focus, active */
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]),
+:host [class*="bg-[#007AFF]"]:not([class*="/"]) {
+  background-color: #6A1B9A !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):hover,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):hover {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):focus,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):focus {
+  background-color: #7E23DF !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]):active,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]):active {
+  background-color: #4A1273 !important;
+  color: #ffffff !important;
+}
+
+:host button[class*="bg-[#007AFF]"]:not([class*="/"]) *,
+:host [class*="bg-[#007AFF]"]:not([class*="/"]) * {
+  color: #ffffff !important;
+}

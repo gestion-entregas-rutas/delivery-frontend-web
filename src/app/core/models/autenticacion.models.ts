@@ -1,4 +1,4 @@
-﻿export type RolUsuario = 'Administrador' | 'Conductor';
+﻿export type RolUsuario = 'Administrador' | 'Conductor' | 'Cliente';
 export interface UsuarioDto {
   id: string;
   nombreUsuario: string;

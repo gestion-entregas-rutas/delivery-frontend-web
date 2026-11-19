@@ -55,6 +55,7 @@ export interface PedidoItemUI {
   standalone: true,
   imports: [CommonModule, FormsModule, AddressPicker],
   templateUrl: './pedidos.page.html',
+  styleUrl: './pedidos.page.css',
 })
 export class PedidosPage implements OnDestroy {
   readonly local = inject(LocalLocationService);
@@ -73,7 +74,7 @@ export class PedidosPage implements OnDestroy {
   readonly assignment = inject(RouteAssignmentService);
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
   readonly activeTab = signal<'todos' | 'anticipados' | 'hoy' | 'pendientes'>('todos');
-  readonly searchQuery = signal(this.operations.search);
+  readonly searchQuery = signal(this.operations.search || '');
   readonly selectedIds = signal<Set<string>>(new Set());
   readonly drawerOpen = signal(false);
   readonly toastVisible = signal(false);
@@ -84,9 +85,54 @@ export class PedidosPage implements OnDestroy {
   private destroyed = false;
   private editRequest = 0;
   readonly formFecha = signal(this.operations.fecha);
-  readonly formHora = signal('12:00');
-  readonly formVentana = signal('');
+  readonly formHora = signal('16:00');
+  readonly formVentana = signal('afternoon');
   readonly formCliente = signal('');
+
+  onVentanaChange(ventana: string) {
+    this.formVentana.set(ventana);
+    switch (ventana) {
+      case 'morning':
+        this.formHora.set('11:00');
+        break;
+      case 'afternoon':
+        this.formHora.set('16:00');
+        break;
+      case 'evening':
+        this.formHora.set('19:30');
+        break;
+      case 'full':
+        this.formHora.set('18:00');
+        break;
+    }
+  }
+
+  onHoraChange(hora: string) {
+    this.formHora.set(hora);
+    if (!hora) return;
+    const parts = hora.split(':');
+    const h = parseInt(parts[0], 10);
+    if (isNaN(h)) return;
+    if (h >= 9 && h <= 13) {
+      this.formVentana.set('morning');
+    } else if (h > 13 && h <= 18) {
+      this.formVentana.set('afternoon');
+    } else if (h > 18 && h <= 21) {
+      this.formVentana.set('evening');
+    } else {
+      this.formVentana.set('full');
+    }
+  }
+
+  formatVentanaHoraria(horaEntrega: string): string {
+    if (!horaEntrega) return 'No informada';
+    const hora = horaEntrega.slice(0, 5);
+    const h = parseInt(hora.split(':')[0], 10);
+    if (h >= 9 && h <= 13) return 'Mañana (09:00 - 13:00)';
+    if (h > 13 && h <= 18) return 'Tarde (14:00 - 18:00)';
+    if (h > 18 && h <= 21) return 'Noche (18:00 - 21:00)';
+    return 'Jornada Completa (' + hora + ')';
+  }
   readonly editing = signal<PedidoDto | null>(null);
   readonly editingPoint = signal<PuntoDto | null>(null);
   readonly formRemitente = signal('');
@@ -132,7 +178,7 @@ export class PedidosPage implements OnDestroy {
       esHoy: p.fechaEntrega === this.operations.today,
       zonaNombre: this.operations.zoneName(p.zonaId),
       zonaColor: 'bg-status-routing',
-      ventanaHoraria: p.horaEntrega.slice(0, 5) + ' (hora de entrega)',
+      ventanaHoraria: this.formatVentanaHoraria(p.horaEntrega),
       cargaTitulo:
         [
           p.detalles?.tipoCarga,
@@ -161,7 +207,20 @@ export class PedidosPage implements OnDestroy {
       rawPedido: p,
     })),
   );
-  readonly filteredOrders = this.allOrders;
+  readonly filteredOrders = computed<PedidoItemUI[]>(() => {
+    const orders = this.allOrders();
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter(
+      (o) =>
+        o.codigo.toLowerCase().includes(q) ||
+        o.clienteNombre.toLowerCase().includes(q) ||
+        o.clienteTelefono.toLowerCase().includes(q) ||
+        o.destinatarioNombre.toLowerCase().includes(q) ||
+        o.zonaNombre.toLowerCase().includes(q) ||
+        o.rawPedido.direccion.toLowerCase().includes(q),
+    );
+  });
   readonly anticipadosCount = computed(() => {
     this.operations.resumen();
     return this.operations.desde === this.operations.scheduledDate() && !this.operations.hasta
@@ -180,19 +239,18 @@ export class PedidosPage implements OnDestroy {
   readonly totalOrdersCount = computed(() => this.operations.total());
   constructor() {
     this.operations.view.set('Pedidos');
-    effect(() => {
-      if (this.forms.orderDrawerRequested())
-        untracked(() => {
-          this.forms.orderDrawerRequested.set(false);
-          this.openOrderSheet();
-        });
-    });
   }
   @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
-    if (event.key === 'Escape') this.closeOrderSheet();
-    else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
+    if (event.key === 'Escape') {
+      if (document.activeElement === this.searchInput?.nativeElement && this.searchQuery()) {
+        this.onSearchChange('');
+        return;
+      }
+      this.closeOrderSheet();
+    } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       this.searchInput?.nativeElement.focus();
+      this.searchInput?.nativeElement.select();
     }
   }
   setActiveTab(tab: 'todos' | 'anticipados' | 'hoy' | 'pendientes') {
@@ -202,6 +260,10 @@ export class PedidosPage implements OnDestroy {
     this.operations.hasta = '';
     if (tab === 'hoy') this.operations.fecha = this.operations.today;
     void this.operations.changeDate();
+  }
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.searchOnServer(value);
   }
   searchOnServer(value: string) {
     clearTimeout(this.searchTimer);
@@ -237,6 +299,8 @@ export class PedidosPage implements OnDestroy {
     this.formFragil.set(null);
     this.formPrioridad.set(null);
     this.formFecha.set(this.operations.fecha);
+    this.formVentana.set('afternoon');
+    this.formHora.set('16:00');
     this.formCliente.set('');
     this.formTelefono.set('');
     this.formDireccion.set('');
@@ -262,7 +326,8 @@ export class PedidosPage implements OnDestroy {
       this.formDireccion.set(p.direccion);
       this.formPoint.set(p.ubicacion);
       this.formFecha.set(p.fechaEntrega);
-      this.formHora.set(p.horaEntrega.slice(0, 5));
+      const horaStr = p.horaEntrega ? p.horaEntrega.slice(0, 5) : '16:00';
+      this.onHoraChange(horaStr);
       const d = p.detalles;
       this.formRemitente.set(d?.remitenteNombre || '');
       this.formRemitenteTelefono.set(d?.remitenteTelefono || '');
@@ -394,39 +459,23 @@ export class PedidosPage implements OnDestroy {
             : {}),
       };
       const editing = this.editing();
-      if (editing) {
-        if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
-        if (
-          point.latitud === editing.ubicacion.latitud &&
-          point.longitud === editing.ubicacion.longitud
-        )
-          body.zonaId = editing.zonaId;
-        const updated = await firstValueFrom(
-          this.operations.api.actualizarPedido(editing.id, { ...body, version: editing.version }),
-        );
-        this.drawerOpen.set(false);
-        this.operations.fecha = updated.fechaEntrega;
-        await this.operations.changeDate();
-        this.showToast(
-          'Pedido actualizado',
-          'Cambios guardados. La edición no asigna una ruta automáticamente.',
-        );
-        return;
-      }
-      const result = await firstValueFrom(this.operations.api.registrarPedido(body));
-      this.operations.lastRegistration.set(result);
+      if (!editing) return;
+      if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
+      if (
+        point.latitud === editing.ubicacion.latitud &&
+        point.longitud === editing.ubicacion.longitud
+      )
+        body.zonaId = editing.zonaId;
+      const updated = await firstValueFrom(
+        this.operations.api.actualizarPedido(editing.id, { ...body, version: editing.version }),
+      );
       this.drawerOpen.set(false);
-      this.operations.fecha = result.pedido.fechaEntrega;
+      this.operations.fecha = updated.fechaEntrega;
       await this.operations.changeDate();
-      if (!this.destroyed)
-        this.showToast(
-          'Pedido registrado',
-          result.asignacion?.tipo === 'EnEspera'
-            ? 'Registrado correctamente. En espera de asignación.'
-            : result.asignacion?.rutaId
-              ? 'Asignado a la ruta #' + this.operations.short(result.asignacion.rutaId)
-              : 'Registrado para la fecha seleccionada, pendiente de planificación.',
-        );
+      this.showToast(
+        'Pedido actualizado',
+        'Cambios guardados. La edición no asigna una ruta automáticamente.',
+      );
     } catch (e) {
       if ((e as any)?.status === 409 && this.editing()) {
         const editingId = this.editing()!.id;

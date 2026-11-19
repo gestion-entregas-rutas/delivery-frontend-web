@@ -75,6 +75,7 @@ export interface RouteCardItem {
   standalone: true,
   imports: [CommonModule, FormsModule, RouteWorkspace],
   templateUrl: './rutas.page.html',
+  styleUrl: './rutas.page.css',
 })
 export class RutasPage implements OnDestroy {
   readonly operations = inject(OperationsService);

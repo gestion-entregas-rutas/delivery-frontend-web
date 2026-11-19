@@ -28,7 +28,7 @@ export function initialsAvatar(name: string): string {
   return (
     'data:image/svg+xml,' +
     encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#d8e2ff"/><text x="32" y="38" text-anchor="middle" font-family="Arial" font-size="20" fill="#0058bc">${initials}</text></svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="32" fill="#F1E6F8"/><text x="32" y="38" text-anchor="middle" font-family="Arial" font-size="20" fill="#6A1B9A">${initials}</text></svg>`,
     )
   );
 }

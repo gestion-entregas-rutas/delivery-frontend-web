@@ -33,17 +33,81 @@ import { drawGpsMarkers } from '../../../core/utils/gps-markers';
       .map-canvas {
         width: 100%;
         height: 100%;
-        min-height: 500px;
+        min-height: 100%;
       }
       p {
         position: absolute;
-        bottom: 80px;
-        left: 20px;
+        top: 12px;
+        left: 12px;
         z-index: 400;
-        padding: 10px;
-        background: var(--color-surface-container-lowest);
+        margin: 0;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid #e5e5ea;
         font-size: 11px;
+        font-weight: 500;
+        color: #1c1c1e;
         border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        pointer-events: none;
+      }
+      ::ng-deep .carto-zone-div-icon {
+        background: transparent !important;
+        border: none !important;
+      }
+      ::ng-deep .carto-zone-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(0, 122, 255, 0.45);
+        border-radius: 9999px;
+        padding: 3px 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        color: #1c1c1e;
+        white-space: nowrap;
+        pointer-events: auto;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        transform: translate(-50%, -50%);
+      }
+      ::ng-deep .carto-zone-badge:hover {
+        transform: translate(-50%, -50%) scale(1.08);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+        background: #ffffff;
+      }
+      ::ng-deep .carto-zone-badge.active-zone {
+        background: #6A1B9A !important;
+        color: #ffffff !important;
+        border-color: #6A1B9A !important;
+        box-shadow: 0 4px 16px rgba(106, 27, 154, 0.4) !important;
+      }
+      ::ng-deep .badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 9999px;
+        flex-shrink: 0;
+      }
+      ::ng-deep .active-zone .badge-dot {
+        background-color: #ffffff !important;
+      }
+      ::ng-deep .badge-count {
+        background: rgba(106, 27, 154, 0.12);
+        color: #7E23DF;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 0 5px;
+        border-radius: 9999px;
+      }
+      ::ng-deep .active-zone .badge-count {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: #ffffff !important;
       }
     `,
   ],
@@ -101,19 +165,90 @@ export class OperationsMap implements OnDestroy {
     const L = this.L,
       colors = mapPalette();
     this.layers.clearLayers();
-    this.operations
-      .zonas()
-      .filter((z) => z.activa && (!this.zoneId || z.id === this.zoneId))
-      .forEach((z) => {
-        const title = document.createElement('span');
-        title.textContent = z.nombre;
+
+    const ZONE_COLORS = [
+      '#6A1B9A', // Morado Marca
+      '#7E23DF', // Acción viva
+      '#1E8E4E', // Verde Esmeralda
+      '#B26A00', // Naranja / Ámbar
+      '#4A1273', // Profundo
+      '#30B0C7', // Turquesa
+    ];
+
+    const activeZones = this.operations.zonas().filter((z) => z.activa);
+    const isAll = !this.zoneId;
+
+    activeZones.forEach((z, i) => {
+      const color = ZONE_COLORS[i % ZONE_COLORS.length];
+      const isSelected = this.zoneId === z.id;
+
+      if (isAll || isSelected) {
+        // Dynamic styled polygon matching Stitch cartography
+        const poly = L.polygon(
+          z.poligono.map((p) => [p.latitud, p.longitud] as [number, number]),
+          {
+            color: isSelected ? '#7E23DF' : color,
+            weight: isSelected ? 3 : 2,
+            dashArray: isSelected ? '6 3' : '5 3',
+            fillColor: color,
+            fillOpacity: isSelected ? 0.18 : 0.08,
+          },
+        ).addTo(this.layers!);
+
+        poly.on('click', () => {
+          this.operations.zona = z.id;
+          void this.operations.refresh(true);
+        });
+
+        // Dynamic Cartographic Label on Centroid
+        if (z.poligono.length >= 3) {
+          let latSum = 0, lngSum = 0;
+          for (const p of z.poligono) {
+            latSum += p.latitud;
+            lngSum += p.longitud;
+          }
+          const lat = latSum / z.poligono.length;
+          const lng = lngSum / z.poligono.length;
+
+          const count = this.operations.resumen()?.porZona.find((p) => p.zonaId === z.id)?.cantidad ?? 0;
+
+          const badgeHtml = `
+            <div class="carto-zone-badge ${isSelected ? 'active-zone' : ''}">
+              <span class="badge-dot" style="background-color: ${color}"></span>
+              <span class="badge-text">${z.nombre}</span>
+              ${count > 0 ? `<span class="badge-count">${count}</span>` : ''}
+            </div>
+          `;
+
+          const icon = L.divIcon({
+            className: 'carto-zone-div-icon',
+            html: badgeHtml,
+            iconSize: [0, 0],
+          });
+
+          L.marker([lat, lng], { icon, interactive: true })
+            .on('click', () => {
+              this.operations.zona = z.id;
+              void this.operations.refresh(true);
+            })
+            .addTo(this.layers!);
+        }
+      } else {
+        // Context outline for non-selected zones
         L.polygon(
           z.poligono.map((p) => [p.latitud, p.longitud] as [number, number]),
-          { color: colors.primary, weight: 1, fillOpacity: 0.04 },
-        )
-          .bindTooltip(title)
-          .addTo(this.layers!);
-      });
+          {
+            color: '#8E8E93',
+            weight: 1,
+            dashArray: '4 4',
+            fillColor: '#8E8E93',
+            fillOpacity: 0.02,
+            opacity: 0.35,
+          },
+        ).addTo(this.layers!);
+      }
+    });
+
     this.operations
       .rutas()
       .filter((r) => r.estado !== 'Cancelada' && (!this.zoneId || r.zonaId === this.zoneId))
@@ -151,6 +286,19 @@ export class OperationsMap implements OnDestroy {
           .addTo(this.layers!);
       });
     drawGpsMarkers(L,this.layers,this.operations.ubicaciones(),this.operations.rutas(),id=>this.operations.driver(id),colors.teal,this.zoneId);
+
+    if (!isAll) {
+      const selectedPoly = activeZones.find((z) => z.id === this.zoneId);
+      if (selectedPoly && selectedPoly.poligono.length) {
+        const polyBounds = L.latLngBounds(
+          selectedPoly.poligono.map((p) => [p.latitud, p.longitud] as [number, number]),
+        );
+        if (polyBounds.isValid()) {
+          this.map.fitBounds(polyBounds, { padding: [55, 55], maxZoom: 15 });
+          return;
+        }
+      }
+    }
     const bounds = L.featureGroup(this.layers.getLayers()).getBounds();
     if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [45, 45], maxZoom: 15 });
   }

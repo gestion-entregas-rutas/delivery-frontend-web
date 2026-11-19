@@ -1,4 +1,5 @@
 ﻿import { signal } from '@angular/core';
+import { of } from 'rxjs';
 import { AuthService } from './core/auth/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -64,21 +65,45 @@ describe('Navegación administrativa', () => {
     expect(operations.fecha).toBe('2027-03-12');
     expect(harness.routeNativeElement?.querySelector('app-orders-table')).toBeNull();
   });
-  it('abre el formulario real de pedidos y conserva el estado vacío de la API', async () => {
+  it('conserva el estado vacío de la API sin opción de nuevo pedido y permite editar un pedido pendiente', async () => {
     const operations = TestBed.inject(OperationsService);
     vi.spyOn(operations, 'start').mockImplementation(() => {});
     const harness = await RouterTestingHarness.create('/pedidos');
     expect(harness.routeNativeElement?.querySelectorAll('.order-id').length).toBe(0);
     expect(harness.routeNativeElement?.textContent).toContain('Sin pedidos para mostrar');
-    (
-      harness.routeNativeElement?.querySelector('.heading-actions .primary') as HTMLButtonElement
-    ).click();
+    expect(harness.routeNativeElement?.querySelector('.heading-actions .primary')).toBeNull();
+
+    const sample = {
+      id: 'pedido-1',
+      version: 1,
+      clienteNombre: 'Cliente Test',
+      clienteTelefono: '0999999999',
+      direccion: 'Av Test 123',
+      ubicacion: { latitud: -2.18, longitud: -79.9 },
+      zonaId: 'zona-1',
+      fechaEntrega: '2026-11-16',
+      horaEntrega: '16:00:00',
+      estado: 'Pendiente' as const,
+      rutaId: null,
+      registradoEn: '2026-11-16T10:00:00Z',
+      entregadoEn: null,
+    };
+    operations.pedidos.set([sample]);
+    vi.spyOn(operations.api, 'obtenerPedido').mockReturnValue(of(sample));
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelectorAll('.order-id').length).toBe(1);
+    const editBtn = harness.routeNativeElement?.querySelector(
+      'button[title="Editar pedido pendiente"]',
+    ) as HTMLButtonElement;
+    expect(editBtn).toBeTruthy();
+    editBtn.click();
+    await harness.fixture.whenStable();
     harness.detectChanges();
     expect(
       harness.routeNativeElement?.querySelector('#new-order-sheet')?.getAttribute('aria-hidden'),
     ).toBe('false');
     expect(harness.routeNativeElement?.querySelector('app-pedidos-page')?.textContent).toContain(
-      'Confirmar y Enrutar',
+      'Editar pedido pendiente',
     );
     expect(harness.routeNativeElement?.querySelector('app-address-picker')).toBeTruthy();
   });

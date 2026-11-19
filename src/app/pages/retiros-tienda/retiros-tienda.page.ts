@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { OrdenRetiroDto } from '../../core/models/ecommerce.models';
@@ -21,11 +21,28 @@ export class RetirosTiendaPage implements OnInit {
   readonly message = signal('');
   readonly buscar = signal('');
   readonly retiros = signal<OrdenRetiroDto[]>([]);
+  readonly tab = signal<'pendientes' | 'completadas' | 'todas'>('pendientes');
+  readonly ordenAConfirmar = signal<OrdenRetiroDto | null>(null);
+
+  esRetirada(r: OrdenRetiroDto): boolean {
+    const estado = (r.estadoEntrega || r.estadoOrden || '').toLowerCase();
+    return estado === 'retirada' || estado === 'retirado';
+  }
+
+  readonly conteoPendientes = computed(() => this.retiros().filter((r) => !this.esRetirada(r)).length);
+  readonly conteoCompletadas = computed(() => this.retiros().filter((r) => this.esRetirada(r)).length);
 
   readonly filtrados = computed(() => {
     const q = this.buscar().trim().toLocaleLowerCase();
-    if (!q) return this.retiros();
-    return this.retiros().filter((r) => {
+    const t = this.tab();
+    let lista = this.retiros();
+    if (t === 'pendientes') {
+      lista = lista.filter((r) => !this.esRetirada(r));
+    } else if (t === 'completadas') {
+      lista = lista.filter((r) => this.esRetirada(r));
+    }
+    if (!q) return lista;
+    return lista.filter((r) => {
       const cedula = r.datosRetiroTienda?.cedulaQuienRetira || '';
       const nombre = r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '';
       const codigo = r.codigoRetiro || r.numeroOrden || '';
@@ -80,19 +97,37 @@ export class RetirosTiendaPage implements OnInit {
     }
   }
 
+  abrirModalConfirmacion(r: OrdenRetiroDto) {
+    this.error.set('');
+    this.ordenAConfirmar.set(r);
+  }
+
+  cerrarModal() {
+    this.ordenAConfirmar.set(null);
+  }
+
+  async confirmarModal() {
+    const orden = this.ordenAConfirmar();
+    if (!orden) return;
+    await this.marcarRetirado(orden);
+  }
+
   async marcarRetirado(r: OrdenRetiroDto) {
     const ordenId = r.id || r.ordenId;
     if (!ordenId) {
       this.error.set('No se encontró el identificador de la orden.');
       return;
     }
-    if (!confirm(`¿Confirmar entrega en mostrador de la orden ${r.numeroOrden || ordenId}?`)) return;
+    this.loading.set(true);
     try {
       await firstValueFrom(this.api.marcarOrdenRetirada(ordenId));
       this.message.set('Orden marcada como retirada en tienda.');
+      this.cerrarModal();
       await this.cargar();
     } catch (e) {
       this.error.set(this.msgError(e));
+    } finally {
+      this.loading.set(false);
     }
   }
 

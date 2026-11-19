@@ -74,6 +74,8 @@ export class RepartidoresPage {
   }
 
   verRuta(ruta: RutaDto): void {
+    this.operations.zona = '';
     this.operations.selectRoute(ruta);
+    this.operations.navigate('Rutas');
   }
 }

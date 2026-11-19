@@ -86,6 +86,7 @@ export interface OrdenRetiroDto {
   estadoOrden?: string;
   estadoPago?: string;
   estadoEntrega?: string;
+  total?: number;
   totalPagado?: number;
   codigoRetiro?: string | null;
   clienteNombre?: string;

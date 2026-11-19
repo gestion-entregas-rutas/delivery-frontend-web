@@ -200,6 +200,9 @@ export class RutasPage implements OnDestroy {
   });
   constructor() {
     this.operations.view.set('Rutas');
+    if (this.operations.selected()) {
+      this.viewMode.set('mapa');
+    }
   }
   completedRoutes() {
     return this.operations.rutas().filter((r) => r.estado === 'Completada').length;

@@ -332,3 +332,138 @@ button[class*="bg-[#007AFF]"]:active * {
 [class*="bg-[#007AFF]/"] * {
   color: #7E23DF !important;
 }
+
+/* ==========================================================================
+   7. ESCALABILIDAD TIPOGRÁFICA Y VISIBILIDAD GLOBAL (Legibilidad Mejorada)
+   ========================================================================== */
+:root {
+  font-size: 14.5px;
+}
+
+/* Escalar textos mínimos que antes eran diminutos o difíciles de leer */
+.text-\[8px\], [class*="text-[8px]"],
+.text-\[9px\], [class*="text-[9px]"],
+.text-\[10px\], [class*="text-[10px]"] {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+.text-\[11px\], [class*="text-[11px]"],
+.text-xs, [class*="text-xs"] {
+  font-size: 13.5px !important;
+  line-height: 1.5 !important;
+}
+
+.text-sm, [class*="text-sm"] {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+.text-base, [class*="text-base"] {
+  font-size: 16px !important;
+}
+
+.text-lg, [class*="text-lg"] {
+  font-size: 18px !important;
+}
+
+.text-xl, [class*="text-xl"] {
+  font-size: 22px !important;
+  letter-spacing: -0.02em;
+}
+
+.text-2xl, [class*="text-2xl"] {
+  font-size: 26px !important;
+  letter-spacing: -0.025em;
+}
+
+.text-3xl, [class*="text-3xl"] {
+  font-size: 32px !important;
+}
+
+/* Mayor contraste para textos secundarios (evitar grises deslavados e ilegibles) */
+.text-\[\#8E8E93\], [class*="text-[#8E8E93]"],
+.text-\[\#636366\], [class*="text-[#636366]"],
+.text-\[\#AEAEB2\], [class*="text-[#AEAEB2]"] {
+  color: #4A4557 !important;
+}
+
+/* Mejor definición de bordes de tarjetas y paneles */
+.border-\[\#E5E5EA\], [class*="border-[#E5E5EA]"],
+.border-\[\#F2F2F6\], [class*="border-[#F2F2F6]"] {
+  border-color: #E2D9EC !important;
+}
+
+/* Botones, inputs y selectores más cómodos y legibles */
+button, .button, input, select {
+  font-size: 13.5px !important;
+}
+
+input, select {
+  min-height: 38px;
+}
+
+/* Pastillas y badges con mayor presencia y legibilidad */
+.number-pill, .badge, [class*="rounded-full"][class*="px-2"] {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding-inline: 0.6rem !important;
+}
+
+/* ==========================================================================
+   8. REDUCCIÓN DE SOBRECARGA Y RUIDO VISUAL (Enfoque Operativo Limpio)
+   ========================================================================== */
+
+/* --- 8.1. Armado y Optimización (/rutas) --- */
+/* Ocultar barra redundante de reglas operativas */
+[data-purpose="operational-rules-bar"] {
+  display: none !important;
+}
+
+/* Ocultar banner del simulador Same-Day (ruido que ocupaba media pantalla) */
+[data-purpose="operational-simulator-card"] {
+  display: none !important;
+}
+
+/* Ocultar chip "Latencia del motor: no informada" */
+[data-purpose="operational-header"] .text-\[11px\].text-\[\#8E8E93\],
+header .text-\[11px\].text-\[\#8E8E93\] {
+  display: none !important;
+}
+
+/* Ocultar telemetría de relleno "Ahorro Estimado CO2: No informado" */
+div.bg-\[\#F9F9FB\] .flex.flex-wrap.items-center.gap-x-4 > span:nth-child(4) {
+  display: none !important;
+}
+
+/* --- 8.2. Centro de Control (/resumen) --- */
+/* Ocultar sub-renglones en tarjetas KPI con "no informada / no informado" */
+[data-purpose="kpi-bento-grid"] .mt-2.pt-1.flex.items-center.justify-between.text-\[11px\],
+div[class*="grid-cols-4"] > div > div.mt-2.pt-1.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Ocultar métricas vacías sobre el mapa (Velocidad, Km, CO2 no informados) */
+[data-purpose="control-panel-map"] .flex.flex-wrap.items-center.gap-4.text-xs {
+  display: none !important;
+}
+
+/* --- 8.3. Repartidores y Flota (/repartidores) --- */
+/* Ocultar subtítulos redundantes en KPI bar ("Conductores de entrega", "Listos para despachos", etc.) */
+[data-purpose="flota-kpi-bar"] .text-\[10px\].text-\[\#8E8E93\] {
+  display: none !important;
+}
+
+/* --- 8.4. Catálogo y Productos (/productos) --- */
+/* Ocultar subtítulos redundantes en KPI bar de productos */
+[data-purpose="productos-kpi-bar"] .text-\[10px\].text-\[\#8E8E93\] {
+  display: none !important;
+}
+
+/* --- 8.5. Barra Lateral (Admin Layout) --- */
+/* Enlaces del menú lateral más amplios y legibles */
+aside nav a, aside nav button {
+  font-size: 13.5px !important;
+  padding-block: 0.55rem !important;
+}
+

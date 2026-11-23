@@ -83,7 +83,7 @@
           <span class="font-medium text-[#1C1C1E]">{{ operations.count('Pendiente') }} pendientes</span>
         </div>
       </div>
-      <div class="mt-2 pt-1 flex items-center justify-between text-[11px]">
+      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
         <span class="text-[#8E8E93]">Entregados: {{ operations.resumen()?.entregados ?? 0 }} en la consulta</span>
         <span class="text-[#34C759] font-medium">Variación no informada</span>
       </div>
@@ -109,7 +109,7 @@
           <span class="font-medium text-[#007AFF]">{{ operations.avgOrdersPerRoute }} ped/ruta</span>
         </div>
       </div>
-      <div class="mt-2 pt-1 flex items-center justify-between text-[11px]">
+      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
         <span class="text-[#8E8E93]">Ventanas: no informadas</span>
         <span class="text-[#007AFF] font-medium">Saturación: no informada</span>
       </div>
@@ -135,7 +135,7 @@
           <span class="font-medium text-[#1C1C1E]">{{ operations.availableDrivers }} disponibles</span>
         </div>
       </div>
-      <div class="mt-2 pt-1 flex items-center justify-between text-[11px]">
+      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
         <span class="text-[#8E8E93]">Tiempo por parada: no informado</span>
         <span class="text-[#007AFF] font-medium">Vehículos no informados</span>
       </div>
@@ -160,7 +160,7 @@
           <span class="font-medium text-[#FF3B30]">{{ operations.resumen()?.entregados ?? 0 }}</span>
         </div>
       </div>
-      <div class="mt-2 pt-1 flex items-center justify-between text-[11px]">
+      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
         <span class="text-[#8E8E93]">Sobre pedidos no cancelados</span>
         <span class="text-[#34C759] font-medium">Sin evaluación SLA</span>
       </div>

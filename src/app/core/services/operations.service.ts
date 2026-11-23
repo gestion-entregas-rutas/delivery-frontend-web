@@ -14,9 +14,11 @@ import {
   UbicacionRepartidorDto,
 } from '../models/logistica.models';
 import { SeguimientoService } from './seguimiento.service';
+import { LocalLocationService } from './local-location.service';
 @Injectable({ providedIn: 'root' })
 export class OperationsService {
   readonly api = inject(LogisticaApiService);
+  readonly local = inject(LocalLocationService);
   readonly view = signal('Resumen');
   readonly pedidos = signal<PedidoDto[]>([]);
   readonly repartidores = signal<RepartidorDto[]>([]);
@@ -128,7 +130,24 @@ export class OperationsService {
   start() {
     void this.refresh();
     this.seguimiento.onLocation = (p) => this.receiveLocation(p);
+    this.seguimiento.onRouteUpdated = (r) => this.replaceRoute(r);
     void this.seguimiento.start(this.fecha, () => this.refresh());
+  }
+  replaceRoute(ruta: RutaDto) {
+    if (ruta.fecha === this.fecha && (!this.zona || ruta.zonaId === this.zona)) {
+      this.rutas.update((all) => {
+        const idx = all.findIndex((r) => r.id === ruta.id);
+        if (idx >= 0) {
+          const next = [...all];
+          next[idx] = ruta;
+          return next;
+        }
+        return [...all, ruta];
+      });
+      if (this.selected()?.id === ruta.id) {
+        this.selected.set(ruta);
+      }
+    }
   }
   localDate() {
     const d = new Date();
@@ -315,18 +334,52 @@ export class OperationsService {
   async buildRoutes() {
     if (this.saving()) return null;
     this.saving.set(true);
+    this.error.set('');
     try {
+      const local = this.local.location();
       const r = await firstValueFrom(
-        this.api.armarRutas({ fecha: this.fecha, zonaId: this.zona || undefined }),
+        this.api.armarRutas({
+          fecha: this.fecha,
+          zonaId: this.zona || undefined,
+          origen: local ? local.ubicacion : undefined,
+        }),
       );
       this.message.set(
         `${r.rutas.length} rutas generadas · ${r.pedidosSinAsignar} pedidos sin asignar.`,
       );
       await this.refresh();
       return r;
-    } catch (e) {
-      this.showError(e);
+    } catch (e: any) {
+      const detail = e?.error?.detail || '';
+      if (
+        e?.status === 422 &&
+        (!this.local.location() ||
+          detail.toLowerCase().includes('origen') ||
+          detail.toLowerCase().includes('local'))
+      ) {
+        this.error.set(
+          'Configura la ubicación del local para armar rutas con horarios comprometidos.',
+        );
+      } else {
+        this.showError(e);
+      }
       return null;
+    } finally {
+      this.saving.set(false);
+    }
+  }
+  async recalcularEstimaciones(id: string): Promise<boolean> {
+    if (this.saving()) return false;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      const ruta = await firstValueFrom(this.api.recalcularEstimaciones(id));
+      this.replaceRoute(ruta);
+      this.message.set('Estimaciones recalculadas.');
+      return true;
+    } catch (e: any) {
+      this.showError(e);
+      return false;
     } finally {
       this.saving.set(false);
     }

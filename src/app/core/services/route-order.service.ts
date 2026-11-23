@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { RutaDto, ParadaDto } from '../models/logistica.models';
+import { firstValueFrom, Observable } from 'rxjs';
+import { RutaDto, ParadaDto, PedidoEnRiesgo } from '../models/logistica.models';
 import { OperationsService } from './operations.service';
 
 @Injectable({ providedIn: 'root' })
@@ -11,6 +11,8 @@ export class RouteOrderService {
   readonly saving = signal(false);
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly pedidosEnRiesgo = signal<PedidoEnRiesgo[] | null>(null);
+  private resolverRiesgo?: (confirmado: boolean) => void;
   private generation = 0;
   async open(id: string) {
     if (this.saving()) return;
@@ -51,6 +53,38 @@ export class RouteOrderService {
       to < this.stops().length
     );
   }
+  confirmar(pedidos: PedidoEnRiesgo[]): Promise<boolean> {
+    this.pedidosEnRiesgo.set(pedidos);
+    return new Promise<boolean>((resolve) => {
+      this.resolverRiesgo = resolve;
+    });
+  }
+  responderRiesgo(confirmado: boolean) {
+    this.pedidosEnRiesgo.set(null);
+    this.resolverRiesgo?.(confirmado);
+    this.resolverRiesgo = undefined;
+  }
+  async ejecutarConRiesgo<T>(enviar: (forzar: boolean) => Observable<T>): Promise<T | null> {
+    try {
+      return await firstValueFrom(enviar(false));
+    } catch (e: any) {
+      const p = e?.error ?? e?.problem;
+      if (e?.status === 409 && p?.codigo === 'CAMBIO_PONE_EN_RIESGO') {
+        const ok = await this.confirmar(p.pedidosEnRiesgo as PedidoEnRiesgo[]);
+        if (!ok) return null;
+        return await firstValueFrom(enviar(true));
+      }
+      throw e;
+    }
+  }
+  clienteNombre(pedidoId: string): string {
+    const s = this.stops().find((p) => p.pedido.id === pedidoId);
+    return (
+      s?.pedido.clienteNombre ||
+      this.operations.pedidos().find((p) => p.id === pedidoId)?.clienteNombre ||
+      'Pedido #' + this.operations.short(pedidoId)
+    );
+  }
   move(index: number, delta: number) {
     if (!this.canMove(index, delta)) return;
     const next = [...this.stops()];
@@ -64,13 +98,15 @@ export class RouteOrderService {
     this.saving.set(true);
     this.error.set('');
     try {
-      const result = await firstValueFrom(
+      const result = await this.ejecutarConRiesgo((forzar) =>
         this.operations.api.reordenarParadas(
           route.id,
           this.stops().map((s) => s.pedido.id),
-          route.version,
+          route.version!,
+          forzar,
         ),
       );
+      if (!result) return;
       if (gen !== this.generation) return;
       this.operations.rutas.update((all) => all.map((r) => (r.id === result.id ? result : r)));
       if (this.operations.selected()?.id === result.id) this.operations.selected.set(result);
@@ -96,6 +132,9 @@ export class RouteOrderService {
     this.generation++;
     this.route.set(null);
     this.stops.set([]);
+    this.pedidosEnRiesgo.set(null);
+    this.resolverRiesgo?.(false);
+    this.resolverRiesgo = undefined;
     this.saving.set(false);
     this.loading.set(false);
     this.error.set('');

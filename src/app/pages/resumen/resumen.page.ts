@@ -182,7 +182,7 @@ export class ResumenPage implements OnDestroy {
     return this.currentZone()?.maxPedidosPorRuta ?? 4;
   }
   zoneOrderCount(id: string | undefined) {
-    return this.operations.resumen()?.porZona.find(p=>p.zonaId===id)?.cantidad ?? 0;
+    return this.operations.resumen()?.porZona?.find(p=>p.zonaId===id)?.cantidad ?? 0;
   }
   createExpressRoute(alert: LastMinuteAlertUI) {
     void this.assignment.open(alert.raw);

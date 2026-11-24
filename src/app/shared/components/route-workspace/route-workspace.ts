@@ -89,7 +89,8 @@ export class RouteWorkspace implements OnDestroy {
     routes
       .filter((r) => r.estado !== 'Cancelada')
       .forEach((r, i) => {
-        const points = [...r.paradas]
+        const points = [...(r.paradas || [])]
+          .filter((p) => p?.pedido?.ubicacion?.latitud != null && p?.pedido?.ubicacion?.longitud != null)
           .sort((a, b) => a.orden - b.orden)
           .map(
             (p) => [p.pedido.ubicacion.latitud, p.pedido.ubicacion.longitud] as [number, number],
@@ -106,8 +107,11 @@ export class RouteWorkspace implements OnDestroy {
       .pedidos()
       .filter(
         (p) =>
+          p &&
           p.estado !== 'Cancelado' &&
-          (!this.operations.selected() || p.rutaId === this.operations.selected()?.id),
+          (!this.operations.selected() || p.rutaId === this.operations.selected()?.id) &&
+          p.ubicacion?.latitud != null &&
+          p.ubicacion?.longitud != null,
       )
       .forEach((p, i) => {
         const el = document.createElement('div');

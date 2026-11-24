@@ -216,7 +216,7 @@ export class OperationsService {
     return id.slice(0, 8).toUpperCase();
   }
   count(state: string) {
-    return this.resumen()?.porEstado.find((p) => p.estado === state)?.cantidad ?? 0;
+    return this.resumen()?.porEstado?.find((p) => p.estado === state)?.cantidad ?? 0;
   }
   driver(id: string) {
     return this.repartidores().find((r) => r.id === id)?.nombre || 'Sin repartidor';

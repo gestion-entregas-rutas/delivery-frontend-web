@@ -65,9 +65,6 @@
           <span>Lista</span>
         </button>
       </div>
-      <button type="button" class="h-9 w-9 rounded-lg bg-surface-container-low hover:bg-surface-container border border-separator-hairline-light text-on-surface-variant hover:text-on-surface flex items-center justify-center cursor-pointer" title="Nuevo pedido" aria-label="Nuevo pedido" (click)="registerSameDay()">
-        <span class="material-symbols-outlined text-[18px]">add</span>
-      </button>
       <button
         type="button"
         id="optimizeTriggerBtn"
@@ -367,12 +364,6 @@
               </div>
             }
           </div>
-          <div class="p-4 border-t border-separator-hairline-light bg-surface-container-low/70">
-            <button type="button" class="w-full h-9 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer" (click)="registerSameDay()">
-              <span class="material-symbols-outlined text-[16px]">add</span>
-              <span>Nuevo pedido</span>
-            </button>
-          </div>
         }
       </aside>
       }
@@ -662,6 +653,98 @@
   </div>
 
   </div>
+  }
+
+  @if (previa(); as v) {
+    <!-- Vista previa de la optimización -->
+    <div class="fixed inset-0 z-[1500] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="previa-titulo">
+      <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm" (click)="!operations.saving() && previa.set(null)"></div>
+      <section class="relative z-10 w-full max-w-3xl max-h-[90dvh] bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-4 bg-surface-container-low border-b border-separator-hairline-light flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[22px]">bolt</span></span>
+            <div>
+              <h2 id="previa-titulo" class="text-base font-semibold text-on-surface">Vista previa de la optimización</h2>
+              <p class="text-xs text-on-surface-variant mt-0.5">{{ operations.fecha }} · {{ operations.zona ? operations.zoneName(operations.zona) : 'Todas las zonas' }}. No se cambia nada hasta que confirmes.</p>
+            </div>
+          </div>
+          <button type="button" class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center cursor-pointer" aria-label="Cerrar" [disabled]="operations.saving()" (click)="previa.set(null)">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Rutas propuestas</span>
+              <span class="text-lg font-semibold text-on-surface tabular-nums">{{ v.propuestas.length }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low" title="Rutas planificadas que se rehacen. Las rutas en curso no se tocan.">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Se rehacen</span>
+              <span class="text-lg font-semibold text-on-surface tabular-nums">{{ v.rutasReemplazadas }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Cambian de repartidor</span>
+              <span class="text-lg font-semibold tabular-nums" [class]="v.pedidosQueCambianDeRepartidor ? 'text-primary' : 'text-on-surface'">{{ v.pedidosQueCambianDeRepartidor }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Sin ruta</span>
+              <span class="text-lg font-semibold tabular-nums" [class]="v.pedidosSinAsignar ? 'text-status-urgent' : 'text-on-surface'">{{ v.pedidosSinAsignar }}</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-on-surface-variant flex items-start gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-primary">info</span>
+            Solo se rehacen las rutas <strong class="text-on-surface">planificadas</strong> junto con los pedidos sin ruta. Las rutas en curso o completadas no cambian.
+          </p>
+          @if (v.pedidosQuedanSinRuta) {
+            <p class="p-3 rounded-xl bg-status-urgent/10 text-status-urgent text-xs font-semibold">{{ v.pedidosQuedanSinRuta }} {{ v.pedidosQuedanSinRuta === 1 ? 'pedido que hoy tiene ruta quedaría' : 'pedidos que hoy tienen ruta quedarían' }} sin asignar.</p>
+          }
+          @if (v.paradasEnRiesgo) {
+            <p class="p-3 rounded-xl bg-status-urgent/10 text-status-urgent text-xs font-semibold">{{ v.paradasEnRiesgo }} {{ v.paradasEnRiesgo === 1 ? 'parada terminaría' : 'paradas terminarían' }} fuera de su horario comprometido.</p>
+          }
+
+          @for (p of v.propuestas; track p.repartidorId) {
+            <div class="rounded-xl border border-separator-hairline-light overflow-hidden">
+              <div class="px-3 py-2 bg-surface-container-low flex items-center justify-between gap-2 text-xs">
+                <span class="font-semibold text-on-surface">{{ p.repartidorNombre }} · {{ operations.zoneName(p.zonaId) }}</span>
+                <span class="text-on-surface-variant tabular-nums">{{ p.paradas.length }}/{{ p.capacidad }} pedidos{{ p.distanciaEstimadaKm != null ? ' · ' + (p.distanciaEstimadaKm | number: '1.0-1') + ' km' : '' }}</span>
+              </div>
+              <ol class="divide-y divide-separator-hairline-light">
+                @for (s of p.paradas; track s.pedidoId) {
+                  <li class="px-3 py-2 flex items-center gap-3 text-xs">
+                    <span class="w-6 h-6 rounded-full bg-on-surface text-white font-bold flex items-center justify-center shrink-0">{{ s.orden }}</span>
+                    <span class="flex-1 min-w-0">
+                      <span class="block font-semibold text-on-surface truncate">{{ s.direccion }}</span>
+                      <span class="block text-on-surface-variant truncate">{{ s.clienteNombre }}{{ ventanaPrevia(s.compromisoInicioEn, s.compromisoFinEn) ? ' · ' + ventanaPrevia(s.compromisoInicioEn, s.compromisoFinEn) : '' }}</span>
+                    </span>
+                    <span class="flex items-center gap-1 shrink-0">
+                      @if (s.cambiaDeRepartidor) {
+                        <span class="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold">Cambia</span>
+                      }
+                      @if (s.excedeCompromiso) {
+                        <span class="px-1.5 py-0.5 rounded bg-status-urgent/10 text-status-urgent text-[10px] font-semibold">En riesgo</span>
+                      }
+                      <span class="tabular-nums text-on-surface-variant" title="Fin estimado">{{ horaPrevia(s.finalizacionEstimadaEn) }}</span>
+                    </span>
+                  </li>
+                }
+              </ol>
+            </div>
+          } @empty {
+            <p class="text-sm text-on-surface-variant text-center py-6">No hay pedidos ni rutas planificadas para optimizar en esta fecha.</p>
+          }
+        </div>
+
+        <div class="px-5 py-4 border-t border-separator-hairline-light bg-surface-container-low flex items-center justify-end gap-2">
+          <button type="button" class="px-4 py-2 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container cursor-pointer" [disabled]="operations.saving()" (click)="previa.set(null)">Cancelar</button>
+          <button type="button" class="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-sm font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="operations.saving() || (!v.propuestas.length && !v.rutasReemplazadas)" (click)="aplicarOptimizacion()">
+            <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="operations.saving()">{{ operations.saving() ? 'progress_activity' : 'check' }}</span>
+            {{ operations.saving() ? 'Aplicando…' : 'Aplicar optimización' }}
+          </button>
+        </div>
+      </section>
+    </div>
   }
 
   @if (detailRoute(); as ruta) {

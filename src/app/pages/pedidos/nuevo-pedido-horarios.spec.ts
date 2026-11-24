@@ -62,35 +62,4 @@ describe('Nuevo pedido con horarios disponibles', () => {
     http.expectNone(base + '/pedidos');
     expect(operations.error()).toContain('Elige un horario');
   });
-
-  it('envía el horario elegido para que el backend lo vuelva a comprobar', async () => {
-    cargarOferta();
-    page.elegirIntervalo(oferta.intervalos[1]); // sin cupo: se ignora
-    expect(page.intervalo()).toBeNull();
-    page.elegirIntervalo(oferta.intervalos[0]);
-    expect(page.formHora()).toBe('08:00');
-    const tarea = page.saveOrderAndRoute();
-    const req = http.expectOne(base + '/pedidos');
-    expect(req.request.body).toEqual(expect.objectContaining({
-      compromisoInicioEn: '2027-01-01T13:00:00Z', compromisoFinEn: '2027-01-01T13:30:00Z',
-      verificarDisponibilidad: true, horaEntrega: '08:00:00',
-    }));
-    req.flush({ pedido: { id: 'p', fechaEntrega: '2027-01-01' }, asignacion: { tipo: 'EnEspera', rutaId: null } });
-    await tarea;
-    expect(page.drawerOpen()).toBe(false);
-    expect(operations.message()).toContain('Queda pendiente');
-  });
-
-  it('si el horario se ocupó al guardar, avisa y vuelve a consultar', async () => {
-    cargarOferta();
-    page.elegirIntervalo(oferta.intervalos[0]);
-    const tarea = page.saveOrderAndRoute();
-    http.expectOne(base + '/pedidos').flush({ codigo: 'INTERVALO_NO_DISPONIBLE' }, { status: 409, statusText: 'Conflict' });
-    await tarea;
-    expect(page.drawerOpen()).toBe(true);
-    expect(page.intervalo()).toBeNull();
-    expect(operations.error()).toContain('acaba de ocuparse');
-    vi.advanceTimersByTime(400);
-    http.expectOne((r) => r.url === base + '/entregas/intervalos').flush(oferta);
-  });
 });

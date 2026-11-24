@@ -65,7 +65,9 @@ export class OperationFormsService {
           })
         )
           throw new Error(this.local.error());
-        this.operations.message.set('Ubicación del local guardada en este navegador.');
+        const errorServidor = await this.local.subir(this.operations.api, this.local.location()!);
+        if (errorServidor) throw new Error(errorServidor);
+        this.operations.message.set('Ubicación del local guardada. La tienda ya puede calcular horarios de entrega.');
         this.modal.set('');
         return;
       }

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../core/services/operations.service';
 import { OperationFormsService } from '../../core/services/operation-forms.service';
 import { RouteAssignmentService } from '../../core/services/route-assignment.service';
-import { PedidoDto, RutaDto, ResultadoPuntualidadDto } from '../../core/models/logistica.models';
+import { PedidoDto, RutaDto, ResultadoPuntualidadDto, ReoptimizacionDto } from '../../core/models/logistica.models';
 import { PlanningMap, COLORES_PLAN } from '../../shared/components/planning-map/planning-map';
 import { RouteOrderService } from '../../core/services/route-order.service';
 import { RouteDetailModal } from '../../shared/components/route-detail-modal/route-detail-modal';
@@ -370,15 +370,26 @@ export class RutasPage implements OnDestroy {
     return fines.length ? formatHoraEcuador(new Date(Math.max(...fines.map((f) => new Date(f).getTime()))).toISOString()) : null;
   }
 
+  /** Vista previa de la optimización (no cambia nada hasta confirmar). */
+  readonly previa = signal<ReoptimizacionDto | null>(null);
   async triggerOptimization() {
-    // El resultado se muestra en el toast global (operations.message).
-    await this.operations.buildRoutes();
+    const r = await this.operations.reoptimizar(false);
+    if (r) this.previa.set(r);
   }
-  /** Abre el formulario real de alta en Pedidos (fecha de hoy) y vuelve el resultado al panel. */
-  registerSameDay() {
-    this.operations.fecha = this.operations.today;
-    this.operations.abrirNuevoPedido.set(true);
-    this.operations.navigate('Pedidos');
+  /** Aplica la propuesta mostrada en la vista previa. */
+  async aplicarOptimizacion() {
+    const r = await this.operations.reoptimizar(true);
+    if (r) {
+      this.previa.set(null);
+      this.rutaSel.set(null);
+      this.paradaSel.set(null);
+    }
+  }
+  horaPrevia(iso: string | null) {
+    return iso ? formatHoraEcuador(iso) : '—';
+  }
+  ventanaPrevia(inicio: string | null, fin: string | null) {
+    return ventana(inicio, fin);
   }
   assignPending(order: PendingOrder, routeId = '') {
     void this.assignment.open(order.raw, routeId);

@@ -136,7 +136,7 @@ describe('Creación y edición de zonas y referencia del local', () => {
     expect(operations.error()).toContain('cruzan');
     http.expectNone(base + '/zonas/z');
   });
-  it('guarda y recupera el local en este navegador con coordenadas exactas, sin crear una zona', async () => {
+  it('guarda el local en el navegador y en el servidor con coordenadas exactas, sin crear una zona', async () => {
     const local = TestBed.inject(LocalLocationService);
     forms.open('Local');
     forms.form.nombre = 'Mi tienda';
@@ -144,14 +144,30 @@ describe('Creación y edición de zonas y referencia del local', () => {
     const point = { latitud: -2.180123456789, longitud: -79.900987654321 };
     forms.setDeliveryLocation(point);
     operations.connected.set(false);
-    await forms.save();
+    const guardado = forms.save();
+    const put = http.expectOne(base + '/local');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({ nombre: 'Mi tienda', direccion: 'Dirección del local', ...point });
+    put.flush({ nombre: 'Mi tienda', direccion: 'Dirección del local', ...point, actualizadoEn: '2026-11-24T10:00:00Z' });
+    await guardado;
     expect(forms.modal()).toBe('');
     expect(local.location()?.ubicacion).toEqual(point);
-    expect(operations.message()).toContain('este navegador');
+    expect(operations.message()).toContain('La tienda ya puede calcular horarios');
     local.location.set(null);
     local.load();
     expect(local.location()?.ubicacion).toEqual(point);
     http.expectNone(base + '/zonas');
+  });
+  it('avisa si el servidor no guardó el local y deja el formulario abierto', async () => {
+    forms.open('Local');
+    forms.form.nombre = 'Mi tienda';
+    forms.form.direccion = 'Dirección del local';
+    forms.setDeliveryLocation(points[0]);
+    const guardado = forms.save();
+    http.expectOne(base + '/local').flush({}, { status: 500, statusText: 'Error' });
+    await guardado;
+    expect(forms.modal()).toBe('Local');
+    expect(operations.error()).toContain('servidor');
   });
   it('no confirma el guardado del local si el almacenamiento falla', () => {
     const local = TestBed.inject(LocalLocationService);

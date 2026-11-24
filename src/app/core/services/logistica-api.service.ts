@@ -22,6 +22,9 @@ import {
   UbicacionRepartidorDto,
   TransferirPedidoRequest,
   IntervalosDisponiblesDto,
+  UbicacionLocalDto,
+  ReoptimizarRutasRequest,
+  ReoptimizacionDto,
 } from '../models/logistica.models';
 import {
   CategoriaDto,
@@ -133,6 +136,17 @@ export class LogisticaApiService {
     return this.http.post<PedidoDto>(`${this.base}/pedidos/${id}/cancelar`, null);
   }
 
+  /** Ubicación del local guardada en el servidor; null (204) si no se configuró. */
+  obtenerLocal() {
+    return this.http.get<UbicacionLocalDto | null>(`${this.base}/local`);
+  }
+  guardarLocal(body: { nombre: string; direccion: string; latitud: number; longitud: number }) {
+    return this.http.put<UbicacionLocalDto>(`${this.base}/local`, body);
+  }
+  /** Rearma las rutas planificadas con los pendientes; `aplicar: false` solo devuelve la vista previa. */
+  reoptimizarRutas(body: ReoptimizarRutasRequest) {
+    return this.http.post<ReoptimizacionDto>(`${this.base}/rutas/reoptimizar`, body);
+  }
   armarRutas(body: ArmarRutasRequest) {
     return this.http.post<ArmadoRutasDto>(`${this.base}/rutas/armar`, body);
   }

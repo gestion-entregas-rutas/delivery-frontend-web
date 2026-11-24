@@ -14,6 +14,7 @@ import {
   UbicacionRepartidorDto,
 } from '../models/logistica.models';
 import { SeguimientoService } from './seguimiento.service';
+import type { ReoptimizacionDto } from '../models/logistica.models';
 import { LocalLocationService } from './local-location.service';
 @Injectable({ providedIn: 'root' })
 export class OperationsService {
@@ -29,8 +30,6 @@ export class OperationsService {
   readonly saving = signal(false);
   readonly message = signal('');
   readonly lastRegistration = signal<RegistroPedidoDto | null>(null);
-  /** Pide a la página de Pedidos abrir el formulario de alta al llegar (botón «Nuevo pedido»). */
-  readonly abrirNuevoPedido = signal(false);
   readonly lastRefresh = signal<string | null>(null);
   readonly error = signal('');
   readonly selected = signal<RutaDto | null>(null);
@@ -133,6 +132,7 @@ export class OperationsService {
   private requestId = 0;
   start() {
     void this.refresh();
+    void this.local.sincronizar(this.api);
     this.seguimiento.onLocation = (p) => this.receiveLocation(p);
     this.seguimiento.onRouteUpdated = (r) => this.replaceRoute(r);
     void this.seguimiento.start(this.fecha, () => this.refresh());
@@ -331,6 +331,38 @@ export class OperationsService {
       if ((e as any)?.status === 409) await this.refresh();
       this.showError(e);
       return false;
+    } finally {
+      this.saving.set(false);
+    }
+  }
+  /**
+   * Reoptimiza la fecha/zona visibles: rehace las rutas planificadas junto con los pendientes.
+   * Con `aplicar = false` solo devuelve la vista previa (no cambia nada en el servidor).
+   */
+  async reoptimizar(aplicar: boolean): Promise<ReoptimizacionDto | null> {
+    if (this.saving()) return null;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      const local = this.local.location();
+      const r = await firstValueFrom(
+        this.api.reoptimizarRutas({
+          fecha: this.fecha,
+          zonaId: this.zona || undefined,
+          origen: local ? local.ubicacion : undefined,
+          aplicar,
+        }),
+      );
+      if (aplicar) {
+        this.message.set(
+          `Rutas optimizadas: ${r.rutas.length} ${r.rutas.length === 1 ? 'ruta' : 'rutas'} · ${r.pedidosSinAsignar} sin asignar.`,
+        );
+        await this.refresh();
+      }
+      return r;
+    } catch (e) {
+      this.showError(e);
+      return null;
     } finally {
       this.saving.set(false);
     }

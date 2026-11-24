@@ -25,10 +25,6 @@
           <span class="block text-base font-semibold text-on-surface tabular-nums">{{ hoyCount() }}</span>
         </span>
       </div>
-      <button type="button" class="inline-flex items-center gap-1 bg-primary-container text-on-primary text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:brightness-105 transition-all cursor-pointer" (click)="openOrderSheet()">
-        <span class="material-symbols-outlined text-[18px]">add</span>
-        Nuevo pedido
-      </button>
     </div>
   </header>
 
@@ -199,7 +195,7 @@
                   </div>
                   <h3 class="text-base font-semibold text-on-surface">Sin pedidos para mostrar</h3>
                   <p class="text-[13px] text-on-surface-variant mt-1 max-w-sm">
-                    {{ operations.connected() ? 'Los pedidos llegan desde la tienda o los registras con «Nuevo pedido».' : 'Conecta el backend para consultar tu operación.' }}
+                    {{ operations.connected() ? 'Los pedidos llegan desde la tienda en línea.' : 'Conecta el backend para consultar tu operación.' }}
                   </p>
                 </div>
               </td>
@@ -234,7 +230,7 @@
               <span class="material-symbols-outlined text-[22px]">{{ editing() ? 'edit_note' : 'add_box' }}</span>
             </div>
             <div class="min-w-0">
-              <h2 id="pedido-form-titulo" class="text-lg font-semibold text-on-surface">{{ editing() ? 'Editar pedido pendiente' : 'Nuevo pedido' }}</h2>
+              <h2 id="pedido-form-titulo" class="text-lg font-semibold text-on-surface">Editar pedido pendiente</h2>
               <p class="text-xs text-on-surface-variant">
                 {{ editing() ? 'Solo se editan pedidos que aún no están en una ruta.' : 'Si es para hoy, el sistema intentará asignarlo a una ruta al guardarlo.' }}
               </p>

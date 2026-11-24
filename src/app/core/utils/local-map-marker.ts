@@ -7,7 +7,7 @@ export function localMapMarker(
   local: LocalLocation,
 ): Leaflet.Marker {
   const label = document.createElement('div');
-  label.textContent = `${local.nombre} · ${local.direccion} · Referencia guardada en este navegador`;
+  label.textContent = `${local.nombre} · ${local.direccion}`;
   return L.marker([local.ubicacion.latitud, local.ubicacion.longitud], {
     title: local.nombre,
     icon: L.divIcon({

@@ -191,6 +191,51 @@ export interface ParadaDto {
   finalizacionEstimadaEn?: string | null;
   trasladoEstimadoMinutos?: number | null;
 }
+/** Ubicación del local guardada en el servidor (GET/PUT /api/local). */
+export interface UbicacionLocalDto {
+  nombre: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  actualizadoEn: string;
+}
+export interface ReoptimizarRutasRequest {
+  fecha: Fecha;
+  zonaId?: Guid;
+  origen?: PuntoDto;
+  /** false = vista previa (no cambia nada); true = aplica. */
+  aplicar: boolean;
+}
+export interface ParadaPropuestaDto {
+  pedidoId: Guid;
+  orden: number;
+  clienteNombre: string;
+  direccion: string;
+  compromisoInicioEn: string | null;
+  compromisoFinEn: string | null;
+  finalizacionEstimadaEn: string | null;
+  excedeCompromiso: boolean;
+  cambiaDeRepartidor: boolean;
+}
+export interface RutaPropuestaDto {
+  zonaId: Guid;
+  repartidorId: Guid;
+  repartidorNombre: string;
+  capacidad: number;
+  paradas: ParadaPropuestaDto[];
+  distanciaEstimadaKm: number | null;
+}
+export interface ReoptimizacionDto {
+  fecha: Fecha;
+  aplicada: boolean;
+  rutasReemplazadas: number;
+  propuestas: RutaPropuestaDto[];
+  pedidosSinAsignar: number;
+  pedidosQueCambianDeRepartidor: number;
+  pedidosQuedanSinRuta: number;
+  paradasEnRiesgo: number;
+  rutas: RutaDto[];
+}
 export interface RutaDto {
   version?: number;
   id: Guid;

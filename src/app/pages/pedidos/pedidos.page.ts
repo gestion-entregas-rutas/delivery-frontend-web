@@ -245,10 +245,6 @@ export class PedidosPage implements OnDestroy {
   readonly totalOrdersCount = computed(() => this.operations.total());
   constructor() {
     this.operations.view.set('Pedidos');
-    if (this.operations.abrirNuevoPedido()) {
-      this.operations.abrirNuevoPedido.set(false);
-      queueMicrotask(() => this.openOrderSheet());
-    }
   }
   @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
     if (event.key === 'Escape') {
@@ -544,8 +540,9 @@ export class PedidosPage implements OnDestroy {
             : {}),
       };
       const editing = this.editing();
+      // El panel solo edita pedidos pendientes: los pedidos se registran desde la tienda.
       if (!editing) {
-        await this.registrarNuevo(body);
+        this.operations.error.set('Los pedidos se registran desde la tienda; aquí solo puedes editar pedidos pendientes.');
         return;
       }
       if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
@@ -594,28 +591,6 @@ export class PedidosPage implements OnDestroy {
       this.operations.saving.set(false);
     }
   }
-  /** Alta de pedido: con horario elegido, el backend lo vuelve a comprobar antes de guardar. */
-  private async registrarNuevo(body: RegistrarPedidoRequest) {
-    const elegido = this.intervalo();
-    if (elegido) {
-      body.compromisoInicioEn = elegido.inicioEn;
-      body.compromisoFinEn = elegido.finEn;
-      body.verificarDisponibilidad = true;
-      body.horaEntrega = formatHoraEcuador(elegido.inicioEn) + ':00';
-    }
-    const registro = await firstValueFrom(this.operations.api.registrarPedido(body));
-    this.operations.lastRegistration.set(registro);
-    this.drawerOpen.set(false);
-    this.operations.fecha = registro.pedido.fechaEntrega;
-    await this.operations.changeDate();
-    const tipo = registro.asignacion?.tipo;
-    this.operations.message.set(
-      tipo === 'RutaExistente' ? 'Pedido registrado e insertado en una ruta.'
-        : tipo === 'RutaNueva' ? 'Pedido registrado en una ruta nueva.'
-        : 'Pedido registrado. Queda pendiente hasta armar o asignar rutas.',
-    );
-  }
-
   showToast(title: string, message: string) {
     this.operations.message.set(message); // se muestra en el toast global
     clearTimeout(this.toastTimer);

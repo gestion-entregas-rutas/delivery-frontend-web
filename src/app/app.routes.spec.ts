@@ -107,7 +107,7 @@ describe('Navegación administrativa', () => {
     );
     expect(harness.routeNativeElement?.querySelector('app-address-picker')).toBeTruthy();
   });
-  it('edita la zona real en el selector de mapa y busca módulos sin filtrar pedidos', async () => {
+  it('edita la zona real en el selector de mapa sin filtrar pedidos', async () => {
     const operations = TestBed.inject(OperationsService);
     vi.spyOn(operations, 'start').mockImplementation(() => {});
     const zone = {
@@ -124,13 +124,9 @@ describe('Navegación administrativa', () => {
     operations.zonas.set([zone]);
     const harness = await RouterTestingHarness.create('/zonas');
     operations.search = 'Cliente de prueba';
-    const search = harness.routeNativeElement?.querySelector(
-      'input[aria-label="Buscar módulo"]',
-    ) as HTMLInputElement;
-    search.value = 'Zonas';
-    search.dispatchEvent(new Event('input', { bubbles: true }));
     harness.detectChanges();
-    expect(harness.routeNativeElement?.querySelectorAll('.nav-link').length).toBe(1);
+    // La barra lateral compacta muestra todos los módulos y no toca la búsqueda de pedidos.
+    expect(harness.routeNativeElement?.querySelectorAll('.nav-link').length).toBeGreaterThan(1);
     expect(operations.search).toBe('Cliente de prueba');
     (harness.routeNativeElement?.querySelector('.zone-card .button') as HTMLButtonElement).click();
     TestBed.inject(HttpTestingController)

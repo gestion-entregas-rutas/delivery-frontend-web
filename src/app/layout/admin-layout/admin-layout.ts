@@ -29,23 +29,25 @@ export class AdminLayout implements OnDestroy {
   @HostListener('window:resize') updateViewport() {
     this.desktop.set(window.innerWidth > 900);
   }
-  readonly navigationOpen = signal(false);
+  readonly navigationOpen = inject(OperationsService).menuAbierto;
+  /** Páginas con cabecera propia a pantalla completa (ocultan la barra superior global). */
+  readonly vistasPantallaCompleta = ['Rutas'];
   readonly groups = ['Principal', 'Operaciones', 'Administración'];
   /** Menú lateral con íconos Material Symbols (mismo enfoque visual que Optimización de Rutas). */
   readonly menu = [
     { titulo: 'Principal', items: [
-      { view: 'Resumen', label: 'Centro de Control', icon: 'grid_view' },
-      { view: 'Pedidos', label: 'Pedidos', icon: 'package_2' },
+      { view: 'Resumen', label: 'Centro de Control', icon: 'dashboard' },
+      { view: 'Pedidos', label: 'Pedidos', icon: 'inventory_2' },
     ] },
     { titulo: 'Operaciones', items: [
-      { view: 'Rutas', label: 'Armado y Optimización', icon: 'alt_route' },
+      { view: 'Rutas', label: 'Armado y Optimización', icon: 'route' },
       { view: 'Zonas', label: 'Zonas Geográficas', icon: 'map' },
-      { view: 'Repartidores', label: 'Repartidores y Flota', icon: 'two_wheeler' },
-      { view: 'Productos', label: 'Catálogo y Productos', icon: 'inventory_2' },
+      { view: 'Repartidores', label: 'Repartidores y Flota', icon: 'local_shipping' },
+      { view: 'Productos', label: 'Catálogo y Productos', icon: 'sell' },
       { view: 'RetirosTienda', label: 'Retiros en Tienda', icon: 'storefront' },
     ] },
-    { titulo: 'Análisis & Seguridad', items: [
-      { view: 'Usuarios', label: 'Cuentas y Acceso', icon: 'manage_accounts' },
+    { titulo: 'Sistema', items: [
+      { view: 'Usuarios', label: 'Cuentas y Acceso', icon: 'shield_person' },
       { view: 'Credenciales', label: 'Credenciales', icon: 'vpn_key' },
     ] },
   ];

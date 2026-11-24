@@ -1,100 +1,376 @@
-<div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-surface px-6 py-6" data-purpose="workspace-main">
-  <div class="flex flex-col w-full">
-    <!-- Cabecera -->
-    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6" data-purpose="operational-header">
-      <div class="flex flex-col gap-0.5">
-        <div class="flex items-center gap-2 flex-wrap">
-          <h1 class="text-[28px] leading-[34px] font-bold tracking-tight text-on-surface">Optimización de Rutas</h1>
-          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-medium">
-            <span class="w-1.5 h-1.5 rounded-full" [class]="operations.availableDrivers ? 'bg-status-delivered' : 'bg-outline'"></span>
-            {{ operations.availableDrivers }} {{ operations.availableDrivers === 1 ? 'repartidor disponible' : 'repartidores disponibles' }}
-          </span>
+<div class="flex-1 flex flex-col min-h-0 h-full bg-surface" data-purpose="workspace-main">
+  <!-- Cabecera de planificación -->
+  <header class="min-h-16 px-4 md:px-6 py-2 bg-surface-container-lowest border-b border-separator-hairline-light shadow-xs z-20 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 shrink-0" data-purpose="operational-header">
+    <div class="flex items-center gap-3 shrink-0">
+      <button class="lg:hidden w-8 h-8 rounded-lg hover:bg-surface-container-low flex items-center justify-center cursor-pointer" type="button" aria-label="Abrir navegación" (click)="operations.menuAbierto.set(!operations.menuAbierto())">
+        <span class="material-symbols-outlined text-[20px]">menu</span>
+      </button>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant font-medium tracking-wide uppercase">
+          <span>Operaciones</span>
+          <span class="text-[10px] text-outline">/</span>
+          <span class="text-primary font-semibold">Planificación</span>
         </div>
-        <p class="text-[13px] text-on-surface-variant">Planificación, asignación y seguimiento de entregas para la jornada.</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <div class="relative inline-flex items-center">
-          <select
-            id="algo-zone-select"
-            class="appearance-none bg-surface-container-lowest text-on-surface text-sm font-semibold pl-3 pr-9 py-2 rounded-xl shadow-sm cursor-pointer hover:bg-surface-container-low transition-colors focus:outline-none focus:ring-1 focus:ring-primary border-0"
-            aria-label="Filtrar por zona"
-            [(ngModel)]="operations.zona"
-            (change)="operations.selected.set(null); operations.refresh(true)"
-          >
-            <option value="">Todas las zonas</option>
-            @for (z of operations.zonas(); track z.id) {
-              @if (z.activa) {
-                <option [value]="z.id">{{ z.nombre }}</option>
-              }
-            }
-          </select>
-          <span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute right-2 pointer-events-none">expand_more</span>
+        <div class="flex items-center gap-2.5 mt-0.5">
+          <h1 class="font-bold text-on-surface text-lg tracking-tight leading-none">Armado y Optimización</h1>
+          <button type="button" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold leading-none cursor-pointer" [class]="operations.live() ? 'bg-status-delivered/10 text-status-delivered' : 'bg-status-urgent/10 text-status-urgent'" [title]="operations.live() ? 'Actualización en vivo' : 'Reconectar'" (click)="operations.retryLive()">
+            <span class="w-1.5 h-1.5 rounded-full bg-current" [class.animate-pulse]="operations.live()"></span>
+            <span>{{ operations.live() ? 'En vivo' : 'Reconectar' }}</span>
+          </button>
         </div>
-        <button
-          type="button"
-          class="inline-flex items-center gap-1 bg-surface-container-lowest text-on-surface hover:text-primary hover:bg-surface-container-low text-sm font-semibold px-3 py-2 rounded-xl shadow-sm transition-all cursor-pointer"
-          (click)="registerSameDay()"
-        >
-          <span class="material-symbols-outlined text-[18px]">add</span>
-          Nuevo pedido
-        </button>
-        <button
-          type="button"
-          id="optimizeTriggerBtn"
-          class="group inline-flex items-center gap-1 bg-primary-container text-on-primary text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:brightness-105 active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          [disabled]="operations.saving() || optimizing()"
-          (click)="triggerOptimization()"
-        >
-          <span class="material-symbols-outlined text-[18px] transition-transform group-hover:rotate-12" [class.animate-spin]="optimizing()">{{ optimizing() ? 'progress_activity' : 'bolt' }}</span>
-          {{ optimizing() ? 'Optimizando…' : 'Optimizar Rutas' }}
-        </button>
       </div>
-    </header>
+    </div>
 
-    <!-- Indicadores (datos reales de las rutas visibles) -->
-    <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" aria-label="Indicadores de la jornada">
-      @let m = metrics();
-      <div class="p-3 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
-        <div class="min-w-0">
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Entregas en plazo</span>
-          <div class="text-xl font-semibold text-on-surface mt-0.5">
-            {{ m.enPlazo != null ? m.enPlazo + '%' : '—' }}
-            <span class="text-xs font-normal text-on-surface-variant">({{ m.enPlazoDetalle }})</span>
+    <!-- Indicadores en una línea -->
+    @let k = kpis();
+    <div class="hidden xl:flex items-center gap-2.5 bg-surface-container-low border border-separator-hairline-light px-3 py-1.5 rounded-xl shrink-0" aria-label="Indicadores de la jornada">
+      <div class="flex items-center gap-1.5 px-2 py-0.5 text-xs whitespace-nowrap" title="Rutas de la fecha / repartidores registrados">
+        <span class="text-on-surface-variant">Rutas:</span>
+        <span class="font-bold text-on-surface tabular-nums">{{ k.rutas }}</span>
+        <span class="text-[11px] text-on-surface-variant tabular-nums">/ {{ k.repartidores }}</span>
+      </div>
+      <span class="text-outline">·</span>
+      <div class="flex items-center gap-1.5 px-2 py-0.5 text-xs whitespace-nowrap">
+        <span class="text-on-surface-variant">Pedidos:</span>
+        <span class="font-bold text-on-surface tabular-nums">{{ k.pedidos }}</span>
+      </div>
+      <span class="text-outline">·</span>
+      <button type="button" class="flex items-center gap-1.5 px-2 py-0.5 text-xs whitespace-nowrap cursor-pointer rounded-md hover:bg-surface-container" title="Ver pedidos sin ruta" (click)="abrirPanel('pendientes')">
+        <span class="text-on-surface-variant">Sin ruta:</span>
+        <span class="font-bold tabular-nums" [class]="k.pendientes ? 'text-status-urgent' : 'text-on-surface'">{{ k.pendientes }}</span>
+      </button>
+      <span class="text-outline">·</span>
+      <div class="flex items-center gap-1.5 px-2 py-0.5 text-xs whitespace-nowrap" title="Paradas con intervalo comprometido que van en plazo">
+        <span class="text-on-surface-variant">En plazo:</span>
+        <span class="font-bold tabular-nums" [class]="k.enPlazo == null ? 'text-on-surface-variant' : k.enPlazo >= 90 ? 'text-status-delivered' : 'text-status-urgent'">{{ k.enPlazo != null ? k.enPlazo + '%' : '—' }}</span>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 md:gap-3 shrink-0">
+      <label class="flex items-center gap-1.5 text-xs font-medium text-on-surface bg-surface-container-low hover:bg-surface-container border border-separator-hairline-light px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span>
+        <input class="bg-transparent border-0 outline-none text-xs font-medium cursor-pointer p-0" aria-label="Fecha de operación" type="date" [(ngModel)]="operations.fecha" (change)="cambiarFecha()" />
+      </label>
+      <div class="relative w-56 hidden lg:block">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] text-on-surface-variant">search</span>
+        <input class="w-full h-9 pl-9 pr-3 text-xs bg-surface-container-low border border-separator-hairline-light rounded-lg text-on-surface placeholder:text-on-surface-variant focus:bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary transition-all" placeholder="Buscar repartidor o zona..." type="text" aria-label="Buscar repartidor o zona" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+      </div>
+      <div class="flex items-center bg-surface-container-low p-1 rounded-lg border border-separator-hairline-light text-xs shrink-0" role="tablist" aria-label="Vista">
+        <button type="button" role="tab" class="px-3 py-1 rounded-md flex items-center gap-1.5 cursor-pointer transition-colors" [class]="viewMode() === 'mapa' ? 'bg-surface-container-lowest font-semibold text-on-surface shadow-xs' : 'text-on-surface-variant hover:text-on-surface'" [attr.aria-selected]="viewMode() === 'mapa'" (click)="viewMode.set('mapa')">
+          <span class="material-symbols-outlined text-[15px]" [class.text-primary]="viewMode() === 'mapa'">map</span>
+          <span>Mapa</span>
+        </button>
+        <button type="button" role="tab" class="px-3 py-1 rounded-md flex items-center gap-1.5 cursor-pointer transition-colors" [class]="viewMode() === 'mosaico' ? 'bg-surface-container-lowest font-semibold text-on-surface shadow-xs' : 'text-on-surface-variant hover:text-on-surface'" [attr.aria-selected]="viewMode() === 'mosaico'" (click)="viewMode.set('mosaico')">
+          <span class="material-symbols-outlined text-[15px]" [class.text-primary]="viewMode() === 'mosaico'">list</span>
+          <span>Lista</span>
+        </button>
+      </div>
+      <button
+        type="button"
+        id="optimizeTriggerBtn"
+        class="h-9 px-4 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        [disabled]="operations.saving() || optimizing()"
+        (click)="triggerOptimization()"
+      >
+        <span class="material-symbols-outlined text-[16px]" [class.animate-spin]="optimizing()">{{ optimizing() ? 'progress_activity' : 'bolt' }}</span>
+        <span>{{ optimizing() ? 'Optimizando…' : 'Optimizar' }}</span>
+      </button>
+    </div>
+  </header>
+
+  @if (viewMode() === 'mapa') {
+    <!-- Barra de filtros: zonas, ruta activa y rutas -->
+    <div class="px-4 md:px-6 py-2 bg-surface-container-lowest border-b border-separator-hairline-light flex items-center gap-3 shrink-0 overflow-x-auto custom-scrollbar z-10">
+      <div class="bg-surface-container-low p-1 rounded-lg border border-separator-hairline-light flex items-center gap-1 text-xs shrink-0">
+        <button type="button" class="px-3 py-1 rounded-md font-medium whitespace-nowrap cursor-pointer transition-colors" [class]="!operations.zona ? 'bg-on-surface text-white shadow-xs' : 'text-on-surface-variant hover:bg-surface-container'" (click)="elegirZona('')">Todas las zonas</button>
+        @for (z of zonasActivas(); track z.id) {
+          <button type="button" class="px-3 py-1 rounded-md font-medium whitespace-nowrap cursor-pointer transition-colors" [class]="operations.zona === z.id ? 'bg-on-surface text-white shadow-xs' : 'text-on-surface-variant hover:bg-surface-container'" (click)="elegirZona(z.id)">{{ z.nombre }}</button>
+        }
+      </div>
+      <span class="flex-1"></span>
+      @if (rutaActiva(); as a) {
+        <button type="button" class="px-3 py-1.5 rounded-lg border border-separator-hairline-light bg-surface-container-lowest hover:bg-surface-container-low flex items-center gap-2 text-xs text-on-surface transition-colors cursor-pointer group shrink-0 whitespace-nowrap" [title]="'Ver detalle de ' + a.driverName" (click)="elegirRuta(a.id)">
+          <span class="relative flex h-2 w-2">
+            @if (a.raw.estado === 'EnCurso') {
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-delivered opacity-75"></span>
+            }
+            <span class="relative inline-flex rounded-full h-2 w-2" [style.background]="a.raw.estado === 'EnCurso' ? null : colorRuta(a.id)" [class.bg-status-delivered]="a.raw.estado === 'EnCurso'"></span>
+          </span>
+          <span class="font-bold">{{ a.driverName }}</span>
+          <span class="text-on-surface-variant">·</span>
+          <span class="text-on-surface-variant font-medium">{{ detalleActiva()?.enCurso }} {{ a.raw.estado === 'EnCurso' ? 'paradas en curso' : 'paradas · ' + a.statusText.toLocaleLowerCase() }}</span>
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">open_in_new</span>
+        </button>
+      }
+      <button type="button" class="px-3 py-1.5 rounded-lg border border-separator-hairline-light bg-surface-container-lowest hover:bg-surface-container-low flex items-center gap-1.5 text-xs font-semibold text-on-surface cursor-pointer shrink-0 whitespace-nowrap" (click)="abrirPanel('rutas')">
+        <span class="material-symbols-outlined text-[16px] text-primary">alt_route</span>
+        {{ routeCardsFiltradas().length }} {{ routeCardsFiltradas().length === 1 ? 'ruta' : 'rutas' }}
+      </button>
+    </div>
+
+    <!-- Mapa + panel acoplado a la derecha -->
+    <div class="flex-1 min-h-0 flex relative">
+    <main class="flex-1 min-w-0 relative overflow-hidden isolate bg-surface-container-low select-none">
+      <app-planning-map
+        [rutas]="mapRoutes()"
+        [rutaId]="rutaSel() ? rutaActiva()?.id ?? null : null"
+        [paradaId]="paradaSel()"
+        [zonaId]="operations.zona"
+        (rutaSeleccionada)="elegirRuta($event)"
+        (paradaSeleccionada)="elegirParada($event)"
+      />
+
+      @if (!routeCardsFiltradas().length) {
+        <div class="absolute inset-x-0 top-24 z-[400] flex justify-center pointer-events-none px-4">
+          <div class="bg-surface-container-lowest/95 backdrop-blur rounded-2xl shadow-md border border-separator-hairline-light px-5 py-4 text-center max-w-sm pointer-events-auto">
+            <span class="material-symbols-outlined text-[28px] text-primary">alt_route</span>
+            <p class="text-sm font-semibold text-on-surface">{{ busqueda() ? 'Ninguna ruta coincide con la búsqueda' : 'No hay rutas para esta fecha' }}</p>
+            <p class="text-xs text-on-surface-variant mt-1">Pulsa «Optimizar» para armarlas con los pedidos pendientes o asigna pedidos a mano.</p>
           </div>
         </div>
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-status-delivered/10 flex items-center justify-center text-status-delivered">
-          <span class="material-symbols-outlined text-[20px]">insights</span>
-        </div>
-      </div>
-      <div class="p-3 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2" title="Distancia en línea recta ajustada; no considera tráfico.">
-        <div class="min-w-0">
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Km estimados</span>
-          <div class="text-xl font-semibold text-on-surface mt-0.5">{{ m.km ?? '—' }} <span class="text-xs font-normal text-on-surface-variant">km</span></div>
-        </div>
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-surface-container flex items-center justify-center text-primary">
-          <span class="material-symbols-outlined text-[20px]">route</span>
-        </div>
-      </div>
-      <div class="p-3 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
-        <div class="min-w-0">
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Traslado promedio</span>
-          <div class="text-xl font-semibold text-on-surface mt-0.5">{{ m.trasladoPromedio ?? '—' }} <span class="text-xs font-normal text-on-surface-variant">min/parada</span></div>
-        </div>
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant">
-          <span class="material-symbols-outlined text-[20px]">timer</span>
-        </div>
-      </div>
-      <div class="p-3 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
-        <div class="min-w-0">
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Capacidad usada</span>
-          <div class="text-xl font-semibold text-on-surface mt-0.5">{{ m.capacidadPct != null ? m.capacidadPct + '%' : '—' }} <span class="text-xs font-normal text-on-surface-variant">({{ m.capacidadDetalle }})</span></div>
-        </div>
-        <div class="w-10 h-10 shrink-0 rounded-xl bg-surface-container flex items-center justify-center text-primary">
-          <span class="material-symbols-outlined text-[20px]">inventory</span>
-        </div>
-      </div>
-    </section>
+      }
 
+      <!-- Zoom y centrar (abajo a la izquierda) -->
+      <div class="absolute bottom-5 left-5 z-[500] flex flex-col bg-surface-container-lowest rounded-xl shadow-md border border-separator-hairline-light overflow-hidden">
+        <button type="button" class="w-8 h-8 flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="Acercar" aria-label="Acercar" (click)="acercar()">
+          <span class="material-symbols-outlined text-[18px]">add</span>
+        </button>
+        <div class="w-full h-px bg-separator-hairline-light"></div>
+        <button type="button" class="w-8 h-8 flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="Alejar" aria-label="Alejar" (click)="alejar()">
+          <span class="material-symbols-outlined text-[18px]">remove</span>
+        </button>
+        <div class="w-full h-px bg-separator-hairline-light"></div>
+        <button type="button" class="w-8 h-8 flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="Centrar mapa" aria-label="Centrar mapa" (click)="centrar()">
+          <span class="material-symbols-outlined text-[16px]">my_location</span>
+        </button>
+      </div>
+
+      @if (!panelAbierto()) {
+        <!-- Reabrir panel -->
+        <button type="button" class="absolute bottom-5 right-5 z-[500] bg-on-surface hover:opacity-90 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold transition-all cursor-pointer" (click)="panelAbierto.set(true)">
+          <span class="material-symbols-outlined text-[18px]">dock_to_left</span>
+          <span>{{ panelTab() === 'pendientes' ? 'Ver pedidos sin ruta' : 'Ver detalle de ruta' }}</span>
+        </button>
+      }
+
+    </main>
+
+      <!-- Panel lateral acoplado (en pantallas chicas se superpone) -->
+      @if (panelAbierto()) {
+      <aside
+        class="absolute lg:static inset-y-0 right-0 w-full sm:w-[400px] shrink-0 bg-surface-container-lowest border-l border-separator-hairline-light shadow-2xl lg:shadow-none z-[600] flex flex-col overflow-hidden"
+        aria-label="Detalle de planificación"
+      >
+        <!-- Pestañas del panel -->
+        <div class="px-3 pt-3 flex items-center justify-between gap-2">
+          <div class="flex items-center bg-surface-container-low p-1 rounded-lg text-xs" role="tablist">
+            <button type="button" role="tab" class="px-2.5 py-1 rounded-md cursor-pointer" [class]="panelTab() === 'ruta' ? 'bg-surface-container-lowest font-semibold text-on-surface shadow-xs' : 'text-on-surface-variant hover:text-on-surface'" (click)="panelTab.set('ruta')">Ruta</button>
+            <button type="button" role="tab" class="px-2.5 py-1 rounded-md cursor-pointer" [class]="panelTab() === 'rutas' ? 'bg-surface-container-lowest font-semibold text-on-surface shadow-xs' : 'text-on-surface-variant hover:text-on-surface'" (click)="panelTab.set('rutas')">Rutas <span class="tabular-nums text-on-surface-variant">{{ routeCardsFiltradas().length }}</span></button>
+            <button type="button" role="tab" class="px-2.5 py-1 rounded-md cursor-pointer" [class]="panelTab() === 'pendientes' ? 'bg-surface-container-lowest font-semibold text-on-surface shadow-xs' : 'text-on-surface-variant hover:text-on-surface'" (click)="panelTab.set('pendientes')">Sin ruta <span class="tabular-nums" [class]="pendingOrders().length ? 'text-status-urgent' : 'text-on-surface-variant'">{{ pendingOrders().length }}</span></button>
+          </div>
+          <button type="button" class="w-7 h-7 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant flex items-center justify-center transition-colors cursor-pointer" title="Cerrar panel" aria-label="Cerrar panel" (click)="panelAbierto.set(false)">
+            <span class="material-symbols-outlined text-[17px]">close</span>
+          </button>
+        </div>
+
+        @if (panelTab() === 'ruta') {
+          @if (rutaActiva(); as a) {
+            @let d = detalleActiva()!;
+            <!-- Cabecera de la ruta -->
+            <div class="p-4 pb-3 border-b border-separator-hairline-light flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl text-white font-bold text-sm flex items-center justify-center shadow-sm shrink-0" [style.background]="colorRuta(a.id)">{{ a.initials }}</span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 min-w-0">
+                  <h3 class="font-bold text-on-surface text-sm truncate">{{ a.driverName }} · {{ a.zone }}</h3>
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0" [class]="a.statusClass">{{ a.statusText }}</span>
+                </div>
+                <p class="text-xs text-on-surface-variant font-medium mt-0.5 truncate">
+                  Ruta {{ a.shortId }}
+                  @if (a.alertasCount) { · <span class="text-status-urgent font-semibold">{{ a.alertasCount }} {{ a.alertasCount === 1 ? 'alerta' : 'alertas' }}</span> }
+                  @if (a.estimadoHora) { · estimado {{ a.estimadoHora }} }
+                </p>
+              </div>
+            </div>
+
+            <!-- Métricas -->
+            <div class="px-4 py-3 border-b border-separator-hairline-light flex items-center justify-between text-xs">
+              <div>
+                <span class="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider">Capacidad</span>
+                <span class="font-bold text-on-surface tabular-nums">{{ a.used }} / {{ a.capacity }} pedidos ({{ d.capacidadPct }}%)</span>
+              </div>
+              <div class="h-6 w-px bg-separator-hairline-light"></div>
+              <div title="Distancia en línea recta ajustada; no considera tráfico.">
+                <span class="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider">Distancia</span>
+                <span class="font-bold text-on-surface tabular-nums">{{ d.distancia }}</span>
+              </div>
+              <div class="h-6 w-px bg-separator-hairline-light"></div>
+              <div>
+                <span class="text-on-surface-variant block text-[10px] uppercase font-bold tracking-wider">Tiempo est.</span>
+                <span class="font-bold text-on-surface tabular-nums">{{ d.tiempo }}</span>
+              </div>
+            </div>
+
+            <!-- Secuencia de paradas -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2.5" (dragover)="a.editable && $event.preventDefault()" (drop)="dropOnRoute($event, a)">
+              <div class="flex items-center justify-between pb-1">
+                <span class="text-xs font-bold text-on-surface uppercase tracking-wide">Secuencia de {{ d.paradas.length }} {{ d.paradas.length === 1 ? 'parada' : 'paradas' }}</span>
+                @if (a.editable) {
+                  <span class="flex items-center gap-0.5">
+                    <button type="button" class="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-primary cursor-pointer" title="Recalcular estimaciones" aria-label="Recalcular estimaciones" [disabled]="operations.saving()" (click)="recalcular(a.id)">
+                      <span class="material-symbols-outlined text-[16px]">refresh</span>
+                    </button>
+                    <button type="button" class="p-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-primary cursor-pointer" title="Ordenar paradas" aria-label="Ordenar paradas" [disabled]="operations.saving()" (click)="order.open(a.id)">
+                      <span class="material-symbols-outlined text-[16px]">reorder</span>
+                    </button>
+                  </span>
+                } @else {
+                  <span class="text-[11px] text-on-surface-variant">Orden de visita</span>
+                }
+              </div>
+              @for (p of d.paradas; track p.pedido.id) {
+                <div
+                  [id]="'parada-' + p.pedido.id"
+                  role="button"
+                  tabindex="0"
+                  class="p-3 rounded-xl transition-colors flex items-start gap-3 cursor-pointer"
+                  [class]="paradaSel() === p.pedido.id ? 'bg-primary/5 hover:bg-primary/10 border-2 border-primary/40' : 'bg-surface-container-low hover:bg-surface-container border border-separator-hairline-light'"
+                  (click)="enfocarParada(p.pedido.id)"
+                  (keydown.enter)="enfocarParada(p.pedido.id)"
+                >
+                  <span class="w-6 h-6 rounded-full text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5" [class]="p.pedido.estado === 'Entregado' ? 'bg-status-delivered' : paradaSel() === p.pedido.id ? 'bg-primary' : 'bg-on-surface'">{{ p.orden }}</span>
+                  <span class="flex-1 min-w-0">
+                    <span class="flex items-center justify-between gap-1">
+                      <span class="text-xs font-bold text-on-surface truncate">{{ p.direccion }}</span>
+                      <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0" [class]="p.chip.clase">{{ p.chip.texto }}</span>
+                    </span>
+                    <span class="block text-[11px] text-on-surface-variant mt-0.5 truncate">{{ p.cliente }}</span>
+                    <span class="flex items-center justify-between gap-2 mt-1">
+                      <span class="flex items-center gap-1 text-[11px] font-semibold" [class]="p.ventana ? 'text-primary' : 'text-on-surface'">
+                        <span class="material-symbols-outlined text-[13px]" [class.text-on-surface-variant]="!p.ventana">schedule</span>
+                        <span class="tabular-nums">{{ p.hora }}{{ p.ventana ? ' (' + p.ventana + ')' : '' }}</span>
+                      </span>
+                      @if (p.alerta) {
+                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded" [class]="p.puntClase">{{ p.punt }}</span>
+                      }
+                    </span>
+                    @if (p.pedido.estado === 'AsignadoARuta' && a.editable) {
+                      <button type="button" class="mt-1.5 text-[11px] font-semibold text-primary hover:underline cursor-pointer" (click)="$event.stopPropagation(); transferStop(p.pedido)">Transferir a otra ruta</button>
+                    }
+                  </span>
+                </div>
+              }
+              @if (a.editable && a.free > 0) {
+                <button
+                  type="button"
+                  class="w-full p-3 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low border border-dashed border-outline-variant flex items-center justify-center gap-1 text-primary text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="!filteredPendingOrders().length || operations.saving()"
+                  (click)="abrirPanel('pendientes')"
+                  title="Elige un pedido sin ruta para esta ruta"
+                >
+                  <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                  {{ a.free }} {{ a.free === 1 ? 'espacio libre' : 'espacios libres' }} · agregar pedido
+                </button>
+              }
+            </div>
+
+            <!-- Acciones -->
+            <div class="p-4 border-t border-separator-hairline-light bg-surface-container-low/70 flex items-center gap-2">
+              @if (d.telefono) {
+                <a class="flex-1 h-9 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors" [href]="'tel:' + d.telefono" [title]="'Llamar a ' + a.driverName + ' (' + d.telefono + ')'">
+                  <span class="material-symbols-outlined text-[16px]">call</span>
+                  <span>Contactar</span>
+                </a>
+              } @else {
+                <span class="flex-1 h-9 rounded-lg bg-surface-container text-on-surface-variant text-xs font-semibold flex items-center justify-center gap-1.5 opacity-60" title="El repartidor no tiene teléfono registrado">
+                  <span class="material-symbols-outlined text-[16px]">call</span>
+                  <span>Sin teléfono</span>
+                </span>
+              }
+              <button type="button" class="flex-1 h-9 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer" (click)="openDetail(a)">
+                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                <span>Ver detalle completo</span>
+              </button>
+            </div>
+            @if (a.raw.estado === 'Planificada') {
+              <p class="px-4 pb-3 -mt-1 bg-surface-container-low/70 text-[11px] text-on-surface-variant text-center">El repartidor inicia la ruta desde la app móvil.</p>
+            }
+          } @else {
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-6">
+              <span class="material-symbols-outlined text-[32px] text-primary">alt_route</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">Sin rutas para mostrar</p>
+              <p class="text-xs text-on-surface-variant mt-1">Arma las rutas con «Optimizar» o asigna pedidos desde «Sin ruta».</p>
+            </div>
+          }
+        }
+
+        @if (panelTab() === 'rutas') {
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+            @for (c of routeCardsFiltradas(); track c.id) {
+              <button type="button" class="w-full p-3 rounded-xl text-left flex items-center gap-3 cursor-pointer transition-colors" [class]="rutaActiva()?.id === c.id ? 'bg-primary/5 border-2 border-primary/40' : 'bg-surface-container-low hover:bg-surface-container border border-separator-hairline-light'" (click)="elegirRuta(c.id)">
+                <span class="w-9 h-9 rounded-xl text-white text-xs font-bold flex items-center justify-center shrink-0" [style.background]="colorRuta(c.id)">{{ c.initials }}</span>
+                <span class="flex-1 min-w-0">
+                  <span class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-on-surface truncate">{{ c.driverName }}</span>
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0" [class]="c.statusClass">{{ c.statusText }}</span>
+                  </span>
+                  <span class="flex items-center justify-between gap-2 mt-0.5 text-[11px] text-on-surface-variant">
+                    <span class="truncate">{{ c.zone }} · {{ c.shortId }}</span>
+                    <span class="tabular-nums shrink-0">{{ c.used }}/{{ c.capacity }} pedidos</span>
+                  </span>
+                  <span class="block w-full bg-surface-container-high h-1 rounded-full overflow-hidden mt-1.5">
+                    <span class="block h-full rounded-full" [style.width.%]="c.progressPercent" [style.background]="colorRuta(c.id)"></span>
+                  </span>
+                  @if (c.alertasCount) {
+                    <span class="block text-[10px] font-semibold text-status-urgent mt-1">{{ c.alertasCount }} {{ c.alertasCount === 1 ? 'alerta de puntualidad' : 'alertas de puntualidad' }}</span>
+                  }
+                </span>
+              </button>
+            } @empty {
+              <p class="text-xs text-on-surface-variant text-center py-8">No hay rutas para esta fecha{{ busqueda() ? ' con esa búsqueda' : '' }}.</p>
+            }
+          </div>
+        }
+
+        @if (panelTab() === 'pendientes') {
+          <div class="px-4 pt-3">
+            <div class="relative">
+              <span class="material-symbols-outlined text-[17px] text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2">search</span>
+              <input class="w-full h-9 pl-9 pr-3 text-xs bg-surface-container-low border border-separator-hairline-light rounded-lg text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Código, cliente o dirección..." type="text" aria-label="Buscar pedido sin ruta" [ngModel]="pendingSearch()" (ngModelChange)="pendingSearch.set($event)" />
+            </div>
+            @if (rutaActiva(); as a) {
+              @if (a.editable && a.free > 0) {
+                <p class="text-[11px] text-on-surface-variant mt-2">Arrastra un pedido a la ruta de <strong class="text-on-surface">{{ a.driverName }}</strong> en la pestaña «Ruta», o pulsa «Asignar».</p>
+              }
+            }
+          </div>
+          <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+            @for (order of filteredPendingOrders(); track order.raw.id) {
+              <div draggable="true" (dragstart)="startDrag($event, order)" class="p-3 rounded-xl bg-surface-container-low hover:bg-surface-container border border-separator-hairline-light cursor-grab active:cursor-grabbing transition-colors">
+                <div class="flex items-center justify-between gap-2 text-[11px] font-semibold text-on-surface-variant">
+                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">drag_indicator</span>{{ order.code }} · {{ order.zone }}</span>
+                  <span class="text-primary tabular-nums">{{ order.window }}</span>
+                </div>
+                <div class="text-xs font-bold text-on-surface mt-1 truncate">{{ order.address }}</div>
+                <div class="flex items-center justify-between gap-2 mt-0.5">
+                  <span class="text-[11px] text-on-surface-variant truncate">{{ order.client }}</span>
+                  <button type="button" class="shrink-0 text-[11px] font-semibold text-primary hover:underline cursor-pointer" (click)="assignPending(order, rutaActiva()?.editable && (rutaActiva()?.free ?? 0) > 0 ? rutaActiva()!.id : '')">Asignar</button>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-10 flex flex-col items-center text-center">
+                <span class="material-symbols-outlined text-[28px] text-status-delivered" style="font-variation-settings: 'FILL' 1">task_alt</span>
+                <p class="text-sm font-semibold text-on-surface mt-1">{{ pendingSearch() ? 'Sin resultados' : 'Al día' }}</p>
+                <p class="text-xs text-on-surface-variant mt-1">{{ pendingSearch() ? 'Ningún pedido sin ruta coincide.' : 'Todos los pedidos tienen ruta.' }}</p>
+              </div>
+            }
+          </div>
+        }
+      </aside>
+      }
+    </div>
+  } @else {
+  <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-surface px-6 py-6">
+  <div class="flex flex-col w-full">
     <!-- Último pedido registrado (resultado real del servidor) -->
     @if (operations.lastRegistration(); as reg) {
       @if (reg.asignacion) {
@@ -231,43 +507,12 @@
           <div class="flex items-center gap-2">
             <h2 class="text-base font-semibold text-on-surface">Rutas Activas</h2>
             <span class="px-2.5 py-0.5 rounded-full bg-surface-container text-primary text-xs font-semibold tabular-nums">
-              {{ routeCards().length }} {{ routeCards().length === 1 ? 'ruta' : 'rutas' }}
+              {{ routeCardsFiltradas().length }} {{ routeCardsFiltradas().length === 1 ? 'ruta' : 'rutas' }}
             </span>
-          </div>
-          <div class="inline-flex p-1 bg-surface-container-high rounded-xl" role="tablist" aria-label="Vista de rutas">
-            <button
-              type="button"
-              role="tab"
-              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
-              [class]="viewMode() === 'mosaico' ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'"
-              [attr.aria-selected]="viewMode() === 'mosaico'"
-              (click)="viewMode.set('mosaico')"
-            >
-              <span class="material-symbols-outlined text-[16px]">dashboard</span>
-              Mosaico
-            </button>
-            <button
-              type="button"
-              role="tab"
-              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer"
-              [class]="viewMode() === 'mapa' ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'"
-              [attr.aria-selected]="viewMode() === 'mapa'"
-              (click)="viewMode.set('mapa')"
-            >
-              <span class="material-symbols-outlined text-[16px]">map</span>
-              Mapa
-            </button>
           </div>
         </div>
 
-        @if (viewMode() === 'mapa') {
-          <app-routes-map-view
-            [rutas]="mapRoutes()"
-            [seleccionada]="operations.selected()?.id"
-            (detalle)="openDetailRoute($event)"
-            (transferir)="transferStop($event)"
-          />
-        } @else if (routeCards().length === 0) {
+        @if (routeCardsFiltradas().length === 0) {
           <div class="min-h-[380px] rounded-2xl flex flex-col items-center justify-center p-8 bg-surface-container-lowest shadow-sm text-center">
             <div class="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center text-primary mb-3">
               <span class="material-symbols-outlined text-[28px]">alt_route</span>
@@ -277,7 +522,7 @@
           </div>
         } @else {
           <div class="flex flex-col gap-4">
-            @for (card of routeCards(); track card.id; let i = $index) {
+            @for (card of routeCardsFiltradas(); track card.id; let i = $index) {
               <article
                 class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-3"
                 (dragover)="card.editable && $event.preventDefault()"
@@ -406,6 +651,101 @@
       </section>
     </div>
   </div>
+
+  </div>
+  }
+
+  @if (previa(); as v) {
+    <!-- Vista previa de la optimización -->
+    <div class="fixed inset-0 z-[1500] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="previa-titulo">
+      <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm" (click)="!operations.saving() && previa.set(null)"></div>
+      <section class="relative z-10 w-full max-w-3xl max-h-[90dvh] bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-4 bg-surface-container-low border-b border-separator-hairline-light flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[22px]">bolt</span></span>
+            <div>
+              <h2 id="previa-titulo" class="text-base font-semibold text-on-surface">Vista previa de la optimización</h2>
+              <p class="text-xs text-on-surface-variant mt-0.5">{{ operations.fecha }} · {{ operations.zona ? operations.zoneName(operations.zona) : 'Todas las zonas' }}. No se cambia nada hasta que confirmes.</p>
+            </div>
+          </div>
+          <button type="button" class="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center cursor-pointer" aria-label="Cerrar" [disabled]="operations.saving()" (click)="previa.set(null)">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Rutas propuestas</span>
+              <span class="text-lg font-semibold text-on-surface tabular-nums">{{ v.propuestas.length }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low" title="Rutas planificadas que se rehacen. Las rutas en curso no se tocan.">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Se rehacen</span>
+              <span class="text-lg font-semibold text-on-surface tabular-nums">{{ v.rutasReemplazadas }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Cambian de repartidor</span>
+              <span class="text-lg font-semibold tabular-nums" [class]="v.pedidosQueCambianDeRepartidor ? 'text-primary' : 'text-on-surface'">{{ v.pedidosQueCambianDeRepartidor }}</span>
+            </div>
+            <div class="p-3 rounded-xl bg-surface-container-low">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Sin ruta</span>
+              <span class="text-lg font-semibold tabular-nums" [class]="v.pedidosSinAsignar ? 'text-status-urgent' : 'text-on-surface'">{{ v.pedidosSinAsignar }}</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-on-surface-variant flex items-start gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-primary">info</span>
+            Solo se rehacen las rutas <strong class="text-on-surface">planificadas</strong> junto con los pedidos sin ruta. Las rutas en curso o completadas no cambian.
+          </p>
+          @if (v.pedidosQuedanSinRuta) {
+            <p class="p-3 rounded-xl bg-status-urgent/10 text-status-urgent text-xs font-semibold">{{ v.pedidosQuedanSinRuta }} {{ v.pedidosQuedanSinRuta === 1 ? 'pedido que hoy tiene ruta quedaría' : 'pedidos que hoy tienen ruta quedarían' }} sin asignar.</p>
+          }
+          @if (v.paradasEnRiesgo) {
+            <p class="p-3 rounded-xl bg-status-urgent/10 text-status-urgent text-xs font-semibold">{{ v.paradasEnRiesgo }} {{ v.paradasEnRiesgo === 1 ? 'parada terminaría' : 'paradas terminarían' }} fuera de su horario comprometido.</p>
+          }
+
+          @for (p of v.propuestas; track p.repartidorId) {
+            <div class="rounded-xl border border-separator-hairline-light overflow-hidden">
+              <div class="px-3 py-2 bg-surface-container-low flex items-center justify-between gap-2 text-xs">
+                <span class="font-semibold text-on-surface">{{ p.repartidorNombre }} · {{ operations.zoneName(p.zonaId) }}</span>
+                <span class="text-on-surface-variant tabular-nums">{{ p.paradas.length }}/{{ p.capacidad }} pedidos{{ p.distanciaEstimadaKm != null ? ' · ' + (p.distanciaEstimadaKm | number: '1.0-1') + ' km' : '' }}</span>
+              </div>
+              <ol class="divide-y divide-separator-hairline-light">
+                @for (s of p.paradas; track s.pedidoId) {
+                  <li class="px-3 py-2 flex items-center gap-3 text-xs">
+                    <span class="w-6 h-6 rounded-full bg-on-surface text-white font-bold flex items-center justify-center shrink-0">{{ s.orden }}</span>
+                    <span class="flex-1 min-w-0">
+                      <span class="block font-semibold text-on-surface truncate">{{ s.direccion }}</span>
+                      <span class="block text-on-surface-variant truncate">{{ s.clienteNombre }}{{ ventanaPrevia(s.compromisoInicioEn, s.compromisoFinEn) ? ' · ' + ventanaPrevia(s.compromisoInicioEn, s.compromisoFinEn) : '' }}</span>
+                    </span>
+                    <span class="flex items-center gap-1 shrink-0">
+                      @if (s.cambiaDeRepartidor) {
+                        <span class="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold">Cambia</span>
+                      }
+                      @if (s.excedeCompromiso) {
+                        <span class="px-1.5 py-0.5 rounded bg-status-urgent/10 text-status-urgent text-[10px] font-semibold">En riesgo</span>
+                      }
+                      <span class="tabular-nums text-on-surface-variant" title="Fin estimado">{{ horaPrevia(s.finalizacionEstimadaEn) }}</span>
+                    </span>
+                  </li>
+                }
+              </ol>
+            </div>
+          } @empty {
+            <p class="text-sm text-on-surface-variant text-center py-6">No hay pedidos ni rutas planificadas para optimizar en esta fecha.</p>
+          }
+        </div>
+
+        <div class="px-5 py-4 border-t border-separator-hairline-light bg-surface-container-low flex items-center justify-end gap-2">
+          <button type="button" class="px-4 py-2 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container cursor-pointer" [disabled]="operations.saving()" (click)="previa.set(null)">Cancelar</button>
+          <button type="button" class="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-sm font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="operations.saving() || (!v.propuestas.length && !v.rutasReemplazadas)" (click)="aplicarOptimizacion()">
+            <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="operations.saving()">{{ operations.saving() ? 'progress_activity' : 'check' }}</span>
+            {{ operations.saving() ? 'Aplicando…' : 'Aplicar optimización' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 
   @if (detailRoute(); as ruta) {
     <app-route-detail-modal

@@ -5,6 +5,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 const fake = vi.hoisted(() => ({
   events: {} as Record<string, (event: any) => void>,
   markers: [] as any[],
+  dots: [] as any[],
   remove: vi.fn(),
 }));
 vi.mock('leaflet', () => {
@@ -25,6 +26,19 @@ vi.mock('leaflet', () => {
     polyline: shape,
     latLngBounds: () => ({ isValid: () => true }),
     divIcon: (options: any) => options,
+    circleMarker: (position: number[]) => {
+      const dot = {
+        position,
+        events: {} as Record<string, () => void>,
+        addTo: vi.fn().mockReturnThis(),
+        on(name: string, fn: any) {
+          this.events[name] = fn;
+          return this;
+        },
+      };
+      fake.dots.push(dot);
+      return dot;
+    },
     marker: (position: number[]) => {
       const marker = {
         position,
@@ -48,7 +62,45 @@ describe('Mapa de zonas', () => {
     TestBed.configureTestingModule({providers:[provideHttpClient(),provideHttpClientTesting()]});
     fake.events = {};
     fake.markers = [];
+    fake.dots = [];
     vi.clearAllMocks();
+  });
+  const circulo = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      latitud: -1.27 + 0.02 * Math.sin((i / n) * 2 * Math.PI),
+      longitud: -78.63 + 0.02 * Math.cos((i / n) * 2 * Math.PI),
+    }));
+  it('con muchos vértices dibuja puntos pequeños no arrastrables y solo el seleccionado como pin', async () => {
+    const picker = TestBed.createComponent(ZoneMapPicker).componentInstance;
+    picker.points = circulo(100);
+    await picker.init();
+    expect(fake.dots).toHaveLength(100);
+    expect(fake.markers).toHaveLength(0);
+    fake.dots[5].events['click']();
+    expect(picker.selected()).toBe(5);
+    expect(fake.markers).toHaveLength(1);
+    picker.ngOnDestroy();
+  });
+  it('pide confirmación antes de agregar un punto lejano al contorno', async () => {
+    const picker = TestBed.createComponent(ZoneMapPicker).componentInstance;
+    picker.points = circulo(10);
+    await picker.init();
+    fake.events['click']({ latlng: { wrap: () => ({ lat: -1.4, lng: -78.3 }) } });
+    expect(picker.points).toHaveLength(10);
+    expect(picker.pendingFar()?.km).toBeGreaterThan(3);
+    picker.confirmFar();
+    expect(picker.points).toHaveLength(11);
+    picker.ngOnDestroy();
+  });
+  it('simplifica un contorno grande y permite recuperar el anterior', async () => {
+    const picker = TestBed.createComponent(ZoneMapPicker).componentInstance;
+    const emit = vi.spyOn(picker.pointsChange, 'emit');
+    picker.points = circulo(351);
+    picker.simplify();
+    expect(picker.points.length).toBeLessThanOrEqual(60);
+    expect(emit).toHaveBeenCalled();
+    picker.restorePreviousContour();
+    expect(picker.points).toHaveLength(351);
   });
   it('convierte clics y arrastres en un polígono sin redondear ni repetir el primer punto', async () => {
     const fixture = TestBed.createComponent(ZoneMapPicker);

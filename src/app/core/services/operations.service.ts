@@ -29,6 +29,8 @@ export class OperationsService {
   readonly saving = signal(false);
   readonly message = signal('');
   readonly lastRegistration = signal<RegistroPedidoDto | null>(null);
+  /** Pide a la página de Pedidos abrir el formulario de alta al llegar (botón «Nuevo pedido»). */
+  readonly abrirNuevoPedido = signal(false);
   readonly lastRefresh = signal<string | null>(null);
   readonly error = signal('');
   readonly selected = signal<RutaDto | null>(null);

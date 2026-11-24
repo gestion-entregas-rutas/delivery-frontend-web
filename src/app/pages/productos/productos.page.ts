@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -59,11 +59,16 @@ export class ProductosPage implements OnInit {
   readonly error = signal('');
   readonly message = signal('');
   readonly conflict = signal('');
+  /** Los mensajes de éxito se muestran en el toast global del panel. */
+  private readonly avisoGlobal = effect(() => {
+    const m = this.message();
+    if (m) untracked(() => this.operations.message.set(m));
+  });
 
   readonly productos = signal<ProductoDto[]>([]);
   readonly categorias = signal<CategoriaDto[]>([]);
   readonly buscar = signal('');
-  readonly categoriaFiltro = signal<number | ''>('');
+  readonly categoriaFiltro = signal<string>('');
   readonly estadoFiltro = signal<'todos' | 'activo' | 'agotado' | 'inactivo'>('todos');
 
   readonly editorAbierto = signal(false);
@@ -101,9 +106,8 @@ export class ProductosPage implements OnInit {
   readonly totalCategorias = computed(() => new Set(this.productos().map((p) => p.categoriaId)).size);
 
   readonly categoriasOpciones = computed(() => {
-    const fromApi = this.categorias().filter((c) => c.id && c.id !== 0);
-    if (fromApi.length) return fromApi;
-    return CATEGORIAS_OFICIALES.slice(1).map((nombre, index) => ({ id: index + 2, nombre }));
+    // Solo categorías reales del backend: su Id es un GUID y no se puede inventar en el navegador.
+    return this.categorias().filter((c) => !!c.id);
   });
 
   readonly filtrados = computed(() => {
@@ -133,7 +137,7 @@ export class ProductosPage implements OnInit {
 
   nuevoForm() {
     return {
-      categoriaId: 0,
+      categoriaId: '',
       subcategoria: '',
       nombre: '',
       marca: '',
@@ -204,7 +208,7 @@ export class ProductosPage implements OnInit {
   cargarEnForm(p: ProductoDto) {
     this.editandoVersion.set(p.version);
     this.form = {
-      categoriaId: p.categoriaId || 0,
+      categoriaId: p.categoriaId || '',
       subcategoria: p.subcategoria || '',
       nombre: p.nombre || '',
       marca: p.marca || '',
@@ -263,7 +267,7 @@ export class ProductosPage implements OnInit {
     this.message.set('');
     const body: GuardarProductoRequest = {
       ...this.form,
-      categoriaId: Number(this.form.categoriaId),
+      categoriaId: String(this.form.categoriaId),
       subcategoria: this.form.subcategoria?.trim() || null,
       nombre: this.form.nombre.trim(),
       marca: this.form.marca?.trim() || null,

@@ -1,542 +1,306 @@
-<div class="flex-1 bg-[#FAFAFC] overflow-y-auto custom-scrollbar flex flex-col p-3.5 md:p-4 2xl:p-6 space-y-3.5 2xl:space-y-5 min-h-0" data-purpose="main-dashboard">
-  <!-- Header Section with Badges, Title & Segmented Switch -->
-  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4" data-purpose="dashboard-header">
-    <!-- Title & Badges -->
-    <div class="space-y-1.5">
+<div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-surface px-6 py-6">
+  <div class="flex flex-col w-full gap-6">
+    <!-- Cabecera -->
+    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-[28px] leading-[34px] font-bold tracking-tight text-on-surface">Centro de Control</h1>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-medium tabular-nums">
+            <span class="material-symbols-outlined text-[14px]">calendar_today</span>{{ operations.fecha }}
+          </span>
+        </div>
+        <p class="text-[13px] text-on-surface-variant">Tu operación en una mirada: pedidos, equipo y recorridos de entrega.</p>
+      </div>
       <div class="flex flex-wrap items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF8EE] text-[#1E9E47] border border-[#C6EFD2]">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#24C355]"></span>
-          Campaña Activa: San Valentín Rush
-        </span>
-        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EFEFF4] text-[#636366] uppercase tracking-wide">
-          Planificación del backend
-        </span>
-        <span class="text-xs text-[#8E8E93]">
-          Última sincronización: <span class="font-mono text-[#48484A]">{{ operations.lastRefresh() ? (operations.lastRefresh() | date:'HH:mm:ss') : '23:28:18' }}</span>
-        </span>
-      </div>
-      <h1 class="text-2xl font-bold tracking-tight text-[#1C1C1E]">
-        Centro de Mando &amp; Despacho Flotante
-      </h1>
-      <p class="text-xs text-[#636366]">
-        Seguimiento de destinos y estados de entrega. Capacidad según las zonas y repartidores registrados.
-      </p>
-    </div>
-    <!-- Controls: macOS Segmented Switcher & Forzar Despacho -->
-    <div class="flex items-center space-x-3 self-start lg:self-center">
-      <!-- Segmented Control -->
-      <div class="bg-[#E5E5EA]/80 p-0.5 rounded-lg flex items-center shadow-inner">
-        <button
-          class="px-3.5 py-1 text-xs transition cursor-pointer"
-          [ngClass]="operations.fecha === operations.today ? 'font-semibold rounded-md bg-white text-[#1C1C1E] shadow-sm' : 'font-medium text-[#636366] hover:text-[#1C1C1E]'"
-          type="button"
-          (click)="operations.setMode('today')"
-        >
-          Hoy (Tiempo Real)
-        </button>
-        <button
-          class="px-3.5 py-1 text-xs transition cursor-pointer"
-          [ngClass]="operations.fecha === operations.scheduledDate() ? 'font-semibold rounded-md bg-white text-[#1C1C1E] shadow-sm' : 'font-medium text-[#636366] hover:text-[#1C1C1E]'"
-          type="button"
-          (click)="operations.setMode('sched')"
-        >
-          Programados (D+1)
-        </button>
-      </div>
-      <!-- Action Button: Forzar Despacho -->
-      <button
-        class="inline-flex items-center gap-1.5 bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm transition cursor-pointer disabled:opacity-50"
-        style="color: #ffffff !important;"
-        type="button"
-        [disabled]="operations.saving()"
-        (click)="operations.buildRoutes()"
-      >
-        <svg class="w-3.5 h-3.5 fill-current text-white" style="color: #ffffff !important;" [class.animate-spin]="operations.saving()" viewBox="0 0 20 20">
-          <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"></path>
-        </svg>
-        <span class="text-white" style="color: #ffffff !important;">{{ operations.saving() ? 'Optimizando...' : 'Forzar Despacho' }}</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- BEGIN: 4 Metric Cards (KPI Row) -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" data-purpose="kpi-cards">
-    <!-- KPI 1: Volumen Total -->
-    <div class="bg-white border border-[#E5E5EA] rounded-xl p-4 shadow-card hover:border-[#D1D1D6] transition flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Volumen Total</span>
-          <span class="p-1.5 bg-[#E8F1FC] rounded-lg text-[#007AFF]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 flex items-baseline">
-          <span class="text-3xl font-bold tracking-tight text-[#1C1C1E]">{{ operations.resumen()?.total ?? 0 }}</span>
-        </div>
-        <div class="mt-2 flex items-center justify-between text-xs border-b border-[#F2F2F6] pb-2">
-          <span class="text-[#636366] flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#007AFF]"></span>
-            {{ operations.resumen()?.noCancelados ?? 0 }} no cancelados
-          </span>
-          <span class="font-medium text-[#1C1C1E]">{{ operations.count('Pendiente') }} pendientes</span>
-        </div>
-      </div>
-      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
-        <span class="text-[#8E8E93]">Entregados: {{ operations.resumen()?.entregados ?? 0 }} en la consulta</span>
-        <span class="text-[#34C759] font-medium">Variación no informada</span>
-      </div>
-    </div>
-
-    <!-- KPI 2: Rutas Despachadas -->
-    <div class="bg-white border border-[#E5E5EA] rounded-xl p-4 shadow-card hover:border-[#D1D1D6] transition flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Rutas Despachadas</span>
-          <span class="p-1.5 bg-[#F2EBFC] rounded-lg text-[#AF52DE]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M8 9l4-4 4 4m0 6l-4 4-4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 flex items-baseline space-x-1.5">
-          <span class="text-3xl font-bold tracking-tight text-[#1C1C1E]">{{ operations.rutas().length }}</span>
-          <span class="text-xs text-[#8E8E93] font-medium">/ {{ operations.repartidores().length }} registrados</span>
-        </div>
-        <div class="mt-2 flex items-center justify-between text-xs border-b border-[#F2F2F6] pb-2">
-          <span class="text-[#636366]">Capacidad según zona y repartidor</span>
-          <span class="font-medium text-[#007AFF]">{{ operations.avgOrdersPerRoute }} ped/ruta</span>
-        </div>
-      </div>
-      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
-        <span class="text-[#8E8E93]">Ventanas: no informadas</span>
-        <span class="text-[#007AFF] font-medium">Saturación: no informada</span>
-      </div>
-    </div>
-
-    <!-- KPI 3: Flota Operativa -->
-    <div class="bg-white border border-[#E5E5EA] rounded-xl p-4 shadow-card hover:border-[#D1D1D6] transition flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Flota Operativa</span>
-          <span class="p-1.5 bg-[#E6F8FA] rounded-lg text-[#32ADE6]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 flex items-baseline space-x-1.5">
-          <span class="text-3xl font-bold tracking-tight text-[#1C1C1E]">{{ activeFleet() }}</span>
-          <span class="text-xs text-[#8E8E93] font-medium">activos</span>
-        </div>
-        <div class="mt-2 flex items-center justify-between text-xs border-b border-[#F2F2F6] pb-2">
-          <span class="text-[#636366]">Reserva en Hub</span>
-          <span class="font-medium text-[#1C1C1E]">{{ operations.availableDrivers }} disponibles</span>
-        </div>
-      </div>
-      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
-        <span class="text-[#8E8E93]">Tiempo por parada: no informado</span>
-        <span class="text-[#007AFF] font-medium">Vehículos no informados</span>
-      </div>
-    </div>
-
-    <!-- KPI 4: Porcentaje Entregado -->
-    <div class="bg-white border border-[#E5E5EA] rounded-xl p-4 shadow-card hover:border-[#D1D1D6] transition flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Porcentaje Entregado</span>
-          <span class="p-1.5 bg-[#E8F8EE] rounded-lg text-[#34C759]">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 flex items-baseline">
-          <span class="text-3xl font-bold tracking-tight text-[#34C759]">{{ operations.resumen()?.porcentajeEntregado ?? 0 }}%</span>
-        </div>
-        <div class="mt-2 flex items-center justify-between text-xs border-b border-[#F2F2F6] pb-2">
-          <span class="text-[#636366]">Entregas confirmadas</span>
-          <span class="font-medium text-[#FF3B30]">{{ operations.resumen()?.entregados ?? 0 }}</span>
-        </div>
-      </div>
-      <div style="display: none;" class="mt-2 pt-1 flex items-center justify-between text-[11px]">
-        <span class="text-[#8E8E93]">Sobre pedidos no cancelados</span>
-        <span class="text-[#34C759] font-medium">Sin evaluación SLA</span>
-      </div>
-    </div>
-  </section>
-  <!-- END: 4 Metric Cards -->
-
-  <!-- BEGIN: Central Split: Interactive Map & Live Feed Panel -->
-  <section class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-[280px] lg:min-h-[320px] 2xl:min-h-[440px]" data-purpose="central-dispatch-viewport">
-    <!-- Left Column (8.5 cols): Interactive Map Container -->
-    <div class="lg:col-span-8 xl:col-span-9 bg-white border border-[#E5E5EA] rounded-xl overflow-hidden shadow-card flex flex-col relative">
-      <!-- Map Top Bar: Zones Pills & Legend -->
-      <div class="p-2.5 bg-white/95 backdrop-blur border-b border-[#E5E5EA] flex flex-wrap items-center justify-between gap-2 z-10">
-        <!-- Zone Pills Filter -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <button
-            class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer"
-            [ngClass]="selectedZoneChip() === 'todos' ? 'font-semibold bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white shadow-2xs' : 'font-medium bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E]'"
-            [style.color]="selectedZoneChip() === 'todos' ? '#ffffff !important' : '#1C1C1E'"
-            type="button"
-            (click)="setZoneChip('todos')"
+        <div class="relative inline-flex items-center">
+          <select
+            class="appearance-none bg-surface-container-lowest text-on-surface text-sm font-semibold pl-3 pr-9 py-2 rounded-xl shadow-sm cursor-pointer hover:bg-surface-container-low border-0 focus:outline-none focus:ring-1 focus:ring-primary"
+            aria-label="Filtrar por zona"
+            [ngModel]="selectedZoneChip()"
+            (ngModelChange)="setZoneChip($event)"
           >
-            Todos ({{ operations.zonas().length }} zonas)
-          </button>
-
-          <!-- Zona Activa Seleccionada -->
-          @if (selectedZoneChip() !== 'todos' && currentZone()) {
-            <button
-              class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer font-semibold bg-[#007AFF] hover:bg-[#0062CC] text-white flex items-center gap-1.5 shadow-2xs"
-              style="color: #ffffff !important;"
-              type="button"
-              (click)="setZoneChip('todos')"
-              title="Quitar filtro de zona y ver todas"
-            >
-              <span>{{ currentZoneName() }} ({{ currentZoneOrders() }})</span>
-              <span class="text-white hover:text-white/80 font-bold ml-1 text-xs">✕</span>
-            </button>
-          }
-
-          <!-- Baseline Compliance Placeholder -->
-          <div class="hidden" aria-hidden="true" style="display:none !important;">
-            <button class="px-3.5 py-1.5 text-xs rounded-full transition cursor-pointer"></button>
-          </div>
-
-          <!-- Buscador de Zonas Inteligente con Menú Flotante -->
-          <div class="relative flex items-center">
-            <svg class="w-3.5 h-3.5 absolute left-2.5 text-[#8E8E93] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              class="bg-[#F2F2F7] focus:bg-white text-xs pl-8 pr-6 py-1.5 rounded-full border border-transparent focus:border-[#007AFF] focus:outline-none transition w-36 sm:w-52 placeholder:text-[#8E8E93]"
-              placeholder="Buscar zona en mapa..."
-              [ngModel]="zoneSearchQuery()"
-              (ngModelChange)="onZoneSearchInput($event)"
-              (focus)="zoneDropdownOpen.set(true)"
-            />
-            @if (zoneSearchQuery()) {
-              <button
-                type="button"
-                class="absolute right-2 text-[#8E8E93] hover:text-[#1C1C1E] text-xs font-bold cursor-pointer"
-                (click)="zoneSearchQuery.set(''); zoneDropdownOpen.set(false)"
-                title="Limpiar búsqueda"
-              >
-                ✕
-              </button>
+            <option value="todos">Todas las zonas</option>
+            @for (z of operations.zonas(); track z.id) {
+              @if (z.activa) {
+                <option [value]="z.id">{{ z.nombre }}</option>
+              }
             }
+          </select>
+          <span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute right-2 pointer-events-none">expand_more</span>
+        </div>
+        <button type="button" class="inline-flex items-center gap-1 bg-primary-container text-on-primary text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:brightness-105 transition-all cursor-pointer" (click)="operations.navigate('Rutas')">
+          <span class="material-symbols-outlined text-[18px]">alt_route</span>
+          Ir a Optimización
+        </button>
+      </div>
+    </header>
 
-            <!-- Floating Zone Dropdown Popover -->
-            @if (zoneDropdownOpen()) {
-              <!-- Backdrop para cerrar al hacer click afuera -->
-              <div class="fixed inset-0 z-20" (click)="zoneDropdownOpen.set(false)"></div>
+    <!-- Indicadores -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3" aria-label="Indicadores del día">
+      <div class="p-4 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Pedidos del día</span>
+          <div class="text-2xl font-semibold text-on-surface tabular-nums">{{ operations.resumen()?.noCancelados ?? operations.pedidos().length }}</div>
+          <span class="text-xs text-on-surface-variant">{{ sinAsignarHoy() }} sin ruta hoy</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">package_2</span></div>
+      </div>
+      <div class="p-4 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Rutas</span>
+          <div class="text-2xl font-semibold text-on-surface tabular-nums">{{ operations.rutas().length }}</div>
+          <span class="text-xs text-on-surface-variant">{{ enCurso() }} en curso</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[20px]">alt_route</span></div>
+      </div>
+      <div class="p-4 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Flota operativa</span>
+          <div class="text-2xl font-semibold text-on-surface tabular-nums">{{ activeFleet() }} <span class="text-xs font-normal text-on-surface-variant">/ {{ operations.repartidores().length }}</span></div>
+          <span class="text-xs text-on-surface-variant">{{ operations.availableDrivers }} disponibles ahora</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-status-delivered/10 flex items-center justify-center text-status-delivered"><span class="material-symbols-outlined text-[20px]">two_wheeler</span></div>
+      </div>
+      <div class="p-4 bg-surface-container-lowest rounded-xl shadow-sm flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Entregado</span>
+          <div class="text-2xl font-semibold text-on-surface tabular-nums">{{ (operations.resumen()?.porcentajeEntregado ?? 0) | number: '1.0-1' }}%</div>
+          <span class="text-xs text-on-surface-variant">{{ operations.resumen()?.entregados ?? 0 }} entregas completadas</span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-status-delivered/10 flex items-center justify-center text-status-delivered"><span class="material-symbols-outlined text-[20px]">task_alt</span></div>
+      </div>
+    </section>
 
-              <div
-                class="absolute left-0 top-full mt-1.5 w-64 max-h-60 bg-white rounded-xl shadow-xl border border-[#E5E5EA] overflow-y-auto custom-scrollbar z-30 divide-y divide-[#F2F2F7]"
-              >
-                <div class="px-3 py-1.5 bg-[#F9F9FB] text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider">
-                  Selecciona una zona ({{ filteredZones().length }})
+    <!-- Mapa + pedidos de hoy -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <div class="xl:col-span-8 bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-semibold text-on-surface">Mapa de operaciones</h2>
+            <p class="text-xs text-on-surface-variant">{{ currentZone() ? 'Zona ' + currentZoneName() + ' · ' + currentZoneOrders() + ' pedidos' : 'Todas las zonas activas' }}</p>
+          </div>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold" [class]="operations.live() ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container-high text-on-surface-variant'">
+            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>{{ operations.live() ? 'En vivo' : 'Sin conexión en vivo' }}
+          </span>
+        </div>
+        <div class="isolate">
+          <div class="relative h-[480px]">
+            <app-operations-map
+              [zoneId]="selectedZoneChip() === 'todos' ? '' : selectedZoneChip()"
+              [focusPedidoId]="focusPedido()"
+              (zoneSelected)="onMapZone($event)"
+              (pedidoSelected)="onMapPedido($event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <aside class="xl:col-span-4 flex flex-col gap-3">
+        @if (currentZone()) {
+          <!-- Panel de la zona elegida en el mapa -->
+          <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-4 py-3 bg-surface-container-low flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">location_on</span></div>
+                <div class="min-w-0">
+                  <h2 class="text-base font-semibold text-on-surface truncate">{{ currentZoneName() }}</h2>
+                  <p class="text-xs text-on-surface-variant">Entregas del {{ operations.fecha }}</p>
                 </div>
-                @for (zona of filteredZones(); track zona.id) {
-                  <div
-                    class="flex items-center justify-between px-3.5 py-2 hover:bg-[#F2F2F7] cursor-pointer text-xs transition"
-                    [ngClass]="selectedZoneChip() === zona.id ? 'bg-[#E8F1FF] text-[#007AFF] font-semibold' : 'text-[#1C1C1E]'"
-                    (click)="selectZoneFromSearch(zona.id)"
-                  >
-                    <div class="flex items-center space-x-2 truncate">
-                      <span class="w-1.5 h-1.5 rounded-full" [ngClass]="selectedZoneChip() === zona.id ? 'bg-[#007AFF]' : 'bg-[#8E8E93]'"></span>
-                      <span class="truncate">{{ zona.nombre }}</span>
-                    </div>
-                    <span class="text-[10px] text-[#8E8E93] bg-[#F2F2F7] px-2 py-0.5 rounded-full shrink-0 font-medium">
-                      {{ zoneOrderCount(zona.id) }} ped.
-                    </span>
-                  </div>
-                } @empty {
-                  <div class="px-3.5 py-3 text-center text-xs text-[#8E8E93]">
-                    No se encontró ninguna zona
-                  </div>
+              </div>
+              <button type="button" class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center cursor-pointer" title="Ver todas las zonas" aria-label="Ver todas las zonas" (click)="clearZone()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-4 gap-1 px-3 py-3 text-center">
+              <div class="rounded-xl bg-surface-container-low py-2">
+                <div class="text-lg font-semibold text-on-surface tabular-nums">{{ zoneStats().porEntregar }}</div>
+                <div class="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">Por entregar</div>
+              </div>
+              <div class="rounded-xl bg-status-urgent/10 py-2">
+                <div class="text-lg font-semibold text-status-urgent tabular-nums">{{ zoneStats().sinRuta }}</div>
+                <div class="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">Sin ruta</div>
+              </div>
+              <div class="rounded-xl bg-status-in-transit/10 py-2">
+                <div class="text-lg font-semibold text-status-in-transit tabular-nums">{{ zoneStats().enCamino }}</div>
+                <div class="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">En camino</div>
+              </div>
+              <div class="rounded-xl bg-status-delivered/10 py-2">
+                <div class="text-lg font-semibold text-status-delivered tabular-nums">{{ zoneStats().entregados }}</div>
+                <div class="text-[10px] font-semibold uppercase tracking-wide text-on-surface-variant">Entregados</div>
+              </div>
+            </div>
+            <div class="px-3 pb-2">
+              <div class="flex p-1 rounded-xl bg-surface-container-high text-xs font-semibold" role="tablist" aria-label="Filtrar entregas de la zona">
+                @for (t of [{ id: 'pendientes', label: 'Por entregar' }, { id: 'entregados', label: 'Entregados' }, { id: 'todos', label: 'Todos' }]; track t.id) {
+                  <button type="button" role="tab" class="flex-1 py-1.5 rounded-lg cursor-pointer transition-colors"
+                          [attr.aria-selected]="zoneTab() === t.id"
+                          [class]="zoneTab() === t.id ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'"
+                          (click)="zoneTab.set($any(t.id))">{{ t.label }}</button>
                 }
               </div>
-            }
-          </div>
-        </div>
-        <!-- Status Dot Legend -->
-        <div class="flex items-center space-x-3 text-[11px] font-medium text-[#636366]">
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-[#34C759]"></span> Entregado
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-[#007AFF]"></span> En Camino
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-[#FF9500]"></span> Asignado
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-[#8E8E93]"></span> Pendiente
-          </span>
-        </div>
-      </div>
-      <!-- Map Viewport Surface (Interactive Operations Map) -->
-      <div class="flex-1 relative overflow-hidden min-h-[200px] lg:min-h-[240px] 2xl:min-h-[380px]">
-        <app-operations-map [zoneId]="selectedZoneChip()==='todos'?'':selectedZoneChip()" />
-      </div>
-
-      <!-- Bottom Map Info Bar (Outside the map surface, below the canvas) -->
-      <div class="p-3 bg-white border-t border-[#E5E5EA] flex flex-col md:flex-row md:items-center justify-between gap-3 z-10">
-        <div class="flex items-center space-x-2 text-xs text-[#636366]">
-          <span class="w-2 h-2 rounded-full" [ngClass]="selectedZoneChip() !== 'todos' ? 'bg-[#007AFF] animate-pulse' : 'bg-[#34C759]'"></span>
-          <span class="font-medium text-[#1C1C1E]">
-            @if (selectedZoneChip() === 'todos') {
-              Supervisión Global · {{ operations.zonas().length }} Zonas Activas · {{ operations.pedidos().length }} Destinos
-            } @else {
-              Zona {{ currentZoneName() }} · {{ currentZoneOrders() }} Pedidos · Capacidad: {{ currentZoneCapacity() }} ped/ruta
-            }
-          </span>
-        </div>
-        <div class="flex flex-wrap items-center gap-4 text-xs">
-          <!-- Metric: Velocidad Promedio -->
-          <div class="flex items-center space-x-1.5">
-            <span class="text-[#007AFF]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </span>
-            <span class="text-[#8E8E93] text-[11px]">Velocidad Promedio:</span>
-            <span class="font-semibold text-[#1C1C1E] text-[11px]">No informada</span>
-          </div>
-          <!-- Metric: Km Totales Hoy -->
-          <div class="flex items-center space-x-1.5">
-            <span class="text-[#5856D6]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </span>
-            <span class="text-[#8E8E93] text-[11px]">Km Totales Hoy:</span>
-            <span class="font-semibold text-[#1C1C1E] text-[11px]">No informados</span>
-          </div>
-          <!-- Metric: Huella de CO2 -->
-          <div class="flex items-center space-x-1.5">
-            <span class="text-[#34C759]">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </span>
-            <span class="text-[#8E8E93] text-[11px]">Huella de CO2:</span>
-            <span class="font-semibold text-[#1C1C1E] text-[11px]">No informada</span>
-          </div>
-          <!-- Button: Capas de Calor -->
-          <button class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] text-[11px] font-medium transition cursor-pointer" type="button" disabled title="Pendiente backend: mapa de demanda">
-            <svg class="w-3.5 h-3.5 text-[#636366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-            <span>Capas de Calor</span>
-          </button>
-        </div>
-      </div>
-    </div>
-    <!-- Right Column (3.5 cols): Pedidos de Último Momento Side Panel -->
-    <div class="lg:col-span-4 xl:col-span-3 bg-white border border-[#E5E5EA] rounded-xl shadow-card flex flex-col justify-between overflow-hidden">
-      <!-- Panel Header -->
-      <div>
-        <div class="p-3.5 border-b border-[#E5E5EA] flex items-center justify-between">
-          <h3 class="text-xs font-bold text-[#1C1C1E] tracking-tight">Pedidos de Último Momento</h3>
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF3B30]/10 text-[#FF3B30]">
-            {{ activeAlerts().length }} Novedades
-          </span>
-        </div>
-        
-        @if (activeAlerts().length === 0) {
-          <!-- Panel Empty Content Body -->
-          <div class="p-4 2xl:p-5 text-center flex flex-col items-center justify-center min-h-[140px] lg:min-h-[160px] 2xl:min-h-[220px]">
-            <div class="w-10 h-10 rounded-full bg-[#F2F2F6] flex items-center justify-center text-[#8E8E93] mb-3">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-              </svg>
             </div>
-            <p class="text-xs text-[#636366] max-w-[220px] leading-relaxed">
-              Pedidos del día en la página consultada. El backend confirma su asignación y estado.
-            </p>
+            @if (zoneOrdersVisible().length === 0) {
+              <div class="px-4 pb-6 pt-4 flex flex-col items-center text-center">
+                <span class="material-symbols-outlined text-[28px] text-primary mb-1">{{ zoneStats().total ? 'task_alt' : 'inventory_2' }}</span>
+                <p class="text-[13px] text-on-surface-variant">{{ zoneStats().total ? 'No hay pedidos en esta vista.' : 'No hay pedidos para esta zona en la fecha consultada.' }}</p>
+              </div>
+            } @else {
+              <ul class="flex flex-col gap-2 px-3 pb-3 max-h-[440px] overflow-y-auto custom-scrollbar">
+                @for (o of zoneOrdersVisible(); track o.id) {
+                  <li [id]="'zona-pedido-' + o.id">
+                    <div role="button" tabindex="0"
+                         class="w-full text-left p-3 rounded-xl flex gap-3 cursor-pointer transition-colors"
+                         [class]="focusPedido() === o.id ? 'bg-surface-container ring-1 ring-primary' : 'bg-surface-container-low hover:bg-surface-container'"
+                         [attr.aria-label]="'Ver en el mapa el pedido ' + o.codigo"
+                         (click)="focusOrder(o.id)" (keydown.enter)="focusOrder(o.id)">
+                      <span class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold"
+                            [class]="o.parada ? 'bg-primary-container text-on-primary' : 'bg-surface-container-high text-on-surface-variant'"
+                            [title]="o.parada ? 'Parada ' + o.parada : 'Sin parada asignada'">{{ o.parada ?? '–' }}</span>
+                      <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+                        <span class="flex items-center justify-between gap-2">
+                          <span class="text-sm font-semibold text-on-surface truncate">{{ o.raw.clienteNombre }}</span>
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0" [class]="o.estadoClase">{{ o.estadoTexto }}</span>
+                        </span>
+                        <span class="text-xs text-on-surface-variant truncate">{{ o.raw.direccion }}</span>
+                        <span class="flex items-center gap-3 text-[11px] text-on-surface-variant">
+                          <span class="inline-flex items-center gap-0.5 tabular-nums"><span class="material-symbols-outlined text-[14px]">schedule</span>{{ o.entregadoEn ? 'Entregado ' + o.entregadoEn : o.horario }}</span>
+                          @if (o.repartidor) {
+                            <span class="inline-flex items-center gap-0.5 truncate"><span class="material-symbols-outlined text-[14px]">two_wheeler</span>{{ o.repartidor }}</span>
+                          }
+                        </span>
+                        @if (o.estimada && !o.entregadoEn) {
+                          <span class="text-[11px] text-on-surface-variant tabular-nums">Llegada estimada {{ o.estimada }} · {{ o.rutaCodigo }}</span>
+                        }
+                        @if (!o.raw.rutaId) {
+                          <span class="pt-1">
+                            <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="$event.stopPropagation(); assignOrder(o)">Asignar a ruta</button>
+                          </span>
+                        }
+                      </span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
           </div>
         } @else {
-          <!-- Alert items list -->
-          <div class="p-3 space-y-2.5 overflow-y-auto max-h-[380px] custom-scrollbar">
-            @for (alert of activeAlerts(); track alert.id) {
-              <div class="p-2.5 rounded-lg border text-xs" [ngClass]="alert.estado === 'saturated' ? 'bg-[#FF3B30]/5 border-[#FF3B30]/20' : 'bg-[#F2F2F6] border-[#E5E5EA]'">
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-[#1C1C1E]">{{ alert.codigo }}</span>
-                  <span class="text-[10px] text-[#8E8E93]">{{ alert.tiempo }}</span>
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold text-on-surface">Pedidos de hoy</h2>
+            <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface text-xs font-medium tabular-nums">{{ activeAlerts().length }}</span>
+          </div>
+          <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="operations.navigate('Pedidos')">Ver todos</button>
+        </div>
+        @if (activeAlerts().length === 0) {
+          <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm flex flex-col items-center text-center">
+            <div class="w-14 h-14 rounded-2xl bg-surface-container-low flex items-center justify-center text-primary mb-3">
+              <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1">task_alt</span>
+            </div>
+            <h3 class="text-base font-semibold text-on-surface mb-1">Al día</h3>
+            <p class="text-[13px] text-on-surface-variant">No hay pedidos de hoy pendientes de entregar.</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-2 max-h-[520px] overflow-y-auto custom-scrollbar pr-1">
+            @for (a of activeAlerts(); track a.id) {
+              <div class="p-3 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+                <div class="flex items-center justify-between gap-2 text-[11px] font-semibold text-on-surface-variant">
+                  <span class="tabular-nums">{{ a.codigo }} · {{ a.zona }}</span>
+                  <span class="px-2 py-0.5 rounded-full" [class]="a.raw.rutaId ? 'bg-surface-container text-primary' : 'bg-status-in-transit/10 text-status-in-transit'">{{ a.raw.rutaId ? 'Con ruta' : 'Sin ruta' }}</span>
                 </div>
-                <p class="text-[#636366] text-[11px] truncate mt-1">{{ alert.direccion }}</p>
-                <div class="mt-1.5 flex items-center justify-between">
-                  <span class="text-[10px] font-medium" [ngClass]="alert.estado === 'saturated' ? 'text-[#FF3B30]' : 'text-[#34C759]'">
-                    {{ alert.mensaje }}
-                  </span>
-                  @if (alert.estado === 'saturated') {
-                    <button type="button" class="px-3 py-0.5 rounded-full bg-[#FF3B30] hover:bg-[#E0352B] active:bg-[#C92A22] text-white hover:text-white active:text-white focus:text-white text-[10px] font-semibold cursor-pointer" style="color: #ffffff !important;" (click)="createExpressRoute(alert)">
-                      Asignar
+                <div class="text-sm font-semibold text-on-surface truncate">{{ a.direccion }}</div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs text-on-surface-variant truncate">{{ a.raw.clienteNombre }} · registrado {{ a.tiempo }}</span>
+                  <span class="flex items-center gap-1 shrink-0">
+                    @if (!a.raw.rutaId) {
+                      <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="createExpressRoute(a)">Asignar</button>
+                    }
+                    <button type="button" class="w-7 h-7 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center justify-center cursor-pointer" title="Ocultar de esta lista" aria-label="Ocultar de esta lista" (click)="dismissAlert(a.id)">
+                      <span class="material-symbols-outlined text-[16px]">close</span>
                     </button>
-                  }
+                  </span>
                 </div>
               </div>
             }
           </div>
         }
-      </div>
-      <!-- Panel Footer Status & Navigation -->
-      <div class="p-3 bg-[#FAFAFC] border-t border-[#E5E5EA] flex items-center justify-between text-[11px]">
-        <span class="text-[#8E8E93] font-medium">Balanceador automático: <span class="text-[#34C759] font-semibold">Activo</span></span>
-        <a class="text-[#007AFF] hover:underline font-medium inline-flex items-center gap-1 cursor-pointer" (click)="$event.preventDefault()">
-          Ajustar Criterios de Asignación →
-        </a>
-      </div>
-    </div>
-  </section>
-  <!-- END: Central Split -->
+        }
+      </aside>
+    </section>
 
-  <!-- BEGIN: Lower Section: Manifiesto de Rutas Activas Table -->
-  <section class="bg-white border border-[#E5E5EA] rounded-xl shadow-card flex flex-col overflow-hidden flex-shrink-0" data-purpose="routes-manifest-table">
-    <!-- Table Header & Controls -->
-    <div class="p-4 border-b border-[#E5E5EA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
-      <div>
-        <h2 class="text-sm font-bold text-[#1C1C1E] tracking-tight">Manifiesto de Rutas Activas</h2>
-        <p class="text-[11px] text-[#8E8E93]">Paradas y capacidades devueltas por el backend para la fecha seleccionada.</p>
-      </div>
-      <!-- Search Filter & Export Buttons -->
-      <div class="flex items-center space-x-2">
-        <div class="relative flex items-center bg-[#F2F2F6] border border-[#D1D1D6] rounded-lg px-2.5 py-1 text-xs focus-within:border-[#007AFF] focus-within:bg-white transition">
-          <svg class="w-3.5 h-3.5 text-[#8E8E93] mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <input class="bg-transparent border-0 p-0 text-xs placeholder-[#8E8E93] text-[#1C1C1E] focus:ring-0 w-44 outline-none" placeholder="Filtrar operador o ruta" type="text" [(ngModel)]="routeFilterQuery" />
+    <!-- Manifiesto de rutas -->
+    <section class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-semibold text-on-surface">Manifiesto de rutas</h2>
+          <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-xs font-semibold tabular-nums">{{ filteredRoutes().length }}</span>
         </div>
-        <!-- Export Button -->
-        <button class="p-1.5 border border-[#D1D1D6] rounded-full text-[#636366] hover:text-[#1C1C1E] hover:bg-[#F2F2F6] transition cursor-pointer" title="Exportar manifiesto" type="button" (click)="exportCsv()">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-        </button>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2">search</span>
+            <input class="h-9 pl-9 pr-3 bg-surface-container-low rounded-xl text-xs border-0 focus:ring-1 focus:ring-primary outline-none w-56" placeholder="Buscar ruta, zona o repartidor" type="text" [ngModel]="routeFilterQuery()" (ngModelChange)="routeFilterQuery.set($event)" />
+          </div>
+          <button type="button" class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold cursor-pointer disabled:opacity-50" [disabled]="!filteredRoutes().length" (click)="exportCsv()">
+            <span class="material-symbols-outlined text-[16px]">download</span>CSV
+          </button>
+        </div>
       </div>
-    </div>
-    <!-- Structured Table -->
-    <div class="overflow-x-auto overflow-y-auto max-h-[360px] 2xl:max-h-[480px] custom-scrollbar">
-      <table class="w-full text-left text-xs border-collapse">
-        <thead class="sticky top-0 bg-[#F8F8FA] z-10">
-          <tr class="bg-[#F8F8FA] border-b border-[#E5E5EA] text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider">
-            <th class="py-2.5 px-4 font-semibold" scope="col">Operador / Vehículo</th>
-            <th class="py-2.5 px-4 font-semibold" scope="col">Ruta ID &amp; Zona</th>
-            <th class="py-2.5 px-4 font-semibold" scope="col">Capacidad Asignada por el Backend</th>
-            <th class="py-2.5 px-4 font-semibold" scope="col">Secuencia de Paradas</th>
-            <th class="py-2.5 px-4 font-semibold" scope="col">ETA Próxima</th>
-            <th class="py-2.5 px-4 font-semibold" scope="col">Estado SLA</th>
-            <th class="py-2.5 px-4 text-right font-semibold" scope="col">Acción</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-[#E5E5EA] text-[#48484A]">
-          @if (filteredRoutes().length === 0) {
-            <!-- Empty State Row -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-surface-container-low text-on-surface-variant">
             <tr>
-              <td class="py-6 px-4 text-center" colspan="7">
-                <div class="flex flex-col items-center justify-center space-y-1">
-                  <span class="text-xs text-[#8E8E93]">No hay registros para los filtros seleccionados</span>
-                </div>
-              </td>
+              <th class="px-4 py-2 font-semibold">Ruta</th>
+              <th class="px-4 py-2 font-semibold">Repartidor</th>
+              <th class="px-4 py-2 font-semibold">Capacidad</th>
+              <th class="px-4 py-2 font-semibold">Paradas</th>
+              <th class="px-4 py-2 font-semibold">Fin estimado</th>
+              <th class="px-4 py-2 font-semibold">Puntualidad</th>
+              <th class="px-4 py-2"></th>
             </tr>
-          } @else {
-            @for (route of filteredRoutes(); track route.id) {
-              <tr class="hover:bg-[#F9F9FB] transition-colors">
-                <td class="py-2.5 px-4">
-                  <div class="flex items-center space-x-2.5">
-                    <img class="w-7 h-7 rounded-full object-cover ring-1 ring-[#E5E5EA]" [alt]="route.operadorNombre" [src]="route.avatarUrl" />
-                    <div class="flex flex-col">
-                      <span class="font-semibold text-[#1C1C1E]">{{ route.operadorNombre }}</span>
-                      <span class="text-[10px] text-[#8E8E93]">{{ route.vehiculo }}</span>
-                    </div>
+          </thead>
+          <tbody>
+            @for (r of filteredRoutes(); track r.id) {
+              <tr class="border-t border-separator-hairline-light hover:bg-surface-container-low/50">
+                <td class="px-4 py-3">
+                  <div class="font-semibold text-on-surface">{{ r.rutaCodigo }}</div>
+                  <div class="text-on-surface-variant">{{ r.zonaNombre }}</div>
+                </td>
+                <td class="px-4 py-3 text-on-surface">{{ r.operadorNombre }}</td>
+                <td class="px-4 py-3 w-40">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" [style.width]="r.capacidadPct"></div></div>
+                    <span class="tabular-nums text-on-surface-variant">{{ r.capacidadOcupada }}/{{ r.capacidadTotal }}</span>
                   </div>
                 </td>
-                <td class="py-2.5 px-4">
-                  <div class="flex flex-col">
-                    <span class="font-semibold" [ngClass]="route.zonaColor">{{ route.rutaCodigo }}</span>
-                    <span class="text-[10px] text-[#8E8E93]">{{ route.zonaNombre }}</span>
-                  </div>
-                </td>
-                <td class="py-2.5 px-4">
-                  <div class="w-36 space-y-1">
-                    <div class="flex justify-between text-[11px]">
-                      <span class="font-medium text-[#1C1C1E]">{{ route.capacidadOcupada }} / {{ route.capacidadTotal }} Pedidos</span>
-                      <span class="font-semibold" [ngClass]="route.capacidadOcupada >= route.capacidadTotal ? 'text-[#FF3B30]' : 'text-[#007AFF]'">{{ route.capacidadPct }}</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-[#E5E5EA] rounded-full overflow-hidden flex gap-0.5">
-                      <div class="h-full rounded-full" [style.width.%]="(route.capacidadOcupada / (route.capacidadTotal || 1)) * 100" [ngClass]="route.capacidadOcupada >= route.capacidadTotal ? 'bg-[#FF3B30]' : 'bg-[#007AFF]'"></div>
-                    </div>
-                  </div>
-                </td>
-                <td class="py-2.5 px-4">
-                  <div class="flex items-center gap-1 text-[10px]">
-                    @for (stop of route.paradas; track stop.numero; let last = $last) {
-                      <span class="px-1.5 py-0.5 rounded font-medium" [ngClass]="stop.estado === 'ok' ? 'bg-[#E8F8EE] text-[#1E9E47]' : stop.estado === 'trafico' ? 'bg-[#FF3B30] text-white' : stop.estado === 'curso' ? 'bg-[#007AFF] text-white' : 'bg-[#E5E5EA] text-[#636366]'">
-                        {{ stop.label }}
-                      </span>
-                      @if (!last) {
-                        <span class="text-[#AEAEB2]">→</span>
-                      }
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-1">
+                    @for (p of r.paradas; track p.numero) {
+                      <span class="w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center" [title]="p.label"
+                            [class]="p.estado === 'ok' ? 'bg-status-delivered text-white' : p.estado === 'curso' ? 'bg-status-in-transit text-white' : p.estado === 'prog' ? 'bg-surface-container text-primary' : 'bg-surface-container-low text-on-surface-variant/40'">{{ p.numero }}</span>
                     }
                   </div>
                 </td>
-                <td class="py-2.5 px-4 font-medium text-[#1C1C1E]">{{ route.eta }}</td>
-                <td class="py-2.5 px-4">
-                  <span class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full text-[11px]" [ngClass]="route.estadoSla === 'tiempo' ? 'text-[#1E9E47] bg-[#E8F8EE]' : route.estadoSla === 'riesgo' ? 'text-[#FF3B30] bg-[#FF3B30]/10' : 'text-[#8E8E93] bg-[#EFEFF4]'">
-                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="route.estadoSla === 'tiempo' ? 'bg-[#24C355]' : route.estadoSla === 'riesgo' ? 'bg-[#FF3B30]' : 'bg-[#8E8E93]'"></span>
-                    {{ route.estadoSla === 'tiempo' ? 'A Tiempo' : route.estadoSla === 'riesgo' ? 'Riesgo SLA' : 'No informado' }}
+                <td class="px-4 py-3 tabular-nums text-on-surface">{{ r.eta }}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                        [class]="r.estadoSla === 'riesgo' ? 'bg-status-urgent/10 text-status-urgent' : r.estadoSla === 'tiempo' ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container-high text-on-surface-variant'">
+                    {{ r.estadoSla === 'riesgo' ? r.alertas + (r.alertas === 1 ? ' en riesgo' : ' en riesgo') : r.estadoSla === 'tiempo' ? 'A tiempo' : 'Sin estimación' }}
                   </span>
                 </td>
-                <td class="py-2.5 px-4 text-right">
-                  @if (route.estadoSla === 'riesgo') {
-                    <button type="button" class="px-3.5 py-1 rounded-full bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white text-[11px] font-semibold transition cursor-pointer" style="color: #ffffff !important;" (click)="reassignStop(route)">
-                      Reasignar
-                    </button>
-                  } @else {
-                    <button type="button" class="p-1.5 rounded-full text-[#8E8E93] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] transition cursor-pointer" title="Detalles" (click)="viewRoute(route)">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                      </svg>
-                    </button>
-                  }
+                <td class="px-4 py-3 text-right">
+                  <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="viewRoute(r)">Ver</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-4 py-10 text-center text-on-surface-variant">
+                  <span class="material-symbols-outlined text-[28px] block mb-1">alt_route</span>
+                  No hay rutas para esta fecha.
                 </td>
               </tr>
             }
-          }
-        </tbody>
-      </table>
-    </div>
-    <!-- Table Footer Pagination & Meta -->
-    <div class="p-3 border-t border-[#E5E5EA] bg-[#FAFAFC] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-      <span class="text-[#8E8E93] text-[11px]">
-        Mostrando <span class="font-semibold text-[#1C1C1E]">{{ filteredRoutes().length }}</span> de <span class="font-semibold text-[#1C1C1E]">38</span> rutas despachadas activamente
-      </span>
-      <div class="flex items-center space-x-2">
-        <button class="px-3.5 py-1 rounded-full bg-[#F2F2F7] text-[#8E8E93] hover:bg-[#E5E5EA] disabled:opacity-50 text-[11px] font-medium transition cursor-not-allowed" type="button" disabled>
-          Anterior
-        </button>
-        <span class="text-[11px] text-[#636366] px-1 font-medium">Rutas de la fecha seleccionada</span>
-        <button class="px-3.5 py-1 rounded-full bg-[#F2F2F7] text-[#1C1C1E] hover:bg-[#E5E5EA] text-[11px] font-medium transition cursor-pointer" type="button">
-          Siguiente
-        </button>
+          </tbody>
+        </table>
       </div>
-    </div>
-  </section>
-  <!-- END: Lower Section Table -->
-
-  <!-- Toast Notification -->
-  @if (toastVisible()) {
-    <div class="fixed top-16 right-8 z-50 flex items-center gap-2 bg-white/95 backdrop-blur-md border border-[#E5E5EA] px-4 py-2.5 rounded-xl shadow-lg animate-fade-in text-xs">
-      <div class="w-6 h-6 rounded-full bg-[#007AFF]/15 text-[#007AFF] flex items-center justify-center font-bold">i</div>
-      <div class="flex flex-col">
-        <span class="font-semibold text-[#1C1C1E]">{{ toastTitle() }}</span>
-        <span class="text-[#8E8E93] text-[11px]">{{ toastMessage() }}</span>
-      </div>
-    </div>
-  }
+    </section>
+  </div>
 </div>

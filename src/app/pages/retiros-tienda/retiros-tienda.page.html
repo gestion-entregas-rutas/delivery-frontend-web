@@ -1,233 +1,148 @@
-<div class="legacy-ui p-gutter-lg space-y-gutter-lg">
-  <section class="panel">
-    <div class="panel-heading">
-      <div>
-        <h2>Retiros en Tienda <span class="number-pill">{{ filtrados().length }}</span></h2>
-        <p>Consulta órdenes pagadas para retiro en tienda, verifica la identidad/código y confirma la entrega en mostrador.</p>
+<div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-surface px-6 py-6">
+  <div class="flex flex-col w-full gap-6">
+    <!-- Cabecera -->
+    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-[28px] leading-[34px] font-bold tracking-tight text-on-surface">Retiros en Tienda</h1>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-status-in-transit/10 text-status-in-transit text-xs font-semibold tabular-nums">{{ conteoPendientes() }} por entregar</span>
+        </div>
+        <p class="text-[13px] text-on-surface-variant">Verifica cédula y código de retiro y confirma la entrega en mostrador.</p>
       </div>
-      <button class="button" (click)="cargar()" [disabled]="loading()">Actualizar</button>
-    </div>
+      <button type="button" class="self-start lg:self-auto inline-flex items-center gap-1 bg-surface-container-lowest text-on-surface hover:text-primary hover:bg-surface-container-low text-sm font-semibold px-3 py-2 rounded-xl shadow-sm cursor-pointer disabled:opacity-50" (click)="cargar()" [disabled]="loading()">
+        <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="loading()">sync</span>
+        Actualizar
+      </button>
+    </header>
 
-    @if (message()) { <div class="notice success" role="status">{{ message() }}</div> }
-    @if (error()) { <div class="notice error" role="alert">{{ error() }} <button (click)="cargar()">Reintentar</button></div> }
-
-    <!-- Filtros de pestañas y búsqueda -->
-    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;">
-      <div style="display:inline-flex;align-items:center;background:#F1E6F8;padding:4px;border-radius:10px;gap:4px;">
-        <button
-          type="button"
-          class="button"
-          [style.background]="tab() === 'pendientes' ? '#7E23DF' : 'transparent'"
-          [style.color]="tab() === 'pendientes' ? '#FFFFFF' : '#4A1273'"
-          [style.font-weight]="tab() === 'pendientes' ? '600' : '500'"
-          [style.border]="'none'"
-          [style.padding]="'6px 14px'"
-          [style.border-radius]="'8px'"
-          [style.font-size]="'12px'"
-          [style.cursor]="'pointer'"
-          (click)="tab.set('pendientes')"
-        >
-          Pendientes ({{ conteoPendientes() }})
-        </button>
-        <button
-          type="button"
-          class="button"
-          [style.background]="tab() === 'completadas' ? '#7E23DF' : 'transparent'"
-          [style.color]="tab() === 'completadas' ? '#FFFFFF' : '#4A1273'"
-          [style.font-weight]="tab() === 'completadas' ? '600' : '500'"
-          [style.border]="'none'"
-          [style.padding]="'6px 14px'"
-          [style.border-radius]="'8px'"
-          [style.font-size]="'12px'"
-          [style.cursor]="'pointer'"
-          (click)="tab.set('completadas')"
-        >
-          Entregadas ({{ conteoCompletadas() }})
-        </button>
-        <button
-          type="button"
-          class="button"
-          [style.background]="tab() === 'todas' ? '#7E23DF' : 'transparent'"
-          [style.color]="tab() === 'todas' ? '#FFFFFF' : '#4A1273'"
-          [style.font-weight]="tab() === 'todas' ? '600' : '500'"
-          [style.border]="'none'"
-          [style.padding]="'6px 14px'"
-          [style.border-radius]="'8px'"
-          [style.font-size]="'12px'"
-          [style.cursor]="'pointer'"
-          (click)="tab.set('todas')"
-        >
-          Todas ({{ retiros().length }})
-        </button>
+    @if (error()) {
+      <div class="p-3 rounded-xl bg-status-urgent/10 text-status-urgent text-sm flex items-center justify-between gap-2" role="alert">
+        <span>{{ error() }}</span>
+        <button type="button" class="px-3 py-1 rounded-lg bg-status-urgent text-white text-xs font-semibold cursor-pointer" (click)="cargar()">Reintentar</button>
       </div>
+    }
+    @if (message()) {
+      <div class="p-3 rounded-xl bg-status-delivered/10 text-status-delivered text-sm" role="status">{{ message() }}</div>
+    }
 
-      <div class="form-body" style="padding:0;margin:0;width:340px;max-width:100%;">
-        <input
-          name="buscarRetiro"
-          [ngModel]="buscar()"
-          (ngModelChange)="buscar.set($event)"
-          placeholder="Buscar cédula, nombre o código..."
-          style="padding:8px 12px;font-size:13px;border-radius:8px;"
-        />
+    <!-- Filtros -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="inline-flex p-1 bg-surface-container-high rounded-xl text-sm font-semibold" role="tablist" aria-label="Filtrar retiros">
+        @for (t of [
+          { id: 'pendientes', label: 'Pendientes', n: conteoPendientes() },
+          { id: 'completadas', label: 'Entregados', n: conteoCompletadas() },
+          { id: 'todas', label: 'Todos', n: retiros().length }
+        ]; track t.id) {
+          <button
+            type="button"
+            role="tab"
+            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            [class]="tab() === t.id ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'"
+            [attr.aria-selected]="tab() === t.id"
+            (click)="tab.set($any(t.id))"
+          >{{ t.label }} <span class="ml-1 text-xs text-on-surface-variant tabular-nums">{{ t.n }}</span></button>
+        }
+      </div>
+      <div class="relative">
+        <span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+        <input class="w-72 h-10 pl-10 pr-3 bg-surface-container-lowest rounded-xl shadow-sm text-xs text-on-surface placeholder:text-on-surface-variant border-0 focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Buscar cédula, nombre o código..." type="text" [ngModel]="buscar()" (ngModelChange)="buscar.set($event)" />
       </div>
     </div>
 
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>ORDEN</th>
-            <th>QUIEN RETIRA</th>
-            <th>FECHA / FRANJA</th>
-            <th>CÓDIGO</th>
-            <th>ESTADO</th>
-            <th>ACCIÓN</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of filtrados(); track (r.id || r.ordenId)) {
+    <!-- Lista -->
+    <section class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-surface-container-low text-on-surface-variant">
             <tr>
-              <td>
-                <strong>{{ r.numeroOrden || r.id }}</strong>
-                <small>{{ r.estadoPago || r.estadoOrden || 'Pagada' }}</small>
-              </td>
-              <td>
-                <strong>{{ r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '—' }}</strong>
-                <small>Cédula: {{ r.datosRetiroTienda?.cedulaQuienRetira || '—' }} · Tel: {{ r.datosRetiroTienda?.telefonoContacto || '—' }}</small>
-              </td>
-              <td>
-                {{ r.datosRetiroTienda?.fechaRetiro || r.fechaRetiro || '—' }}
-                <small>{{ r.datosRetiroTienda?.franjaHoraria || r.franjaHoraria || '' }}</small>
-              </td>
-              <td>
-                <span style="font-family:monospace;font-size:13px;font-weight:700;color:#7E23DF;">
-                  {{ r.codigoRetiro || '—' }}
-                </span>
-              </td>
-              <td>
-                @if (esRetirada(r)) {
-                  <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(30,142,78,0.12);color:#1E8E4E;">
-                    ✓ Retirada
-                  </span>
-                } @else {
-                  <span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:rgba(126,35,223,0.1);color:#7E23DF;">
-                    Pendiente
-                  </span>
-                }
-              </td>
-              <td>
-                @if (esRetirada(r)) {
-                  <span style="display:inline-flex;align-items:center;gap:4px;color:#1E8E4E;font-size:12px;font-weight:600;">
-                    ✓ Entregado
-                  </span>
-                } @else {
-                  <button class="button primary" (click)="abrirModalConfirmacion(r)" [disabled]="loading()">
-                    Marcar retirado
-                  </button>
-                }
-              </td>
+              <th class="py-2.5 px-4 font-semibold">Orden</th>
+              <th class="py-2.5 px-3 font-semibold">Quién retira</th>
+              <th class="py-2.5 px-3 font-semibold">Fecha y franja</th>
+              <th class="py-2.5 px-3 font-semibold">Código</th>
+              <th class="py-2.5 px-3 font-semibold">Total</th>
+              <th class="py-2.5 px-4 text-right font-semibold">Estado</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="6">
-                <div class="empty">
-                  <h3>{{ loading() ? 'Cargando retiros…' : 'No hay retiros en tienda para mostrar' }}</h3>
-                  <p>
-                    @if (tab() === 'pendientes') {
-                      No hay órdenes pendientes de retiro en mostrador.
-                    } @else if (tab() === 'completadas') {
-                      Aún no se han registrado órdenes entregadas en mostrador.
-                    } @else {
-                      Cuando existan órdenes pagadas con retiro en tienda aparecerán aquí.
-                    }
-                  </p>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
+          </thead>
+          <tbody>
+            @for (r of filtrados(); track (r.id || r.ordenId)) {
+              <tr class="border-t border-separator-hairline-light hover:bg-surface-container-low/50">
+                <td class="py-3 px-4">
+                  <div class="font-semibold text-on-surface tabular-nums">{{ r.numeroOrden || r.id }}</div>
+                  <div class="text-[11px] text-on-surface-variant">{{ r.estadoPago || r.estadoOrden || 'Pagada' }}</div>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="text-sm font-semibold text-on-surface">{{ r.datosRetiroTienda?.nombreQuienRetira || r.clienteNombre || '—' }}</div>
+                  <div class="text-[11px] text-on-surface-variant">Cédula {{ r.datosRetiroTienda?.cedulaQuienRetira || '—' }} · {{ r.datosRetiroTienda?.telefonoContacto || '—' }}</div>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="text-on-surface tabular-nums">{{ r.datosRetiroTienda?.fechaRetiro || r.fechaRetiro || '—' }}</div>
+                  <div class="text-[11px] text-on-surface-variant">{{ r.datosRetiroTienda?.franjaHoraria || r.franjaHoraria || '' }}</div>
+                </td>
+                <td class="py-3 px-3"><span class="px-2 py-1 rounded-lg bg-surface-container text-primary font-semibold tracking-wider tabular-nums">{{ r.codigoRetiro || '—' }}</span></td>
+                <td class="py-3 px-3 text-on-surface tabular-nums">{{ (r.total ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+                <td class="py-3 px-4 text-right">
+                  @if (esRetirada(r)) {
+                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-status-delivered/10 text-status-delivered text-[11px] font-semibold">
+                      <span class="material-symbols-outlined text-[14px]">check_circle</span>Entregado
+                    </span>
+                  } @else {
+                    <button type="button" class="px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-xs font-semibold cursor-pointer disabled:opacity-50" (click)="abrirModalConfirmacion(r)" [disabled]="loading()">Confirmar entrega</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="py-12 text-center">
+                  <div class="w-14 h-14 mx-auto rounded-2xl bg-surface-container-low flex items-center justify-center text-primary mb-3">
+                    <span class="material-symbols-outlined text-[28px]">{{ loading() ? 'progress_activity' : 'storefront' }}</span>
+                  </div>
+                  <h3 class="text-base font-semibold text-on-surface">{{ loading() ? 'Cargando retiros…' : 'No hay retiros en tienda para mostrar' }}</h3>
+                  @if (tab() === 'pendientes' && !loading()) {
+                    <p class="text-[13px] text-on-surface-variant mt-1">Las órdenes pagadas con retiro en tienda aparecerán aquí.</p>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 
-  <!-- Modal in-app de confirmación -->
   @if (ordenAConfirmar(); as orden) {
-    <div class="modal-backdrop" (click)="cerrarModal()">
-      <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="modal-retiro-title">
-        <div class="panel-heading">
-          <div>
-            <h2 id="modal-retiro-title">Confirmar entrega en mostrador</h2>
-            <p>Verifica los datos del cliente y el código antes de entregar el paquete.</p>
-          </div>
-          <button type="button" class="button" (click)="cerrarModal()" [disabled]="loading()" aria-label="Cerrar modal">✕</button>
-        </div>
-
-        <div class="form-body">
-          <div style="background:rgba(126,35,223,0.06);border-left:3px solid #7E23DF;padding:12px 14px;border-radius:8px;">
-            <div style="font-size:11px;font-weight:600;color:#7E23DF;text-transform:uppercase;letter-spacing:0.5px;">Orden en Tienda</div>
-            <strong style="font-size:15px;color:#1B1230;display:block;margin-top:2px;">{{ orden.numeroOrden || orden.id }}</strong>
-            <div style="font-size:12px;color:#636366;margin-top:2px;">
-              Monto pagado: <strong style="color:#1B1230;">${{ orden.total | number:'1.2-2' }}</strong>
+    <div class="fixed inset-0 z-[1500] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-retiro-title">
+      <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm" (click)="cerrarModal()"></div>
+      <section class="relative z-10 w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden">
+        <header class="p-5 bg-surface-container-low flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center"><span class="material-symbols-outlined text-[22px]">storefront</span></div>
+            <div>
+              <h2 id="modal-retiro-title" class="text-base font-semibold text-on-surface">Confirmar entrega en mostrador</h2>
+              <p class="text-xs text-on-surface-variant tabular-nums">{{ orden.numeroOrden || orden.id }} · {{ (orden.total ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
             </div>
           </div>
-
-          <div class="form-row">
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Persona que retira</label>
-              <div style="font-size:14px;font-weight:600;color:#1B1230;">
-                {{ orden.datosRetiroTienda?.nombreQuienRetira || orden.clienteNombre || 'No especificado' }}
-              </div>
-            </div>
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Cédula / Documento</label>
-              <div style="font-size:14px;font-weight:600;color:#1B1230;">
-                {{ orden.datosRetiroTienda?.cedulaQuienRetira || '—' }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Código de Retiro</label>
-              <div style="font-family:monospace;font-size:16px;font-weight:700;color:#7E23DF;letter-spacing:1px;">
-                {{ orden.codigoRetiro || '—' }}
-              </div>
-            </div>
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Teléfono</label>
-              <div style="font-size:13px;color:#1B1230;">
-                {{ orden.datosRetiroTienda?.telefonoContacto || '—' }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Fecha Programada</label>
-              <div style="font-size:13px;color:#1B1230;">
-                {{ orden.datosRetiroTienda?.fechaRetiro || orden.fechaRetiro || '—' }}
-              </div>
-            </div>
-            <div>
-              <label style="margin-bottom:2px;font-size:11px;color:#8E8E93;text-transform:uppercase;">Franja Horaria</label>
-              <div style="font-size:13px;color:#1B1230;">
-                {{ orden.datosRetiroTienda?.franjaHoraria || orden.franjaHoraria || '—' }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-hint" style="background:#FAF7FD;padding:10px 12px;border-radius:6px;border:1px solid #F1E6F8;">
-            ℹ Al confirmar, la orden se marcará como <strong>Retirada</strong>. Esta acción no se puede deshacer y retirará el pedido de la cola de pendientes.
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="button" (click)="cerrarModal()" [disabled]="loading()">Cancelar</button>
-          <button type="button" class="button primary" (click)="confirmarModal()" [disabled]="loading()">
-            {{ loading() ? 'Guardando entrega...' : 'Confirmar entrega' }}
+          <button type="button" class="w-9 h-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center cursor-pointer" (click)="cerrarModal()" [disabled]="loading()" aria-label="Cerrar">
+            <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
-        </div>
-      </div>
+        </header>
+        <dl class="p-5 grid grid-cols-2 gap-3 text-xs">
+          <div class="col-span-2 p-3 rounded-xl bg-surface-container-low">
+            <dt class="text-on-surface-variant">Quién retira</dt>
+            <dd class="text-sm font-semibold text-on-surface">{{ orden.datosRetiroTienda?.nombreQuienRetira || orden.clienteNombre || 'No especificado' }}</dd>
+          </div>
+          <div class="p-3 rounded-xl bg-surface-container-low"><dt class="text-on-surface-variant">Cédula</dt><dd class="font-semibold text-on-surface tabular-nums">{{ orden.datosRetiroTienda?.cedulaQuienRetira || '—' }}</dd></div>
+          <div class="p-3 rounded-xl bg-surface-container"><dt class="text-on-surface-variant">Código</dt><dd class="font-semibold text-primary tracking-wider tabular-nums">{{ orden.codigoRetiro || '—' }}</dd></div>
+          <div class="p-3 rounded-xl bg-surface-container-low"><dt class="text-on-surface-variant">Teléfono</dt><dd class="font-semibold text-on-surface">{{ orden.datosRetiroTienda?.telefonoContacto || '—' }}</dd></div>
+          <div class="p-3 rounded-xl bg-surface-container-low"><dt class="text-on-surface-variant">Fecha y franja</dt><dd class="font-semibold text-on-surface">{{ orden.datosRetiroTienda?.fechaRetiro || orden.fechaRetiro || '—' }} · {{ orden.datosRetiroTienda?.franjaHoraria || orden.franjaHoraria || '—' }}</dd></div>
+        </dl>
+        <p class="px-5 text-xs text-on-surface-variant">Verifica la cédula y el código antes de entregar. Esta acción no se puede deshacer.</p>
+        <footer class="mt-4 px-5 py-4 bg-surface-container-low flex items-center justify-end gap-2">
+          <button type="button" class="px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface hover:bg-surface-container-high text-sm font-semibold shadow-sm cursor-pointer" (click)="cerrarModal()" [disabled]="loading()">Cancelar</button>
+          <button type="button" class="inline-flex items-center gap-1 px-5 py-2 rounded-xl bg-primary text-on-primary hover:bg-primary-container text-sm font-semibold shadow-sm cursor-pointer disabled:opacity-50" (click)="confirmarModal()" [disabled]="loading()">
+            <span class="material-symbols-outlined text-[18px]">check</span>{{ loading() ? 'Guardando…' : 'Confirmar entrega' }}
+          </button>
+        </footer>
+      </section>
     </div>
   }
 </div>

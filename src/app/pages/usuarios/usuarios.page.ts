@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, computed, afterNextRender } from '@angular/core';
+﻿import { Component, inject, signal, computed, afterNextRender, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -29,6 +29,11 @@ export class UsuariosPage {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly message = signal('');
+  /** Los mensajes de éxito se muestran en el toast global del panel. */
+  private readonly avisoGlobal = effect(() => {
+    const texto = this.message();
+    if (texto) untracked(() => this.operations.message.set(texto));
+  });
   readonly dialog = signal<'crear' | 'restablecer' | null>(null);
   readonly pattern = CLAVE_PATTERN;
 

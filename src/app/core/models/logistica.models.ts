@@ -49,6 +49,11 @@ export interface RegistrarPedidoRequest {
   horaEntrega: Hora;
   zonaId?: Guid | null;
   detalles?: DetallesPedidoDto | null;
+  /** Intervalo elegido de GET /entregas/intervalos (se envía tal como llegó). */
+  compromisoInicioEn?: string | null;
+  compromisoFinEn?: string | null;
+  /** true: el backend vuelve a comprobar el intervalo (409 INTERVALO_NO_DISPONIBLE si ya no cabe). */
+  verificarDisponibilidad?: boolean;
 }
 export interface DetallesPedidoDto {
   remitenteNombre?: string | null;

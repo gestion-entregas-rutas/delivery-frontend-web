@@ -23,6 +23,16 @@ import { Subscription } from 'rxjs';
 import { AddressResult } from '../../../core/models/address-result.model';
 import { PlaceBoundaryPreview } from '../../../core/models/place-boundary.models';
 import { PlaceBoundaryService } from '../../../core/services/place-boundary.service';
+import {
+  MAX_VERTICES_ZONA,
+  distanciaKm,
+  simplificarPoligono,
+} from '../../../core/utils/simplify-polygon';
+
+/** A partir de cuántos vértices se dibujan como puntos pequeños (no arrastrables). */
+const UMBRAL_COMPACTO = 30;
+/** Un clic a más de esta distancia (km) del contorno pide confirmación. */
+const DISTANCIA_LEJANA_KM = 3;
 
 @Component({
   selector: 'app-zone-map-picker',
@@ -49,6 +59,13 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
   private boundaryRequest?: Subscription;
   private boundaryLayer?: Leaflet.GeoJSON;
   private boundaryGeneration = 0;
+  /** Punto lejano pendiente de confirmar (clic accidental al mover el mapa). */
+  readonly pendingFar = signal<{ point: PuntoDto; km: number } | null>(null);
+  readonly maxVertices = MAX_VERTICES_ZONA;
+  /** Muchos vértices: se dibujan como puntos pequeños y solo el seleccionado se arrastra. */
+  get compacto() {
+    return this.points.length > UMBRAL_COMPACTO;
+  }
   get geometryError() {
     return this.points.length >= 3 ? zoneGeometryError(this.points) : '';
   }
@@ -89,7 +106,7 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
       this.vertices = this.L.layerGroup().addTo(this.map);
       this.map.on('click', (e) => {
         const p = e.latlng.wrap();
-        this.addPoint({ latitud: p.lat, longitud: p.lng });
+        this.requestPoint({ latitud: p.lat, longitud: p.lng });
       });
       this.draw();
       this.fit();
@@ -102,6 +119,39 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
     } catch {
       this.error.set('No se pudo cargar el mapa. Cierra el formulario y vuelve a intentarlo.');
     }
+  }
+  /** Clic en el mapa: si cae muy lejos del contorno, pide confirmación antes de agregarlo. */
+  requestPoint(point: PuntoDto) {
+    if (this.disabled) return;
+    if (this.points.length >= 3) {
+      const km = Math.min(...this.points.map((p) => distanciaKm(p, point)));
+      if (km > DISTANCIA_LEJANA_KM) {
+        this.pendingFar.set({ point, km: Math.round(km * 10) / 10 });
+        return;
+      }
+    }
+    this.pendingFar.set(null);
+    this.addPoint(point);
+  }
+  confirmFar() {
+    const pending = this.pendingFar();
+    this.pendingFar.set(null);
+    if (pending) this.addPoint(pending.point);
+  }
+  /** Reduce un contorno con demasiados vértices; el dibujo anterior se puede recuperar. */
+  simplify() {
+    if (this.disabled || this.points.length <= MAX_VERTICES_ZONA) return;
+    const antes = this.points.length;
+    const simple = simplificarPoligono(this.points);
+    if (simple.length >= antes) {
+      this.error.set('No se pudo simplificar el contorno sin deformarlo.');
+      return;
+    }
+    this.previousContour.set(this.points.map((p) => ({ ...p })));
+    this.selected.set(null);
+    this.commit(simple);
+    this.fit();
+    this.boundaryNotice.set(`Contorno simplificado de ${antes} a ${simple.length} vértices. Revisa el área y guarda la zona.`);
   }
   addPoint(point: PuntoDto) {
     if (this.disabled) return;
@@ -175,6 +225,7 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
   }
   private commit(points: PuntoDto[]) {
     this.discardBoundary();
+    this.pendingFar.set(null);
     this.boundaryNotice.set('');
     this.points = points;
     this.error.set('');
@@ -200,7 +251,26 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
         ? this.L.polygon(this.latLngs(), style)
         : this.L.polyline(this.latLngs(), { ...style, dashArray: '6 5' });
     this.shape!.addTo(this.map);
+    const compacto = this.compacto;
     this.points.forEach((p, i) => {
+      if (compacto && this.selected() !== i) {
+        // Punto pequeño: no se arrastra al mover el mapa; un clic lo selecciona para editarlo.
+        this.L!.circleMarker([p.latitud, p.longitud], {
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: mapPalette().primary,
+          fillOpacity: 1,
+          bubblingMouseEvents: false,
+        })
+          .on('click', () => {
+            if (this.disabled) return;
+            this.selected.set(i);
+            this.draw();
+          })
+          .addTo(this.vertices!);
+        return;
+      }
       const marker = this.L!.marker([p.latitud, p.longitud], {
         draggable: !this.disabled,
         autoPan: true,
@@ -296,10 +366,15 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
     }
     this.previousContour.set(this.points.map((p) => ({ ...p })));
     this.selected.set(null);
-    this.commit(preview.points.map((p) => ({ ...p })));
+    // Los contornos de OpenStreetMap traen cientos de vértices: se reducen para poder editarlos.
+    const importados = simplificarPoligono(preview.points);
+    this.commit(importados);
     this.fit();
     this.boundaryNotice.set(
-      'Contorno cargado como dibujo editable. Revisa el área y guarda la zona para enviarla al sistema.',
+      (importados.length < preview.points.length
+        ? `Contorno cargado y simplificado de ${preview.points.length} a ${importados.length} vértices. `
+        : 'Contorno cargado como dibujo editable. ') +
+        'Revisa el área y guarda la zona para enviarla al sistema.',
     );
   }
   restorePreviousContour() {

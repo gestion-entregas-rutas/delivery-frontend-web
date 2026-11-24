@@ -29,9 +29,19 @@ export class OperationForm {
   readonly telefonoTouched = signal(false);
   readonly capacidadTouched = signal(false);
 
+  /** Dirección obtenida del punto del mapa; el usuario puede editarla libremente. */
+  readonly direccionSugerida = signal('');
+  private direccionAutocompletada = '';
+
   constructor() {
     effect(() => {
       const modal = this.forms.modal();
+      if (modal === 'Local') {
+        untracked(() => {
+          this.direccionSugerida.set('');
+          this.direccionAutocompletada = '';
+        });
+      }
       if (modal === 'Repartidor') {
         untracked(() => {
           this.nombre.set(this.forms.form?.nombre || '');
@@ -41,6 +51,23 @@ export class OperationForm {
         });
       }
     });
+  }
+
+  /**
+   * Rellena la dirección solo si está vacía o si todavía es la que se autocompletó.
+   * Si el usuario ya la escribió, se ofrece como sugerencia sin pisar su texto.
+   */
+  onDireccionSugerida(direccion: string) {
+    this.direccionSugerida.set(direccion);
+    const actual = (this.forms.form.direccion || '').trim();
+    if (!actual || actual === this.direccionAutocompletada) this.usarDireccionSugerida();
+  }
+
+  usarDireccionSugerida() {
+    const direccion = this.direccionSugerida();
+    if (!direccion) return;
+    this.forms.form.direccion = direccion.slice(0, 300);
+    this.direccionAutocompletada = this.forms.form.direccion;
   }
 
   // Field error evaluations

@@ -1,6 +1,6 @@
 ﻿import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { PedidoDto, RutaDto } from '../models/logistica.models';
+import { firstValueFrom, Observable } from 'rxjs';
+import { PedidoDto, RutaDto, PedidoEnRiesgo } from '../models/logistica.models';
 import { LogisticaApiService } from './logistica-api.service';
 import { OperationsService } from './operations.service';
 @Injectable({ providedIn: 'root' })
@@ -13,6 +13,8 @@ export class RouteAssignmentService {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
+  readonly pedidosEnRiesgo = signal<PedidoEnRiesgo[] | null>(null);
+  private resolverRiesgo?: (confirmado: boolean) => void;
   routeId = '';
   private generation = 0;
   async open(pedido: PedidoDto, preferredRouteId = '') {
@@ -60,11 +62,44 @@ export class RouteAssignmentService {
       if (generation === this.generation) this.loading.set(false);
     }
   }
+  confirmar(pedidos: PedidoEnRiesgo[]): Promise<boolean> {
+    this.pedidosEnRiesgo.set(pedidos);
+    return new Promise<boolean>((resolve) => {
+      this.resolverRiesgo = resolve;
+    });
+  }
+  responderRiesgo(confirmado: boolean) {
+    this.pedidosEnRiesgo.set(null);
+    this.resolverRiesgo?.(confirmado);
+    this.resolverRiesgo = undefined;
+  }
+  async ejecutarConRiesgo<T>(enviar: (forzar: boolean) => Observable<T>): Promise<T | null> {
+    try {
+      return await firstValueFrom(enviar(false));
+    } catch (e: any) {
+      const p = e?.error ?? e?.problem;
+      if (e?.status === 409 && p?.codigo === 'CAMBIO_PONE_EN_RIESGO') {
+        const ok = await this.confirmar(p.pedidosEnRiesgo as PedidoEnRiesgo[]);
+        if (!ok) return null;
+        return await firstValueFrom(enviar(true));
+      }
+      throw e;
+    }
+  }
+  clienteNombre(pedidoId: string): string {
+    return (
+      this.operations.pedidos().find((p) => p.id === pedidoId)?.clienteNombre ||
+      'Pedido #' + this.operations.short(pedidoId)
+    );
+  }
   reset() {
     this.generation++;
     this.pedido.set(null);
     this.routes.set([]);
     this.origin.set(null);
+    this.pedidosEnRiesgo.set(null);
+    this.resolverRiesgo?.(false);
+    this.resolverRiesgo = undefined;
     this.error.set('');
     this.loading.set(false);
     this.saving.set(false);
@@ -75,6 +110,9 @@ export class RouteAssignmentService {
     this.pedido.set(null);
     this.routes.set([]);
     this.origin.set(null);
+    this.pedidosEnRiesgo.set(null);
+    this.resolverRiesgo?.(false);
+    this.resolverRiesgo = undefined;
     this.error.set('');
   }
   async confirm() {
@@ -93,8 +131,8 @@ export class RouteAssignmentService {
         const result = await firstValueFrom(
           this.api.transferirPedido(origin.id, p.id, {
             destinoRutaId: destino.id,
-            versionOrigen: origin.version,
-            versionDestino: destino.version,
+            versionOrigen: origin.version!,
+            versionDestino: destino.version!,
             posicion: null,
           }),
         );
@@ -107,7 +145,13 @@ export class RouteAssignmentService {
                 : r,
           ),
         );
-      } else await firstValueFrom(this.api.agregarPedido(this.routeId, { pedidoId: p.id }));
+      } else {
+        await firstValueFrom(
+          this.api.agregarPedido(this.routeId, {
+            pedidoId: p.id,
+          }),
+        );
+      }
       if (generation !== this.generation) return;
       this.pedido.set(null);
       this.operations.message.set(
@@ -118,6 +162,53 @@ export class RouteAssignmentService {
       await this.operations.refresh();
     } catch (e: any) {
       if (generation !== this.generation) return;
+      const prob = e?.error ?? e?.problem;
+      if (e?.status === 409 && prob?.codigo === 'CAMBIO_PONE_EN_RIESGO') {
+        const ok = await this.confirmar(prob.pedidosEnRiesgo as PedidoEnRiesgo[]);
+        if (!ok) return;
+        try {
+          const origin = this.origin(),
+            destino = this.routes().find((r) => r.id === this.routeId);
+          if (origin && destino) {
+            const result = await firstValueFrom(
+              this.api.transferirPedido(origin.id, p.id, {
+                destinoRutaId: destino.id,
+                versionOrigen: origin.version!,
+                versionDestino: destino.version!,
+                posicion: null,
+                forzar: true,
+              }),
+            );
+            this.operations.rutas.update((all) =>
+              all.map((r) =>
+                r.id === result.origen.id
+                  ? result.origen
+                  : r.id === result.destino.id
+                    ? result.destino
+                    : r,
+              ),
+            );
+          } else {
+            await firstValueFrom(
+              this.api.agregarPedido(this.routeId, {
+                pedidoId: p.id,
+                forzar: true,
+              }),
+            );
+          }
+          if (generation !== this.generation) return;
+          this.pedido.set(null);
+          this.operations.message.set(
+            origin
+              ? 'Pedido transferido a la ruta seleccionada.'
+              : 'Pedido asignado a la ruta seleccionada.',
+          );
+          await this.operations.refresh();
+          return;
+        } catch (retryError: any) {
+          e = retryError;
+        }
+      }
       if (e?.status === 409) {
         this.saving.set(false);
         try {

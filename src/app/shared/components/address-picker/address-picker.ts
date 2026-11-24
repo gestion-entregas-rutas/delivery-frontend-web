@@ -15,6 +15,7 @@ import { AddressSearchService } from '../../../core/services/address-search.serv
 import { AddressResult } from '../../../core/models/address-result.model';
 import { Subscription } from 'rxjs';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { PuntoDto, ZonaDto } from '../../../core/models/logistica.models';
 import { LocalLocation } from '../../../core/models/local.models';
 import { deliveryCoverage } from '../../../core/utils/delivery-coverage';
@@ -24,18 +25,29 @@ import { mapPalette } from '../../../core/utils/map-palette';
   selector: 'app-address-picker',
   template: `
     <div class="location-heading">
-      <strong>Ubicación de entrega</strong
-      ><button
-        type="button"
-        class="button"
-        [disabled]="disabled || busy() || address.trim().length < 3"
-        (click)="search()"
-      >
-        {{ busy() ? 'Buscando…' : '⌕ Buscar dirección en el mapa' }}
-      </button>
+      <strong>{{ title }}</strong>
+      <span style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px">
+        @if (showMyLocation) {
+          <button type="button" class="button" [disabled]="disabled || locating()" (click)="locate()">
+            {{ locating() ? 'Ubicando…' : '◎ Usar mi ubicación actual' }}
+          </button>
+        }
+        <button
+          type="button"
+          class="button"
+          [disabled]="disabled || busy() || address.trim().length < 3"
+          (click)="search()"
+        >
+          {{ busy() ? 'Buscando…' : '⌕ Buscar dirección en el mapa' }}
+        </button>
+      </span>
     </div>
     <p class="hint">
-      Busca la dirección escrita arriba o haz clic en el mapa para indicar dónde entregar.
+      {{
+        showMyLocation
+          ? 'Usa tu ubicación actual, busca la dirección escrita arriba o haz clic en el mapa. Puedes arrastrar el marcador para ajustarlo.'
+          : 'Busca la dirección escrita arriba o haz clic en el mapa para indicar dónde entregar.'
+      }}
     </p>
     @if (message()) {
       <p role="status" class="feedback">{{ message() }}</p>
@@ -95,8 +107,12 @@ import { mapPalette } from '../../../core/utils/map-palette';
       }}
     </div>
     <small
-      >Búsqueda: Photon · Datos © OpenStreetMap. Se envía solo el texto de dirección al
-      buscador.</small
+      >Búsqueda: Photon · Datos © OpenStreetMap.
+      {{
+        suggestAddress
+          ? 'Para autocompletar la dirección se envían las coordenadas del punto elegido al buscador.'
+          : 'Se envía solo el texto de dirección al buscador.'
+      }}</small
     >
   `,
   styleUrl: './address-picker.css',
@@ -107,6 +123,18 @@ export class AddressPicker implements OnChanges, OnDestroy {
   @Input() coverageZones: ZonaDto[] | null = null;
   @Input() shopLocation: LocalLocation | null = null;
   @Input() disabled = false;
+  @Input() title = 'Ubicación de entrega';
+  /** Muestra el botón para usar la ubicación del dispositivo. */
+  @Input() showMyLocation = false;
+  /** Al abrir sin punto previo, centra el mapa en la ubicación del dispositivo. */
+  @Input() locateOnStart = false;
+  /** Tras elegir un punto, sugiere su dirección mediante addressSuggested. */
+  @Input() suggestAddress = false;
+  /** Si es false, editar el texto de la dirección no borra el punto elegido. */
+  @Input() addressResetsPoint = true;
+  @Output() addressSuggested = new EventEmitter<string>();
+  readonly locating = signal(false);
+  private reverseRequest?: Subscription;
   readonly point = signal<PuntoDto | null>(null);
   get activeZones() {
     return (this.coverageZones || []).filter((z) => z.activa && z.poligono.length >= 3);
@@ -141,6 +169,9 @@ export class AddressPicker implements OnChanges, OnDestroy {
     this.drawCoverage();
     if (this.disabled) this.marker?.dragging?.disable();
     else this.marker?.dragging?.enable();
+    // Para el local, corregir el texto de la dirección no debe perder el punto ya elegido.
+    if (!this.addressResetsPoint && changes['address'] && !changes['address'].firstChange && !changes['initialPoint'])
+      return;
     if (Object.keys(changes).length && !changes['address'] && !changes['initialPoint']) {
       if (!this.point()) this.fitCoverage();
       return;
@@ -164,7 +195,7 @@ export class AddressPicker implements OnChanges, OnDestroy {
   async init() {
     if (this.destroyed || this.map) return;
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed || this.map) return;
       this.map = this.L.map(this.host.nativeElement.querySelector('.picker-map')).setView(
         [-2.1894, -79.8891],
@@ -178,9 +209,12 @@ export class AddressPicker implements OnChanges, OnDestroy {
       this.drawCoverage();
       this.map.on('click', (e) => this.setPoint(e.latlng.lat, e.latlng.lng));
       if (this.seed) {
-        this.setPoint(this.seed.latitud, this.seed.longitud);
+        this.setPoint(this.seed.latitud, this.seed.longitud, false);
         this.map.setView([this.seed.latitud, this.seed.longitud], 16);
-      } else this.fitCoverage();
+      } else {
+        this.fitCoverage();
+        if (this.locateOnStart) this.locate();
+      }
       if (typeof ResizeObserver !== 'undefined') {
         this.resize = new ResizeObserver(() => this.map?.invalidateSize());
         this.resize.observe(this.host.nativeElement.querySelector('.picker-map')!);
@@ -213,11 +247,44 @@ export class AddressPicker implements OnChanges, OnDestroy {
   }
   choose(result: AddressResult) {
     if (this.disabled) return;
-    this.setPoint(result.latitud, result.longitud);
+    this.setPoint(result.latitud, result.longitud, false);
     this.map?.setView([result.latitud, result.longitud], 17);
     this.results.set([]);
+    if (this.suggestAddress) this.addressSuggested.emit(result.label);
   }
-  setPoint(latitud: number, longitud: number) {
+  /** Marca la ubicación actual del dispositivo (requiere permiso del navegador). */
+  locate() {
+    if (this.disabled || this.locating()) return;
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      this.message.set('Tu navegador no permite obtener la ubicación. Marca el punto en el mapa.');
+      return;
+    }
+    this.locating.set(true);
+    this.message.set('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.locating.set(false);
+        if (this.destroyed) return;
+        const { latitude, longitude, accuracy } = pos.coords;
+        this.setPoint(latitude, longitude);
+        this.map?.setView([latitude, longitude], 17);
+        if (accuracy > 100)
+          this.message.set(
+            `Ubicación aproximada (±${Math.round(accuracy)} m). Arrastra el marcador si hace falta.`,
+          );
+      },
+      (err) => {
+        this.locating.set(false);
+        this.message.set(
+          err.code === err.PERMISSION_DENIED
+            ? 'No se dio permiso para usar tu ubicación. Marca el punto en el mapa.'
+            : 'No pudimos obtener tu ubicación. Marca el punto en el mapa.',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  }
+  setPoint(latitud: number, longitud: number, sugerir = true) {
     if (
       this.disabled ||
       !Number.isFinite(latitud) ||
@@ -239,9 +306,24 @@ export class AddressPicker implements OnChanges, OnDestroy {
     }).addTo(this.map);
     this.marker.on('dragend', () => {
       const p = this.marker!.getLatLng();
-      if (!this.disabled) this.emit(p.lat, p.lng);
+      if (!this.disabled) {
+        this.emit(p.lat, p.lng);
+        this.suggest(p.lat, p.lng);
+      }
     });
     this.emit(latitud, longitud);
+    if (sugerir) this.suggest(latitud, longitud);
+    else this.reverseRequest?.unsubscribe();
+  }
+  private suggest(latitud: number, longitud: number) {
+    if (!this.suggestAddress) return;
+    this.reverseRequest?.unsubscribe(); // solo vale la sugerencia del último punto
+    this.reverseRequest = this.service.reverse(latitud, longitud).subscribe({
+      next: (direccion) => {
+        if (direccion) this.addressSuggested.emit(direccion);
+      },
+      error: () => {},
+    });
   }
   private emit(latitud: number, longitud: number) {
     this.selected.set(true);
@@ -283,6 +365,7 @@ export class AddressPicker implements OnChanges, OnDestroy {
     this.destroyed = true;
     this.resize?.disconnect();
     this.request?.unsubscribe();
+    this.reverseRequest?.unsubscribe();
     this.map?.remove();
   }
 }

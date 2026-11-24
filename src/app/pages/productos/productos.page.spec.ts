@@ -8,7 +8,7 @@ import { OperationsService } from '../../core/services/operations.service';
 describe('ProductosPage (sin API real, mocks)', () => {
   const producto = {
     id: 'prod-1',
-    categoriaId: 12,
+    categoriaId: 'cat-12',
     categoriaNombre: 'Hogar y cocina',
     subcategoria: 'Velas',
     nombre: 'Vela aromática',
@@ -30,7 +30,7 @@ describe('ProductosPage (sin API real, mocks)', () => {
 
   beforeEach(async () => {
     api = {
-      listarCategorias: vi.fn(() => of([{ id: 12, nombre: 'Hogar y cocina' }])),
+      listarCategorias: vi.fn(() => of([{ id: 'cat-12', nombre: 'Hogar y cocina' }])),
       listarProductos: vi.fn(() => of({ items: [producto], total: 1, pagina: 1, tamanoPagina: 50 })),
       obtenerProducto: vi.fn(() => of({ ...producto })),
       crearProducto: vi.fn(() => of({ ...producto, id: 'new', version: 'v1' })),
@@ -70,9 +70,9 @@ describe('ProductosPage (sin API real, mocks)', () => {
     expect(page.filtrados().length).toBe(0);
 
     page.buscar.set('');
-    page.categoriaFiltro.set(12);
+    page.categoriaFiltro.set('cat-12');
     expect(page.filtrados().length).toBe(1);
-    page.categoriaFiltro.set(99);
+    page.categoriaFiltro.set('cat-99');
     expect(page.filtrados().length).toBe(0);
 
     page.categoriaFiltro.set('');
@@ -97,7 +97,7 @@ describe('ProductosPage (sin API real, mocks)', () => {
     const page = fixture.componentInstance;
 
     page.abrirNuevo();
-    page.form.categoriaId = 12;
+    page.form.categoriaId = '3f1c2a9e-0000-4000-8000-000000000012';
     page.form.nombre = '  Nuevo  ';
     page.form.marca = '  M  ';
     page.form.precioBase = 19.9;
@@ -111,7 +111,7 @@ describe('ProductosPage (sin API real, mocks)', () => {
     const body = api.crearProducto.mock.calls[0][0];
     expect(body.nombre).toBe('Nuevo');
     expect(body.marca).toBe('M');
-    expect(body.categoriaId).toBe(12);
+    expect(body.categoriaId).toBe('3f1c2a9e-0000-4000-8000-000000000012'); // GUID, nunca número
     expect(body.fichaTecnica).toEqual([{ clave: 'Color', valor: 'Rojo' }]);
     expect(body.sobreEsteArticulo).toEqual(['Punto 1']);
     expect(body.version).toBeUndefined();

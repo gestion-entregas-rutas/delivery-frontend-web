@@ -21,6 +21,7 @@ import {
   ResumenPedidosDto,
   UbicacionRepartidorDto,
   TransferirPedidoRequest,
+  IntervalosDisponiblesDto,
 } from '../models/logistica.models';
 import {
   CategoriaDto,
@@ -110,11 +111,23 @@ export class LogisticaApiService {
       body,
     );
   }
-  reordenarParadas(id: Guid, pedidosEnOrden: Guid[], version: number) {
-    return this.http.put<RutaDto>(`${this.base}/rutas/${id}/paradas/orden`, {
+  reordenarParadas(id: Guid, pedidosEnOrden: Guid[], version: number, forzar?: boolean) {
+    const body: Record<string, unknown> = {
       pedidosEnOrden,
       version,
-    });
+    };
+    if (forzar) body['forzar'] = true;
+    return this.http.put<RutaDto>(`${this.base}/rutas/${id}/paradas/orden`, body);
+  }
+  recalcularEstimaciones(id: Guid) {
+    return this.http.post<RutaDto>(`${this.base}/rutas/${id}/estimaciones/recalcular`, null);
+  }
+  consultarIntervalos(fecha: Fecha, latitud: number, longitud: number) {
+    const params = new HttpParams()
+      .set('fecha', fecha)
+      .set('latitud', latitud)
+      .set('longitud', longitud);
+    return this.http.get<IntervalosDisponiblesDto>(`${this.base}/entregas/intervalos`, { params });
   }
   cancelarPedido(id: Guid) {
     return this.http.post<PedidoDto>(`${this.base}/pedidos/${id}/cancelar`, null);

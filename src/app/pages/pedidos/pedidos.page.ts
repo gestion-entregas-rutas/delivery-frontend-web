@@ -21,7 +21,11 @@ import {
   PuntoDto,
   DetallesPedidoDto,
   RegistrarPedidoRequest,
+  IntervaloEntregaDto,
+  IntervalosDisponiblesDto,
 } from '../../core/models/logistica.models';
+import { Subject, Subscription, catchError, debounceTime, of, switchMap } from 'rxjs';
+import { formatHoraEcuador } from '../../core/utils/route-presentation';
 import { zoneForPoint } from '../../core/utils/presentation';
 import { PedidoDetailService } from '../../core/services/pedido-detail.service';
 import { AddressPicker } from '../../shared/components/address-picker/address-picker';
@@ -88,6 +92,8 @@ export class PedidosPage implements OnDestroy {
   readonly formHora = signal('16:00');
   readonly formVentana = signal('afternoon');
   readonly formCliente = signal('');
+
+  readonly tiposCarga: NonNullable<DetallesPedidoDto['tipoCarga']>[] = ['General', 'Documento', 'Alimentos', 'Medicamentos', 'Otro'];
 
   onVentanaChange(ventana: string) {
     this.formVentana.set(ventana);
@@ -239,6 +245,10 @@ export class PedidosPage implements OnDestroy {
   readonly totalOrdersCount = computed(() => this.operations.total());
   constructor() {
     this.operations.view.set('Pedidos');
+    if (this.operations.abrirNuevoPedido()) {
+      this.operations.abrirNuevoPedido.set(false);
+      queueMicrotask(() => this.openOrderSheet());
+    }
   }
   @HostListener('window:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
     if (event.key === 'Escape') {
@@ -286,7 +296,78 @@ export class PedidosPage implements OnDestroy {
     this.operations.hasta = '';
     void this.operations.changeDate();
   }
+  // ---------- Horarios disponibles (mismo criterio que la tienda) ----------
+  readonly oferta = signal<IntervalosDisponiblesDto | null>(null);
+  readonly intervalo = signal<IntervaloEntregaDto | null>(null);
+  readonly cargandoIntervalos = signal(false);
+  readonly errorIntervalos = signal('');
+  private readonly consultaIntervalos = new Subject<void>();
+  private readonly subIntervalos: Subscription = this.consultaIntervalos
+    .pipe(
+      debounceTime(350),
+      switchMap(() => {
+        const punto = this.formPoint();
+        if (!this.drawerOpen() || this.editing() || !punto || !this.formFecha() || !this.coverage().covered)
+          return of(undefined);
+        this.cargandoIntervalos.set(true);
+        this.errorIntervalos.set('');
+        return this.operations.api.consultarIntervalos(this.formFecha(), punto.latitud, punto.longitud).pipe(
+          catchError((e) => {
+            this.errorIntervalos.set(e?.error?.detail || 'No se pudieron consultar los horarios disponibles.');
+            return of(null);
+          }),
+        );
+      }),
+    )
+    .subscribe((oferta) => {
+      this.cargandoIntervalos.set(false);
+      if (oferta === undefined) { this.oferta.set(null); this.intervalo.set(null); return; }
+      this.oferta.set(oferta);
+      const actual = this.intervalo();
+      this.intervalo.set(oferta?.intervalos.find((i) => i.disponible && actual && i.inicioEn === actual.inicioEn) ?? null);
+    });
+  private readonly recargaIntervalos = effect(() => {
+    // Se vuelve a consultar al cambiar fecha, punto o cobertura del formulario.
+    this.drawerOpen(); this.formFecha(); this.formPoint(); this.coverage(); this.editing();
+    untracked(() => this.consultaIntervalos.next());
+  });
+  hayHorarios() {
+    return !!this.oferta()?.intervalos.some((i) => i.disponible);
+  }
+  rangoHorario(i: IntervaloEntregaDto) {
+    return `${formatHoraEcuador(i.inicioEn)} – ${formatHoraEcuador(i.finEn)}`;
+  }
+  elegirIntervalo(i: IntervaloEntregaDto) {
+    if (!i.disponible) return;
+    this.intervalo.set(i);
+    this.formVentana.set('');
+    this.formHora.set(formatHoraEcuador(i.inicioEn));
+  }
+  esIntervaloElegido(i: IntervaloEntregaDto) {
+    return this.intervalo()?.inicioEn === i.inicioEn && this.intervalo()?.finEn === i.finEn;
+  }
+
+  /** Dirección del punto marcado en el mapa; rellena el campo si está vacío o si aún es la autocompletada. */
+  readonly direccionSugerida = signal('');
+  private direccionAutocompletada = '';
+  onDireccionSugerida(direccion: string) {
+    this.direccionSugerida.set(direccion);
+    const actual = this.formDireccion().trim();
+    if (!actual || actual === this.direccionAutocompletada) this.usarDireccionSugerida();
+  }
+  usarDireccionSugerida() {
+    const direccion = this.direccionSugerida().slice(0, 300);
+    if (!direccion) return;
+    this.formDireccion.set(direccion);
+    this.direccionAutocompletada = direccion;
+  }
+
   openOrderSheet() {
+    this.direccionSugerida.set('');
+    this.direccionAutocompletada = '';
+    this.intervalo.set(null);
+    this.oferta.set(null);
+    this.errorIntervalos.set('');
     this.editing.set(null);
     this.editingPoint.set(null);
     this.formRemitente.set('');
@@ -430,6 +511,10 @@ export class PedidosPage implements OnDestroy {
       this.operations.error.set('Revisa la longitud del remitente y las observaciones.');
       return;
     }
+    if (!this.editing() && !this.intervalo() && !this.errorIntervalos()) {
+      this.operations.error.set('Elige un horario disponible para la entrega.');
+      return;
+    }
     this.operations.saving.set(true);
     this.operations.error.set('');
     try {
@@ -459,7 +544,10 @@ export class PedidosPage implements OnDestroy {
             : {}),
       };
       const editing = this.editing();
-      if (!editing) return;
+      if (!editing) {
+        await this.registrarNuevo(body);
+        return;
+      }
       if (editing.version == null) throw new Error('Recarga el pedido antes de editar.');
       if (
         point.latitud === editing.ubicacion.latitud &&
@@ -477,6 +565,13 @@ export class PedidosPage implements OnDestroy {
         'Cambios guardados. La edición no asigna una ruta automáticamente.',
       );
     } catch (e) {
+      const codigo = (e as any)?.error?.codigo;
+      if ((e as any)?.status === 409 && codigo === 'INTERVALO_NO_DISPONIBLE') {
+        this.intervalo.set(null);
+        this.operations.error.set('Ese horario acaba de ocuparse. Elige otro de los disponibles.');
+        this.consultaIntervalos.next();
+        return;
+      }
       if ((e as any)?.status === 409 && this.editing()) {
         const editingId = this.editing()!.id;
         this.editing.set({ ...this.editing()!, version: undefined });
@@ -499,7 +594,30 @@ export class PedidosPage implements OnDestroy {
       this.operations.saving.set(false);
     }
   }
+  /** Alta de pedido: con horario elegido, el backend lo vuelve a comprobar antes de guardar. */
+  private async registrarNuevo(body: RegistrarPedidoRequest) {
+    const elegido = this.intervalo();
+    if (elegido) {
+      body.compromisoInicioEn = elegido.inicioEn;
+      body.compromisoFinEn = elegido.finEn;
+      body.verificarDisponibilidad = true;
+      body.horaEntrega = formatHoraEcuador(elegido.inicioEn) + ':00';
+    }
+    const registro = await firstValueFrom(this.operations.api.registrarPedido(body));
+    this.operations.lastRegistration.set(registro);
+    this.drawerOpen.set(false);
+    this.operations.fecha = registro.pedido.fechaEntrega;
+    await this.operations.changeDate();
+    const tipo = registro.asignacion?.tipo;
+    this.operations.message.set(
+      tipo === 'RutaExistente' ? 'Pedido registrado e insertado en una ruta.'
+        : tipo === 'RutaNueva' ? 'Pedido registrado en una ruta nueva.'
+        : 'Pedido registrado. Queda pendiente hasta armar o asignar rutas.',
+    );
+  }
+
   showToast(title: string, message: string) {
+    this.operations.message.set(message); // se muestra en el toast global
     clearTimeout(this.toastTimer);
     this.toastTitle.set(title);
     this.toastMessage.set(message);
@@ -508,6 +626,7 @@ export class PedidosPage implements OnDestroy {
   }
   ngOnDestroy() {
     this.destroyed = true;
+    this.subIntervalos.unsubscribe();
     this.editRequest++;
     clearTimeout(this.toastTimer);
     clearTimeout(this.searchTimer);

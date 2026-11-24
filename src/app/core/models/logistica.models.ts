@@ -49,6 +49,11 @@ export interface RegistrarPedidoRequest {
   horaEntrega: Hora;
   zonaId?: Guid | null;
   detalles?: DetallesPedidoDto | null;
+  /** Intervalo elegido de GET /entregas/intervalos (se envía tal como llegó). */
+  compromisoInicioEn?: string | null;
+  compromisoFinEn?: string | null;
+  /** true: el backend vuelve a comprobar el intervalo (409 INTERVALO_NO_DISPONIBLE si ya no cabe). */
+  verificarDisponibilidad?: boolean;
 }
 export interface DetallesPedidoDto {
   remitenteNombre?: string | null;
@@ -86,6 +91,34 @@ export interface TransferirPedidoRequest {
   versionOrigen: number;
   versionDestino: number;
   posicion?: number | null;
+  forzar?: boolean;
+}
+export interface AlertaPuntualidadDto {
+  pedidoId: Guid;
+  orden: number;
+  estado: 'RetrasoPrevisto' | 'PlazoVencido';
+  retrasoMinutos: number | null;
+}
+export interface PedidoEnRiesgo {
+  pedidoId: Guid;
+  rutaId: Guid;
+  finalizacionEstimadaEn: string;
+  limiteEn: string | null;
+  retrasoMinutos: number | null;
+}
+export interface ResultadoPuntualidadDto {
+  estado:
+    | 'SinCompromiso'
+    | 'SinEstimacion'
+    | 'DentroDelPlazoPrevisto'
+    | 'RetrasoPrevisto'
+    | 'PlazoVencido'
+    | 'EntregadoEnIntervalo'
+    | 'EntregadoConRetraso'
+    | 'EntregadoAntesDelIntervalo'
+    | 'NoAplica'
+    | string;
+  retrasoMinutos: number | null;
 }
 export interface PedidoDto {
   version?: number;
@@ -104,6 +137,10 @@ export interface PedidoDto {
   rutaId: Guid | null;
   registradoEn: string; // ISO 8601 con offset.
   entregadoEn: string | null;
+  compromisoInicioEn?: string | null;
+  compromisoFinEn?: string | null;
+  tiempoServicioMinutos?: number | null;
+  puntualidad?: ResultadoPuntualidadDto | null;
 }
 export interface ResultadoAsignacionDto {
   tipo: TipoAsignacion;
@@ -133,14 +170,26 @@ export interface PaginaDto<T> {
 export interface ArmarRutasRequest {
   fecha: Fecha;
   zonaId?: Guid | null;
+  origen?: PuntoDto | null;
+  salidaProgramadaEn?: string | null;
 }
 export interface AgregarPedidoARutaRequest {
   pedidoId: Guid;
   posicion?: number | null;
+  forzar?: boolean;
+}
+export interface ReordenarParadasRequest {
+  pedidosEnOrden: Guid[];
+  version: number;
+  forzar?: boolean;
 }
 export interface ParadaDto {
   orden: number;
   pedido: PedidoDto;
+  llegadaEstimadaEn?: string | null;
+  inicioAtencionEstimadoEn?: string | null;
+  finalizacionEstimadaEn?: string | null;
+  trasladoEstimadoMinutos?: number | null;
 }
 export interface RutaDto {
   version?: number;
@@ -151,6 +200,27 @@ export interface RutaDto {
   capacidad: number;
   estado: EstadoRuta;
   paradas: ParadaDto[];
+  origen?: PuntoDto | null;
+  salidaProgramadaEn?: string | null;
+  estimacionesActualizadasEn?: string | null;
+  modeloEstimacion?: string | null;
+  distanciaEstimadaKm?: number | null;
+  alertas?: AlertaPuntualidadDto[] | null;
+}
+export interface IntervaloEntregaDto {
+  inicioEn: string;
+  finEn: string;
+  disponible: boolean;
+  motivo?: 'Vencido' | 'SinCapacidad' | string | null;
+}
+export interface IntervalosDisponiblesDto {
+  fecha: Fecha;
+  zonaId: Guid;
+  zonaNombre: string;
+  duracionMinutos: number;
+  modeloEstimacion: string;
+  calculadoEn: string;
+  intervalos: IntervaloEntregaDto[];
 }
 export interface ArmadoRutasDto {
   fecha: Fecha;

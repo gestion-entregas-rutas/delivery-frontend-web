@@ -1,426 +1,207 @@
-<div class="flex-1 bg-[#F5F5F7] p-5 space-y-4 overflow-y-auto custom-scrollbar min-h-0" data-purpose="workspace-main">
-  <!-- BEGIN: Header & KPI Summary Section -->
-  <section class="bg-white rounded-xl border border-[#E5E5EA] p-5 shadow-subtle" data-purpose="zonas-header">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4">
-      <!-- Left: Title, Tag & Subtitle -->
-      <div class="space-y-1">
-        <div class="flex items-center space-x-2 text-xs">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E8F1FF] text-[#007AFF]">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#007AFF] mr-1.5 animate-pulse"></span>
-            GEORREFERENCIACIÓN Y COBERTURA CVRPTW
-          </span>
-          <span class="text-[11px] text-[#8E8E93]">Cartografía y telemetría en tiempo real</span>
-        </div>
-        <h1 class="text-xl font-bold tracking-tight text-[#1C1C1E]">
-          Gestión de Zonas y Monitoreo de Flota
-        </h1>
-        <p class="text-xs text-[#636366] max-w-2xl leading-relaxed">
-          Delimitación de polígonos geoespaciales, topes de capacidad CVRPTW y asignación vehicular de última milla.
-        </p>
-      </div>
-
-      <!-- Right: Quick KPIs & Primary Actions -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <!-- KPI: Flota Activa -->
-        <div class="bg-[#F9F9FB] border border-[#E5E5EA] rounded-lg px-3 py-1.5 text-left">
-          <div class="text-[10px] text-[#8E8E93] font-medium leading-none flex items-center">
-            <svg class="w-3 h-3 mr-1 text-[#636366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-            Flota Activa
-          </div>
-          <div class="text-xs font-semibold text-[#1C1C1E] mt-0.5">{{ operations.availableDrivers }} / {{ operations.repartidores().length }}</div>
-        </div>
-
-        <!-- KPI: Zonas Cubiertas -->
-        <div class="bg-[#F9F9FB] border border-[#E5E5EA] rounded-lg px-3 py-1.5 text-left">
-          <div class="text-[10px] text-[#8E8E93] font-medium leading-none flex items-center">
-            <svg class="w-3 h-3 mr-1 text-[#636366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" stroke-width="2"></circle>
-              <path d="M21 21l-4.35-4.35" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-            Zonas Cubiertas
-          </div>
-          <div class="text-xs font-semibold text-[#1C1C1E] mt-0.5">{{ operations.zonas().length }} registradas</div>
-        </div>
-
-        <!-- Botón Ubicar/Editar nuestro local -->
-        <button
-          type="button"
-          class="bg-white hover:bg-[#F2F2F7] border border-[#D1D1D6] text-[#1C1C1E] text-xs font-medium px-3 py-2 rounded-lg flex items-center shadow-2xs transition cursor-pointer"
-          (click)="forms.open('Local')"
-        >
-          <svg class="w-3.5 h-3.5 mr-1.5 text-[#636366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <span>{{ local.location() ? 'Editar nuestro local' : 'Ubicar nuestro local' }}</span>
-        </button>
-
-        <!-- Botón + Alta Repartidor -->
-        <button
-          type="button"
-          class="bg-white hover:bg-[#F2F2F7] border border-[#D1D1D6] text-[#1C1C1E] text-xs font-medium px-3 py-2 rounded-lg flex items-center shadow-2xs transition cursor-pointer"
-          (click)="forms.open('Repartidor')"
-        >
-          <svg class="w-3.5 h-3.5 mr-1.5 text-[#636366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <span>+ Alta Repartidor</span>
-        </button>
-
-        <!-- Botón + Nueva Zona -->
-        <button
-          type="button"
-          class="bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center shadow-sm transition cursor-pointer"
-          (click)="forms.open('Zona')"
-        >
-          <svg class="w-3.5 h-3.5 mr-1.5 fill-current" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-          </svg>
-          <span>Nueva Zona</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Segmented View Tabs & Telemetry Connection Bar -->
-    <div class="pt-3 border-t border-[#E5E5EA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs" data-purpose="zonas-tabs-bar">
-      <!-- Tabs Switcher -->
-      <div class="inline-flex bg-[#F2F2F7] p-0.5 rounded-lg text-xs">
-        <button
-          type="button"
-          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
-          [ngClass]="activeTab() === 'dual' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
-          (click)="activeTab.set('dual')"
-        >
-          Vista Dual (Mapa & Flota)
-        </button>
-        <button
-          type="button"
-          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
-          [ngClass]="activeTab() === 'zonas' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
-          (click)="activeTab.set('zonas')"
-        >
-          Zonas Geográficas ({{ operations.zonas().length }})
-        </button>
-        <button
-          type="button"
-          class="inline-flex items-center px-3 py-1.5 font-medium rounded-md transition cursor-pointer"
-          [ngClass]="activeTab() === 'repartidores' ? 'bg-white text-[#1C1C1E] shadow-sm font-semibold' : 'text-[#636366] hover:text-[#1C1C1E]'"
-          (click)="activeTab.set('repartidores')"
-        >
-          Repartidores en Ruta ({{ activeDriversCount() }})
-        </button>
-      </div>
-
-      <!-- Live Connection Status Badge -->
-      <div class="flex items-center space-x-2 text-xs">
-        <span
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
-          [ngClass]="operations.live() ? 'bg-[#EAF8EE] text-[#1E9E47] border border-[#C6EFD2]' : 'bg-[#F2F2F7] text-[#8E8E93] border border-[#E5E5EA]'"
-        >
-          <span class="w-1.5 h-1.5 rounded-full" [ngClass]="operations.live() ? 'bg-[#24C355] animate-ping' : 'bg-[#8E8E93]'"></span>
-          {{ operations.live() ? 'Seguimiento conectado' : 'Seguimiento sin conexión' }}
-        </span>
-      </div>
-    </div>
-  </section>
-  <!-- END: Header & KPI Summary Section -->
-
-  <!-- BEGIN: Interactive Map and Coverage Workspace -->
-  <section [style.display]="activeTab() === 'repartidores' ? 'none' : null" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start" data-purpose="zonas-map-workspace">
-    <!-- Map Surface (8 Cols) -->
-    <div class="lg:col-span-8 bg-white rounded-xl border border-[#E5E5EA] p-4 shadow-subtle flex flex-col space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-[#E5E5EA]">
-        <div class="flex items-center space-x-2">
-          <svg class="w-4 h-4 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <h3 class="text-sm font-bold text-[#1C1C1E]">Cartografía Operativa en Vivo</h3>
-        </div>
-        <span class="text-[11px] font-semibold text-[#8E8E93] bg-[#F2F2F7] px-2 py-0.5 rounded-full">
-          Polígonos CVRPTW
-        </span>
-      </div>
-      <div class="rounded-lg overflow-hidden border border-[#E5E5EA] bg-[#F9F9FB]">
-        <app-zone-coverage-map [zones]="operations.zonas()" (zoneSelected)="selectedZoneId.set($event || null)" />
-      </div>
-    </div>
-
-    <!-- Active Zones Sidebar Cards (4 Cols) -->
-    <div class="lg:col-span-4 space-y-4">
-      <!-- Store Location Card ("Nuestro local") -->
-      <section class="bg-white rounded-xl border border-[#E5E5EA] p-4 shadow-subtle space-y-2">
-        <div class="flex items-center justify-between pb-1 border-b border-[#E5E5EA]">
-          <div class="flex items-center space-x-2">
-            <svg class="w-4 h-4 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-            <h3 class="text-xs font-bold text-[#1C1C1E]">Sede / Nuestro Local</h3>
-          </div>
-          <button
-            type="button"
-            class="text-[11px] text-[#007AFF] font-medium hover:underline cursor-pointer"
-            (click)="forms.open('Local')"
-          >
-            {{ local.location() ? 'Editar' : 'Configurar' }}
-          </button>
-        </div>
-
-        @if (local.location(); as shop) {
-          <div class="space-y-1">
-            <p class="text-xs font-semibold text-[#1C1C1E]">{{ shop.nombre }}</p>
-            <p class="text-[11px] text-[#636366]">{{ shop.direccion }}</p>
-            <p class="text-[10px] text-[#8E8E93]">Referencia guardada en este navegador.</p>
-            @if (localZones().length > 0) {
-              <div class="pt-1 text-[11px] text-[#636366]">
-                <span>Zonas que contienen el local: </span>
-                @for (zone of localZones(); track zone.id) {
-                  <span class="font-semibold text-[#007AFF]">{{ zone.nombre }}{{ zone.activa ? '' : ' (inactiva)' }} </span>
-                }
-              </div>
-            } @else {
-              <p class="text-[11px] text-[#FF9500]">El local está fuera de las zonas registradas; puede funcionar como referencia externa.</p>
-            }
-            <button
-              type="button"
-              class="w-full mt-2 py-1.5 px-3 rounded-lg bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1C1C1E] text-xs font-medium transition cursor-pointer"
-              (click)="coverage?.focusLocal()"
-            >
-              Ver local en el mapa
-            </button>
-          </div>
-        } @else {
-          <p class="text-xs text-[#8E8E93]">Selecciona la dirección y ajusta el marcador para usar el local como referencia operativa.</p>
-          <button
-            type="button"
-            class="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#007AFF] text-xs font-semibold transition cursor-pointer"
-            (click)="forms.open('Local')"
-          >
-            + Ubicar nuestro local
-          </button>
-        }
-        @if (local.error()) {
-          <p class="text-xs text-[#FF3B30] mt-1" role="alert">{{ local.error() }}</p>
-        }
-      </section>
-
-      <!-- Zones List Card -->
-      <section class="bg-white rounded-xl border border-[#E5E5EA] p-4 shadow-subtle space-y-3">
-        <div class="flex items-center justify-between pb-1 border-b border-[#E5E5EA]">
-          <h3 class="text-xs font-bold text-[#1C1C1E]">Zonas Registradas</h3>
-          <span class="text-[11px] font-semibold text-[#8E8E93] bg-[#F2F2F7] px-2 py-0.5 rounded-full">
-            {{ operations.zonas().length }} Zonas
+<div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-surface px-6 py-6">
+  <div class="flex flex-col w-full gap-6">
+    <!-- Cabecera -->
+    <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-[28px] leading-[34px] font-bold tracking-tight text-on-surface">Zonas Geográficas</h1>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-medium">
+            <span class="w-1.5 h-1.5 rounded-full" [class]="operations.live() ? 'bg-status-delivered' : 'bg-outline'"></span>
+            {{ operations.zonas().length }} {{ operations.zonas().length === 1 ? 'zona' : 'zonas' }}
           </span>
         </div>
-
-        <div class="flex flex-col space-y-2.5 max-h-[480px] overflow-y-auto custom-scrollbar pr-1">
-          @for (z of operations.zonas(); track z.id) {
-            <article
-              [class.ring-2]="selectedZoneId() === z.id"
-              [class.ring-[#007AFF]]="selectedZoneId() === z.id"
-              class="zone-card p-3.5 rounded-xl bg-[#F9F9FB] border border-[#E5E5EA] hover:border-[#007AFF]/40 transition-colors"
-            >
-              <div class="flex items-center justify-between mb-1.5">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                  [ngClass]="z.activa ? 'bg-[#EAF8EE] text-[#1E9E47]' : 'bg-[#F2F2F7] text-[#8E8E93]'"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="z.activa ? 'bg-[#24C355]' : 'bg-[#8E8E93]'"></span>
-                  {{ z.activa ? 'Activa' : 'Inactiva' }}
-                </span>
-                <span class="text-[10px] text-[#8E8E93]">{{ z.poligono.length }} vértices</span>
-              </div>
-              <h4 class="text-sm font-bold text-[#1C1C1E] mb-1">{{ z.nombre }}</h4>
-              <div class="grid grid-cols-2 gap-2 text-xs text-[#636366] my-2 pt-2 border-t border-[#E5E5EA]">
-                <div>
-                  <span class="block text-[10px] text-[#8E8E93]">Capacidad / Ruta</span>
-                  <strong class="text-[#1C1C1E]">{{ z.maxPedidosPorRuta }} pedidos máx</strong>
-                </div>
-                <div>
-                  <span class="block text-[10px] text-[#8E8E93]">Rutas Activas</span>
-                  <strong class="text-[#1C1C1E]">{{ routeCount(z.id) }} rutas</strong>
-                </div>
-              </div>
-              <div class="flex items-center space-x-2 mt-2">
-                <button
-                  type="button"
-                  class="button flex-1 py-1.5 px-2.5 rounded-lg bg-white border border-[#D1D1D6] hover:bg-[#F2F2F7] text-[#1C1C1E] text-xs font-medium transition cursor-pointer text-center disabled:opacity-50"
-                  (click)="editZone(z)"
-                  [disabled]="!!editingZoneId() || operations.saving()"
-                >
-                  {{ editingZoneId() === z.id ? 'Cargando...' : 'Editar Zona' }}
-                </button>
-                <button
-                  type="button"
-                  class="button flex-1 py-1.5 px-2.5 rounded-lg bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium transition cursor-pointer text-center"
-                  (click)="selectZone(z)"
-                >
-                  Ver cobertura
-                </button>
-              </div>
-            </article>
-          } @empty {
-            <div class="border border-[#E5E5EA] border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center bg-[#FBFBFC]">
-              <svg class="w-8 h-8 text-[#8E8E93] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-              <p class="text-xs font-semibold text-[#1C1C1E]">Define tu área de entrega</p>
-              <p class="text-[11px] text-[#8E8E93] mt-1 mb-3">Crea la primera zona dibujando su contorno en el mapa.</p>
-              <button
-                type="button"
-                class="px-3 py-1.5 rounded-lg bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium transition cursor-pointer"
-                (click)="forms.open('Zona')"
-              >
-                ＋ Nueva Zona
-              </button>
-            </div>
-          }
-        </div>
-      </section>
-    </div>
-  </section>
-  <!-- END: Interactive Map and Coverage Workspace -->
-
-  <!-- BEGIN: Drivers Roster Table Section -->
-  <section [style.display]="activeTab() === 'zonas' ? 'none' : null" class="bg-white rounded-xl border border-[#E5E5EA] p-4 shadow-subtle space-y-3" data-purpose="drivers-roster">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5EA]">
-      <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg bg-[#E8F1FF] text-[#007AFF] flex items-center justify-center">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-[#1C1C1E]">Estado de la Flota y Asignación</h3>
-          <p class="text-[11px] text-[#8E8E93]">Disponibilidad, capacidad y rutas reales. GPS con hora de captura y precisión.</p>
-        </div>
+        <p class="text-[13px] text-on-surface-variant">Dibuja las áreas de cobertura, ubica tu local y revisa el estado de la flota.</p>
       </div>
-      <span class="text-[11px] font-semibold text-[#8E8E93] bg-[#F2F2F7] px-2.5 py-1 rounded-full">
-        {{ driversList().length }} Repartidores Registrados
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="inline-flex items-center gap-1 bg-surface-container-lowest text-on-surface hover:text-primary hover:bg-surface-container-low text-sm font-semibold px-3 py-2 rounded-xl shadow-sm cursor-pointer" (click)="forms.open('Local')">
+          <span class="material-symbols-outlined text-[18px]">storefront</span>
+          {{ local.location() ? 'Editar nuestro local' : 'Ubicar nuestro local' }}
+        </button>
+        <button type="button" class="inline-flex items-center gap-1 bg-surface-container-lowest text-on-surface hover:text-primary hover:bg-surface-container-low text-sm font-semibold px-3 py-2 rounded-xl shadow-sm cursor-pointer" (click)="forms.open('Repartidor')">
+          <span class="material-symbols-outlined text-[18px]">person_add</span>
+          Repartidor
+        </button>
+        <button type="button" class="inline-flex items-center gap-1 bg-primary-container text-on-primary text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:brightness-105 cursor-pointer" (click)="forms.open('Zona')">
+          <span class="material-symbols-outlined text-[18px]">add</span>
+          Nueva zona
+        </button>
+      </div>
+    </header>
+
+    <!-- Selector de vista -->
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="inline-flex p-1 bg-surface-container-high rounded-xl text-sm font-semibold" role="tablist" aria-label="Vista">
+        @for (t of [{ id: 'dual', label: 'Todo', icon: 'dashboard' }, { id: 'zonas', label: 'Zonas', icon: 'map' }, { id: 'repartidores', label: 'Flota', icon: 'two_wheeler' }]; track t.id) {
+          <button
+            type="button"
+            role="tab"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            [class]="activeTab() === t.id ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'"
+            [attr.aria-selected]="activeTab() === t.id"
+            (click)="activeTab.set($any(t.id))"
+          >
+            <span class="material-symbols-outlined text-[16px]">{{ t.icon }}</span>{{ t.label }}
+          </button>
+        }
+      </div>
+      <span class="text-xs text-on-surface-variant">
+        Flota disponible <strong class="text-on-surface tabular-nums">{{ operations.availableDrivers }} / {{ operations.repartidores().length }}</strong>
       </span>
     </div>
 
-    <div class="overflow-x-auto w-full custom-scrollbar">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-[#F9F9FB] text-[#8E8E93] text-[10px] font-bold uppercase tracking-wider border-b border-[#E5E5EA] select-none">
-            <th class="py-2.5 px-3 font-semibold">Repartidor</th>
-            <th class="py-2.5 px-3 font-semibold">Zona Asignada</th>
-            <th class="py-2.5 px-3 font-semibold">Estado Operativo</th>
-            <th class="py-2.5 px-3 font-semibold">Vehículo</th>
-            <th class="py-2.5 px-3 font-semibold">Telemetría GPS</th>
-            <th class="py-2.5 px-3 font-semibold">Carga CVRPTW</th>
-            <th class="py-2.5 px-3 text-right font-semibold">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-[#E5E5EA] text-xs">
-          @for (driver of driversList(); track driver.id) {
-            <tr class="hover:bg-[#F9F9FB] transition-colors">
-              <td class="py-3 px-3">
-                <div class="flex items-center space-x-2.5">
-                  <div class="w-7 h-7 rounded-full bg-[#E8F1FF] text-[#007AFF] font-bold text-[11px] flex items-center justify-center">
-                    {{ driver.avatar }}
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="font-semibold text-[#1C1C1E]">{{ driver.nombre }}</span>
-                    <span class="text-[10px] text-[#8E8E93]">{{ driver.telefono }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="py-3 px-3">
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#E8F1FF] text-[#007AFF]">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#007AFF]"></span>
-                  {{ driver.zonaNombre }}
-                </span>
-              </td>
-              <td class="py-3 px-3">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                  [ngClass]="driver.estado === 'EnRuta' ? 'bg-[#FFF2E5] text-[#FF9500]' : 'bg-[#EAF8EE] text-[#1E9E47]'"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="driver.estado === 'EnRuta' ? 'bg-[#FF9500] animate-ping' : 'bg-[#24C355]'"></span>
-                  {{ driver.estado === 'EnRuta' ? 'En Ruta Activa' : 'Disponible en Hub' }}
-                </span>
-              </td>
-              <td class="py-3 px-3 text-[#636366]">
-                <div class="flex items-center space-x-1">
-                  <span>{{ driver.vehiculo }}</span>
-                </div>
-              </td>
-              <td class="py-3 px-3">
-                <span class="font-mono text-[10px] text-[#8E8E93]">{{ driver.gpsText }}</span>
-              </td>
-              <td class="py-3 px-3">
-                <div class="flex items-center space-x-2">
-                  <span class="text-[11px] font-semibold text-[#1C1C1E]">{{ driver.capacidadUsada }}/{{ driver.capacidadTotal }}</span>
-                  <div class="w-14 h-1.5 bg-[#E5E5EA] rounded-full overflow-hidden flex">
-                    <div
-                      class="h-full rounded-full"
-                      [ngClass]="driver.capacidadUsada >= driver.capacidadTotal ? 'bg-[#FF3B30]' : 'bg-[#007AFF]'"
-                      [style.width.%]="driver.capacidadTotal ? (driver.capacidadUsada / driver.capacidadTotal) * 100 : 0"
-                    ></div>
-                  </div>
-                </div>
-              </td>
-              <td class="py-3 px-3 text-right">
-                <div class="flex items-center justify-end space-x-1">
-                  <button
-                    type="button"
-                    class="p-1.5 hover:bg-[#F2F2F7] rounded text-[#8E8E93] hover:text-[#007AFF] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition"
-                    title="Ver destinos de su ruta"
-                    (click)="viewRoute(driver)"
-                    [disabled]="!driver.routeId"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke-width="2"></circle>
-                      <circle cx="12" cy="12" r="3" stroke-width="2"></circle>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    class="p-1.5 hover:bg-[#F2F2F7] rounded text-[#8E8E93] hover:text-[#007AFF] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition"
-                    title="Cambiar disponibilidad"
-                    (click)="changeAvailability(driver)"
-                    [disabled]="driver.estado === 'EnRuta' || operations.saving()"
-                  >
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="py-8 text-center text-xs text-[#8E8E93]">No hay repartidores registrados en la flota.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
-  <!-- END: Drivers Roster Table Section -->
-
-  <!-- BEGIN: Bottom Floating Toast Notification -->
-  @if (toastVisible()) {
-    <aside class="fixed bottom-4 right-5 z-50 pointer-events-auto" data-purpose="toast-notification">
-      <div class="bg-[#1C1C1E] text-white text-xs px-3.5 py-2 rounded-lg shadow-lg flex items-center space-x-3 border border-[#38383A]">
-        <div class="flex items-center space-x-1.5">
-          <svg class="w-3.5 h-3.5 text-[#34C759]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-          <div class="flex flex-col">
-            <span class="font-semibold text-[11px] leading-tight">{{ toastTitle() }}</span>
-            <span class="text-[10px] text-[#AEAEB2] leading-tight">{{ toastMessage() }}</span>
+    <!-- Mapa y zonas -->
+    <section [style.display]="activeTab() === 'repartidores' ? 'none' : null" class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start" data-purpose="zonas-map-workspace">
+      <div class="xl:col-span-8 bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-on-surface">Mapa de cobertura</h2>
+            <p class="text-xs text-on-surface-variant">Selecciona una zona para resaltarla.</p>
           </div>
         </div>
-        <button type="button" class="text-[#8E8E93] hover:text-white transition-colors pl-1 cursor-pointer" (click)="toastVisible.set(false)">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-          </svg>
-        </button>
+        <div class="isolate">
+          <app-zone-coverage-map [zones]="operations.zonas()" (zoneSelected)="selectedZoneId.set($event || null)" />
+        </div>
       </div>
-    </aside>
-  }
-  <!-- END: Bottom Floating Toast Notification -->
+
+      <div class="xl:col-span-4 flex flex-col gap-4">
+        <!-- Local -->
+        <section class="p-4 bg-surface-container-lowest rounded-2xl shadow-sm flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="flex items-center gap-2 text-sm font-semibold text-on-surface">
+              <span class="w-8 h-8 rounded-lg bg-inverse-surface text-inverse-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">storefront</span></span>
+              Nuestro local
+            </span>
+            <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="forms.open('Local')">{{ local.location() ? 'Editar' : 'Configurar' }}</button>
+          </div>
+          @if (local.location(); as shop) {
+            <div class="text-sm font-semibold text-on-surface">{{ shop.nombre }}</div>
+            <div class="text-xs text-on-surface-variant">{{ shop.direccion }}</div>
+            @if (localZones().length > 0) {
+              <div class="flex flex-wrap gap-1">
+                @for (zone of localZones(); track zone.id) {
+                  <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-[11px] font-semibold">{{ zone.nombre }}{{ zone.activa ? '' : ' (inactiva)' }}</span>
+                }
+              </div>
+            } @else {
+              <p class="text-xs text-status-in-transit">El local está fuera de las zonas registradas.</p>
+            }
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <span class="text-[11px] text-on-surface-variant">Guardado en este navegador.</span>
+              <button type="button" class="text-xs font-semibold text-primary hover:underline cursor-pointer" (click)="coverage?.focusLocal()">Ver en el mapa</button>
+            </div>
+          } @else {
+            <p class="text-xs text-on-surface-variant">Ubica el local para armar rutas con horarios y ofrecer intervalos a la tienda.</p>
+          }
+          @if (local.error()) {
+            <p class="text-xs text-status-urgent" role="alert">{{ local.error() }}</p>
+          }
+        </section>
+
+        <!-- Zonas -->
+        <section class="flex flex-col gap-2">
+          <div class="flex items-center justify-between px-1">
+            <h2 class="text-base font-semibold text-on-surface">Zonas registradas</h2>
+            <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface text-xs font-medium tabular-nums">{{ operations.zonas().length }}</span>
+          </div>
+          <div class="flex flex-col gap-2 max-h-[480px] overflow-y-auto custom-scrollbar pr-1">
+            @for (z of operations.zonas(); track z.id) {
+              <article class="zone-card p-3 rounded-2xl bg-surface-container-lowest shadow-sm transition-shadow" [class.ring-2]="selectedZoneId() === z.id" [class.ring-primary]="selectedZoneId() === z.id">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h3 class="text-sm font-semibold text-on-surface truncate">{{ z.nombre }}</h3>
+                    <p class="text-xs text-on-surface-variant">Máx. {{ z.maxPedidosPorRuta }} pedidos por ruta · {{ routeCount(z.id) }} {{ routeCount(z.id) === 1 ? 'ruta' : 'rutas' }} hoy</p>
+                  </div>
+                  <span class="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold" [class]="z.activa ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container-high text-on-surface-variant'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>{{ z.activa ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                  <button type="button" class="button flex-1 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold cursor-pointer disabled:opacity-50" (click)="editZone(z)" [disabled]="!!editingZoneId() || operations.saving()">
+                    {{ editingZoneId() === z.id ? 'Cargando…' : 'Editar' }}
+                  </button>
+                  <button type="button" class="button flex-1 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container text-xs font-semibold cursor-pointer" (click)="selectZone(z)">Ver en el mapa</button>
+                </div>
+              </article>
+            } @empty {
+              <div class="p-6 rounded-2xl bg-surface-container-lowest shadow-sm text-center">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-surface-container-low flex items-center justify-center text-primary mb-2"><span class="material-symbols-outlined text-[24px]">map</span></div>
+                <p class="text-sm font-semibold text-on-surface">Define tu área de entrega</p>
+                <p class="text-xs text-on-surface-variant mt-1 mb-3">Crea la primera zona dibujando su contorno en el mapa.</p>
+                <button type="button" class="px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold cursor-pointer" (click)="forms.open('Zona')">Nueva zona</button>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Flota -->
+    <section [style.display]="activeTab() === 'zonas' ? 'none' : null" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden" data-purpose="drivers-roster">
+      <div class="px-4 py-3 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-semibold text-on-surface">Estado de la flota</h2>
+          <p class="text-xs text-on-surface-variant">Disponibilidad, carga de la ruta del día y última señal GPS.</p>
+        </div>
+        <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-xs font-semibold tabular-nums">{{ driversList().length }}</span>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-surface-container-low text-on-surface-variant">
+            <tr>
+              <th class="py-2.5 px-4 font-semibold">Repartidor</th>
+              <th class="py-2.5 px-3 font-semibold">Zona</th>
+              <th class="py-2.5 px-3 font-semibold">Estado</th>
+              <th class="py-2.5 px-3 font-semibold">GPS</th>
+              <th class="py-2.5 px-3 font-semibold">Carga</th>
+              <th class="py-2.5 px-4 text-right font-semibold">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (driver of driversList(); track driver.id) {
+              <tr class="border-t border-separator-hairline-light hover:bg-surface-container-low/50">
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-surface-container text-primary font-semibold text-[11px] flex items-center justify-center">{{ driver.avatar }}</span>
+                    <span class="flex flex-col">
+                      <span class="text-sm font-semibold text-on-surface">{{ driver.nombre }}</span>
+                      <span class="text-[11px] text-on-surface-variant">{{ driver.telefono }}</span>
+                    </span>
+                  </div>
+                </td>
+                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-surface-container text-primary text-[11px] font-semibold">{{ driver.zonaNombre }}</span></td>
+                <td class="py-3 px-3">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                        [class]="driver.estado === 'EnRuta' ? 'bg-status-in-transit/10 text-status-in-transit' : driver.estado === 'Disponible' ? 'bg-status-delivered/10 text-status-delivered' : 'bg-surface-container-high text-on-surface-variant'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ driver.estado === 'EnRuta' ? 'En ruta' : driver.estado === 'Disponible' ? 'Disponible' : 'No disponible' }}
+                  </span>
+                </td>
+                <td class="py-3 px-3 text-on-surface-variant tabular-nums">{{ driver.gpsText }}</td>
+                <td class="py-3 px-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                      <div class="h-full rounded-full" [class]="driver.capacidadUsada >= driver.capacidadTotal ? 'bg-status-urgent' : 'bg-primary'" [style.width.%]="driver.capacidadTotal ? (driver.capacidadUsada / driver.capacidadTotal) * 100 : 0"></div>
+                    </div>
+                    <span class="tabular-nums text-on-surface-variant">{{ driver.capacidadUsada }}/{{ driver.capacidadTotal }}</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center justify-end gap-1">
+                    <button type="button" class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low flex items-center justify-center cursor-pointer disabled:opacity-30" title="Ver su ruta" aria-label="Ver su ruta" (click)="viewRoute(driver)" [disabled]="!driver.routeId">
+                      <span class="material-symbols-outlined text-[18px]">alt_route</span>
+                    </button>
+                    <button type="button" class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low flex items-center justify-center cursor-pointer disabled:opacity-30" title="Cambiar disponibilidad" aria-label="Cambiar disponibilidad" (click)="changeAvailability(driver)" [disabled]="driver.estado === 'EnRuta' || operations.saving()">
+                      <span class="material-symbols-outlined text-[18px]">{{ driver.estado === 'Disponible' ? 'toggle_on' : 'toggle_off' }}</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="py-10 text-center text-on-surface-variant">No hay repartidores registrados en la flota.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 </div>

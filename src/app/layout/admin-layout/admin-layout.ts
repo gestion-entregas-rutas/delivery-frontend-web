@@ -1,4 +1,4 @@
-import { Component, inject, afterNextRender, OnDestroy, signal, HostListener } from '@angular/core';
+import { Component, inject, afterNextRender, OnDestroy, signal, HostListener, effect, WritableSignal } from '@angular/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { errorAutenticacion } from '../../core/models/autenticacion.models';
 import { FormsModule } from '@angular/forms';
@@ -31,6 +31,30 @@ export class AdminLayout implements OnDestroy {
   }
   readonly navigationOpen = signal(false);
   readonly groups = ['Principal', 'Operaciones', 'Administración'];
+  /** Menú lateral con íconos Material Symbols (mismo enfoque visual que Optimización de Rutas). */
+  readonly menu = [
+    { titulo: 'Principal', items: [
+      { view: 'Resumen', label: 'Centro de Control', icon: 'grid_view' },
+      { view: 'Pedidos', label: 'Pedidos', icon: 'package_2' },
+    ] },
+    { titulo: 'Operaciones', items: [
+      { view: 'Rutas', label: 'Armado y Optimización', icon: 'alt_route' },
+      { view: 'Zonas', label: 'Zonas Geográficas', icon: 'map' },
+      { view: 'Repartidores', label: 'Repartidores y Flota', icon: 'two_wheeler' },
+      { view: 'Productos', label: 'Catálogo y Productos', icon: 'inventory_2' },
+      { view: 'RetirosTienda', label: 'Retiros en Tienda', icon: 'storefront' },
+    ] },
+    { titulo: 'Análisis & Seguridad', items: [
+      { view: 'Usuarios', label: 'Cuentas y Acceso', icon: 'manage_accounts' },
+      { view: 'Credenciales', label: 'Credenciales', icon: 'vpn_key' },
+    ] },
+  ];
+  menuVisible<T extends { view: string }>(items: T[]): T[] {
+    return items.filter((i) => this.matchesModule(i.view));
+  }
+  iniciales() {
+    return this.auth.usuario()?.nombreUsuario?.slice(0, 2)?.toUpperCase() || 'AD';
+  }
   moduleSearch = '';
   matchesModule(name: string) {
     const item = this.operations.navigation.find((n) => n.name === name);
@@ -76,11 +100,25 @@ export class AdminLayout implements OnDestroy {
   readonly operations = inject(OperationsService);
   readonly forms = inject(OperationFormsService);
 
+  private toastTimers: ReturnType<typeof setTimeout>[] = [];
+
   constructor() {
     afterNextRender(() => {
       this.updateViewport();
       this.operations.start();
     });
+    // Los avisos son toasts: se cierran solos (éxito 3 s, error 6 s) salvo que cambien antes.
+    effect(() => this.autoCerrar(this.operations.message, 3000));
+    effect(() => this.autoCerrar(this.operations.error, 6000));
+  }
+
+  private autoCerrar(aviso: WritableSignal<string>, ms: number) {
+    const texto = aviso();
+    if (!texto) return;
+    const timer = setTimeout(() => {
+      if (aviso() === texto) aviso.set('');
+    }, ms);
+    this.toastTimers.push(timer);
   }
 
   openPrimaryAction() {
@@ -111,6 +149,7 @@ export class AdminLayout implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.toastTimers.forEach(clearTimeout);
     this.routeOrder.reset();
     this.assignment.reset();
     this.detail.close();

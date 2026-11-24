@@ -42,6 +42,27 @@ export class AddressSearchService {
         ),
       );
   }
+  /**
+   * Dirección aproximada de un punto (Photon /reverse). Envía solo las coordenadas.
+   * Devuelve null si no hay resultado.
+   */
+  reverse(latitud: number, longitud: number): Observable<string | null> {
+    const url = this.url.replace(/api\/?$/, 'reverse');
+    return this.http
+      .get<{ features?: { properties: Record<string, string> }[] }>(url, {
+        params: { lat: latitud, lon: longitud, limit: 1 },
+      })
+      .pipe(
+        map((data) => {
+          const p = data.features?.[0]?.properties;
+          if (!p) return null;
+          const calle = [p['street'], p['housenumber']].filter(Boolean).join(' ');
+          const partes = [p['name'] !== p['street'] ? p['name'] : '', calle, p['district'], p['city'] || p['county']]
+            .filter((x, i, a) => !!x && a.indexOf(x) === i);
+          return partes.length ? partes.join(', ') : null;
+        }),
+      );
+  }
   private osmReference(properties: Record<string, string>): Pick<AddressResult, 'osm'> {
     const type = ({ N: 'node', W: 'way', R: 'relation' } as const)[properties['osm_type']];
     const id = Number(properties['osm_id']);

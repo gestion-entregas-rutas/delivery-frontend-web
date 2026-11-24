@@ -34,6 +34,8 @@ export class OperationsService {
   readonly lastRefresh = signal<string | null>(null);
   readonly error = signal('');
   readonly selected = signal<RutaDto | null>(null);
+  /** Menú lateral abierto en pantallas pequeñas (lo abre la cabecera de cada página). */
+  readonly menuAbierto = signal(false);
   readonly seguimiento = inject(SeguimientoService);
   readonly live = this.seguimiento.live;
   readonly total = signal(0);

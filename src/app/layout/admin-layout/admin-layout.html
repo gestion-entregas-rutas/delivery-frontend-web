@@ -3,9 +3,9 @@
 }
 
 <div class="w-full h-screen bg-surface flex overflow-hidden text-on-surface antialiased">
-  <!-- Barra lateral -->
+  <!-- Barra lateral compacta -->
   <aside
-    class="w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between flex-shrink-0 select-none transition-transform duration-200 z-30"
+    class="w-60 h-full bg-surface-container-lowest border-r border-separator-hairline-light shadow-sm flex flex-col justify-between flex-shrink-0 select-none transition-transform duration-200 z-30"
     [class.translate-x-0]="navigationOpen()"
     [class.-translate-x-full]="!navigationOpen() && !desktop()"
     [class.fixed]="!desktop()"
@@ -14,89 +14,69 @@
     [class.z-50]="!desktop()"
     data-purpose="macos-sidebar"
   >
-    <div class="flex flex-col min-h-0 flex-1">
+    <div class="flex flex-col flex-1 min-h-0 overflow-y-auto custom-scrollbar">
       <!-- Marca -->
-      <div class="h-16 px-4 flex items-center justify-between shrink-0">
-        <button type="button" class="flex items-center gap-2 cursor-pointer" (click)="navigate('Resumen')">
-          <span class="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">alt_route</span>
+      <div class="p-5 pb-4 border-b border-separator-hairline-light flex items-center justify-between shrink-0">
+        <button type="button" class="flex items-center gap-2.5 cursor-pointer" (click)="navigate('Resumen')">
+          <span class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+            <span class="material-symbols-outlined text-[19px]">hub</span>
           </span>
           <span class="flex flex-col text-left">
-            <span class="text-base font-semibold tracking-tight text-on-surface leading-tight">RouteOS</span>
-            <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Logistics Core</span>
+            <span class="text-[15px] font-bold tracking-tight text-on-surface leading-none">RouteOS</span>
+            <span class="text-[10px] font-medium uppercase tracking-wide text-on-surface-variant mt-0.5">Logística activa</span>
           </span>
         </button>
-        <span class="w-2 h-2 rounded-full" [class]="operations.live() ? 'bg-status-delivered' : 'bg-status-urgent'" [title]="operations.live() ? 'Conectado en vivo' : 'Sin conexión en vivo'"></span>
-      </div>
-
-      <!-- Buscar módulo -->
-      <div class="px-3 pb-2 shrink-0">
-        <div class="relative flex items-center bg-surface-container-low rounded-xl px-3 py-2 text-xs text-on-surface-variant focus-within:ring-1 focus-within:ring-primary">
-          <span class="material-symbols-outlined text-[16px] mr-2">search</span>
-          <input class="w-full p-0 text-xs bg-transparent border-0 focus:ring-0 placeholder:text-on-surface-variant text-on-surface outline-none" aria-label="Buscar módulo" placeholder="Buscar módulo..." type="text" [(ngModel)]="moduleSearch" />
-        </div>
+        <span class="w-2 h-2 rounded-full" [class]="operations.live() ? 'bg-status-delivered' : 'bg-status-urgent'" [title]="operations.live() ? 'En línea' : 'Sin conexión en vivo'"></span>
       </div>
 
       <!-- Menú -->
-      <nav class="px-3 py-2 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+      <nav class="p-3 space-y-5 text-[13px]">
         @for (grupo of menu; track grupo.titulo) {
-          @if (menuVisible(grupo.items).length) {
+          <div>
+            <div class="px-3 pb-1.5 text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">{{ grupo.titulo }}</div>
             <div class="space-y-0.5">
-              <span class="px-2 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant block mb-1">{{ grupo.titulo }}</span>
-              @for (item of menuVisible(grupo.items); track item.view) {
+              @for (item of grupo.items; track item.view) {
                 <a
-                  class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer nav-link"
-                  [class]="operations.view() === item.view ? 'bg-primary-container text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                  class="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors cursor-pointer nav-link"
+                  [class]="operations.view() === item.view ? 'bg-primary/10 text-primary font-semibold' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
                   [attr.aria-current]="operations.view() === item.view ? 'page' : null"
                   (click)="navigate(item.view)"
                 >
-                  <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
+                  <span class="material-symbols-outlined text-[18px]">{{ item.icon }}</span>
                   <span class="truncate">{{ item.label }}</span>
                 </a>
               }
             </div>
-          }
+          </div>
         }
       </nav>
     </div>
 
-    <!-- Pie: estado real y usuario -->
-    <div class="p-3 space-y-2 shrink-0">
-      <div class="p-3 rounded-xl bg-surface-container-low space-y-1.5">
-        <div class="flex items-center justify-between text-[11px] font-semibold">
-          <span class="uppercase tracking-wider text-on-surface-variant">Flota disponible</span>
-          <span class="text-on-surface tabular-nums">{{ operations.availableDrivers }} / {{ operations.repartidores().length }}</span>
-        </div>
-        <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-          <div class="bg-status-delivered h-full rounded-full transition-all" [style.width.%]="operations.repartidores().length ? (operations.availableDrivers / operations.repartidores().length) * 100 : 0"></div>
-        </div>
-        <button type="button" class="flex items-center gap-1.5 text-[11px] text-on-surface-variant hover:text-on-surface cursor-pointer" (click)="operations.retryLive()">
-          <span class="w-1.5 h-1.5 rounded-full" [class]="operations.live() ? 'bg-status-delivered animate-pulse' : 'bg-status-urgent'"></span>
-          {{ operations.live() ? 'Actualización en vivo' : 'Sin conexión · reconectar' }}
-        </button>
+    <!-- Pie: usuario -->
+    <div class="p-3 border-t border-separator-hairline-light bg-surface-container-low/60 flex items-center justify-between gap-2 shrink-0">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-8 h-8 shrink-0 rounded-full bg-on-surface text-white font-semibold text-xs flex items-center justify-center">{{ iniciales() }}</span>
+        <span class="flex flex-col min-w-0">
+          <span class="text-xs font-semibold text-on-surface truncate">{{ auth.usuario()?.nombreUsuario || 'Admin' }}</span>
+          <button type="button" class="text-left text-[10px] text-on-surface-variant hover:text-on-surface cursor-pointer truncate" [title]="operations.live() ? 'Actualización en vivo' : 'Sin conexión · reconectar'" (click)="operations.retryLive()">
+            {{ operations.availableDrivers }} / {{ operations.repartidores().length }} repartidores disponibles
+          </button>
+        </span>
       </div>
-      <div class="flex items-center justify-between gap-2 px-1">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="w-8 h-8 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center text-[11px] font-bold">{{ iniciales() }}</span>
-          <span class="min-w-0">
-            <span class="block text-sm font-semibold text-on-surface truncate leading-tight">{{ auth.usuario()?.nombreUsuario || 'Admin' }}</span>
-            <span class="block text-[11px] text-on-surface-variant">Administrador</span>
-          </span>
-        </div>
-        <div class="flex items-center gap-0.5 shrink-0">
-          <button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center justify-center cursor-pointer" title="Cambiar credenciales" aria-label="Cambiar credenciales" type="button" (click)="changeCredentials()">
-            <span class="material-symbols-outlined text-[18px]">key</span>
-          </button>
-          <button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-status-urgent hover:bg-status-urgent/10 flex items-center justify-center cursor-pointer" title="Cerrar sesión" aria-label="Cerrar sesión" type="button" [disabled]="loggingOut()" (click)="logout()">
-            <span class="material-symbols-outlined text-[18px]">logout</span>
-          </button>
-        </div>
+      <div class="flex items-center shrink-0">
+        <button class="p-1 text-on-surface-variant hover:text-on-surface cursor-pointer" title="Cambiar credenciales" aria-label="Cambiar credenciales" type="button" (click)="changeCredentials()">
+          <span class="material-symbols-outlined text-[18px]">key</span>
+        </button>
+        <button class="p-1 text-on-surface-variant hover:text-status-urgent cursor-pointer" title="Cerrar sesión" aria-label="Cerrar sesión" type="button" [disabled]="loggingOut()" (click)="logout()">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </button>
       </div>
     </div>
   </aside>
 
   <!-- Área principal -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    @if (!vistasPantallaCompleta.includes(operations.view())) {
     <header class="h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between gap-3 px-4 md:px-6 shrink-0 z-20" data-purpose="window-titlebar">
       <div class="flex items-center gap-2 min-w-0 text-xs font-semibold text-on-surface-variant">
         <button class="lg:hidden w-8 h-8 rounded-lg hover:bg-surface-container-low flex items-center justify-center" type="button" aria-label="Abrir navegación" (click)="navigationOpen.set(!navigationOpen())">
@@ -124,6 +104,7 @@
         </button>
       </div>
     </header>
+    }
 
     <main class="flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-surface relative">
       <!-- Avisos globales: se muestran como toasts (abajo a la derecha) y se cierran solos -->

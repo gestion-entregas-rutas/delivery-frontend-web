@@ -517,3 +517,19 @@ aside nav a, aside nav button {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   Mapa de planificación (Armado y Optimización)
+   ========================================================================== */
+.leaflet-tooltip.planning-zone-label {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  color: #8E8E93;
+  font: 700 10px/1 Inter, sans-serif;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.leaflet-tooltip.planning-zone-label::before { display: none; }
+.leaflet-tooltip.planning-zone-label.activa { color: #6A1B9A; }

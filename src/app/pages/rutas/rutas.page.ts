@@ -1,16 +1,19 @@
-import { Component, computed, inject, signal, OnDestroy } from '@angular/core';
+import { Component, ViewChild, computed, effect, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../core/services/operations.service';
 import { OperationFormsService } from '../../core/services/operation-forms.service';
 import { RouteAssignmentService } from '../../core/services/route-assignment.service';
 import { PedidoDto, RutaDto, ResultadoPuntualidadDto } from '../../core/models/logistica.models';
-import { RoutesMapView } from '../../shared/components/routes-map-view/routes-map-view';
+import { PlanningMap, COLORES_PLAN } from '../../shared/components/planning-map/planning-map';
 import { RouteOrderService } from '../../core/services/route-order.service';
 import { RouteDetailModal } from '../../shared/components/route-detail-modal/route-detail-modal';
 import {
   ESTADO_RUTA,
+  TONO_FONDO,
   TONO_TEXTO,
+  duracionEstimadaMin,
+  formatDuracion,
   formatHoraEcuador,
   iniciales,
   puntualidadCorta,
@@ -102,7 +105,7 @@ const AVATARES = ['bg-primary text-on-primary', 'bg-surface-container-high text-
 @Component({
   selector: 'app-rutas-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RoutesMapView, RouteDetailModal],
+  imports: [CommonModule, FormsModule, PlanningMap, RouteDetailModal],
   templateUrl: './rutas.page.html',
   styleUrl: './rutas.page.css',
 })
@@ -112,7 +115,17 @@ export class RutasPage implements OnDestroy {
   readonly assignment = inject(RouteAssignmentService);
   readonly order = inject(RouteOrderService);
   readonly pendingSearch = signal('');
-  readonly viewMode = signal<'mosaico' | 'mapa'>(this.operations.selected() ? 'mapa' : 'mosaico');
+  /** Mapa a pantalla completa (por defecto) o lista de tarjetas. */
+  readonly viewMode = signal<'mosaico' | 'mapa'>('mapa');
+  @ViewChild(PlanningMap) private mapa?: PlanningMap;
+  readonly colores = COLORES_PLAN;
+  /** Ruta resaltada en el mapa y mostrada en el panel lateral. */
+  readonly rutaSel = signal<string | null>(this.operations.selected()?.id ?? null);
+  readonly paradaSel = signal<string | null>(null);
+  readonly panelAbierto = signal(true);
+  readonly panelTab = signal<'ruta' | 'rutas' | 'pendientes'>('ruta');
+  /** Búsqueda de la cabecera: filtra rutas por repartidor o zona. */
+  readonly busqueda = signal('');
   readonly optimizing = this.operations.saving;
   readonly toastMessage = signal<string | null>(null);
   /** Ruta abierta en el modal de detalle (se lee en vivo desde operations.rutas). */
@@ -211,7 +224,79 @@ export class RutasPage implements OnDestroy {
   });
 
   /** Rutas mostradas en la vista Mapa (mismo filtro que el mosaico). */
-  readonly mapRoutes = computed(() => this.routeCards().map((c) => c.raw));
+  readonly mapRoutes = computed(() => this.routeCardsFiltradas().map((c) => c.raw));
+
+  /** Tarjetas filtradas por la búsqueda de la cabecera (repartidor, zona o código). */
+  readonly routeCardsFiltradas = computed(() => {
+    const q = this.busqueda().toLocaleLowerCase().trim();
+    return this.routeCards().filter((c) => !q || [c.driverName, c.zone, c.shortId].join(' ').toLocaleLowerCase().includes(q));
+  });
+  /** Color de cada ruta (mismo índice que en el mapa). */
+  colorRuta(id: string) {
+    const i = this.mapRoutes().findIndex((r) => r.id === id);
+    return this.colores[(i < 0 ? 0 : i) % this.colores.length];
+  }
+  /** Ruta activa del panel: la elegida o, si no hay, la primera en curso / primera de la lista. */
+  readonly rutaActiva = computed(() => {
+    const cards = this.routeCardsFiltradas();
+    return (
+      cards.find((c) => c.id === this.rutaSel()) ??
+      cards.find((c) => c.raw.estado === 'EnCurso') ??
+      cards[0] ??
+      null
+    );
+  });
+  /** Datos extra del panel de la ruta activa. */
+  readonly detalleActiva = computed(() => {
+    const card = this.rutaActiva();
+    if (!card) return null;
+    const r = card.raw;
+    const rep = this.operations.repartidores().find((d) => d.id === r.repartidorId);
+    const min = duracionEstimadaMin(r);
+    return {
+      telefono: rep?.telefono || '',
+      distancia: r.distanciaEstimadaKm != null ? r.distanciaEstimadaKm.toFixed(1) + ' km' : '—',
+      tiempo: min != null ? formatDuracion(min) : '—',
+      capacidadPct: card.capacity ? Math.round((card.used / card.capacity) * 100) : 0,
+      enCurso: r.paradas.filter((p) => p.pedido.estado !== 'Entregado').length,
+      paradas: [...r.paradas]
+        .sort((a, b) => a.orden - b.orden)
+        .map((p) => {
+          const v = ventana(p.pedido.compromisoInicioEn, p.pedido.compromisoFinEn);
+          const punt = puntualidadCorta(p.pedido.puntualidad);
+          const fin = formatHoraEcuador(p.finalizacionEstimadaEn);
+          const estado = p.pedido.estado;
+          return {
+            pedido: p.pedido,
+            orden: p.orden,
+            direccion: p.pedido.direccion,
+            cliente: p.pedido.clienteNombre,
+            hora: fin || p.pedido.horaEntrega.slice(0, 5),
+            ventana: v,
+            chip:
+              estado === 'Entregado'
+                ? { texto: 'Entregado', clase: 'bg-status-delivered/10 text-status-delivered' }
+                : estado === 'EnCamino'
+                  ? { texto: 'En camino', clase: 'bg-status-in-transit/10 text-status-in-transit' }
+                  : v
+                    ? { texto: 'Intervalo', clase: 'bg-primary/10 text-primary' }
+                    : { texto: 'Flexible', clase: 'text-on-surface-variant' },
+            punt: punt.texto,
+            puntClase: TONO_FONDO[punt.tono],
+            alerta: punt.tono === 'aviso' || punt.tono === 'error',
+          };
+        }),
+    };
+  });
+  /** Indicadores compactos de la cabecera. */
+  readonly kpis = computed(() => ({
+    rutas: this.routeCards().length,
+    repartidores: this.operations.repartidores().length,
+    pedidos: this.operations.pedidos().filter((p) => p.estado !== 'Cancelado').length,
+    pendientes: this.pendingOrders().length,
+    enPlazo: this.metrics().enPlazo,
+  }));
+  readonly zonasActivas = computed(() => this.operations.zonas().filter((z) => z.activa));
 
   readonly globalAlerts = computed<GlobalAlertItem[]>(() => {
     const list: GlobalAlertItem[] = [];
@@ -236,6 +321,48 @@ export class RutasPage implements OnDestroy {
 
   constructor() {
     this.operations.view.set('Rutas');
+    // Si la ruta elegida desaparece (cancelada / otra fecha), se limpia la selección.
+    effect(() => {
+      const id = this.rutaSel();
+      if (id && !this.routeCards().some((c) => c.id === id)) this.rutaSel.set(null);
+    });
+  }
+
+  // ---- Mapa y panel lateral ----
+  elegirRuta(id: string) {
+    this.rutaSel.set(id);
+    this.paradaSel.set(null);
+    this.panelTab.set('ruta');
+    this.panelAbierto.set(true);
+  }
+  elegirParada(e: { rutaId: string; pedidoId: string }) {
+    if (e.rutaId !== this.rutaActiva()?.id) this.rutaSel.set(e.rutaId);
+    this.paradaSel.set(e.pedidoId);
+    this.panelTab.set('ruta');
+    this.panelAbierto.set(true);
+    setTimeout(() => document.getElementById('parada-' + e.pedidoId)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  }
+  enfocarParada(pedidoId: string) {
+    this.paradaSel.set(null);
+    setTimeout(() => this.paradaSel.set(pedidoId));
+  }
+  elegirZona(id: string) {
+    if (this.operations.zona === id) return;
+    this.operations.zona = id;
+    this.operations.selected.set(null);
+    this.rutaSel.set(null);
+    void this.operations.refresh(true);
+  }
+  abrirPanel(tab: 'ruta' | 'rutas' | 'pendientes') {
+    this.panelTab.set(tab);
+    this.panelAbierto.set(true);
+  }
+  acercar() { this.mapa?.acercar(); }
+  alejar() { this.mapa?.alejar(); }
+  centrar() { this.mapa?.centrar(); }
+  cambiarFecha() {
+    this.rutaSel.set(null);
+    void this.operations.changeDate();
   }
 
   private finalEstimado(r: RutaDto): string | null {
@@ -264,6 +391,7 @@ export class RutasPage implements OnDestroy {
     this.detailId.set(null);
     this.operations.selectRoute(route);
     this.viewMode.set('mapa');
+    this.elegirRuta(route.id);
   }
   openDetailRoute(route: RutaDto) {
     this.detailId.set(route.id);

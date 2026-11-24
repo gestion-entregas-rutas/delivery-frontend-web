@@ -13,6 +13,7 @@
 } from '@angular/core';
 import { PuntoDto } from '../../../core/models/logistica.models';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { mapPalette } from '../../../core/utils/map-palette';
 import type { LineString, MultiLineString, Polygon, MultiPolygon } from 'geojson';
 import { LocalLocationService } from '../../../core/services/local-location.service';
@@ -90,7 +91,7 @@ export class ZoneMapPicker implements OnChanges, OnDestroy {
   }
   async init() {
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed) return;
       const container = this.host.nativeElement.querySelector<HTMLElement>('.zone-map')!;
       this.map = this.L.map(container, { doubleClickZoom: false, worldCopyJump: true }).setView(

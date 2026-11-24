@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { OperationsService } from '../../../core/services/operations.service';
 import { PedidoDto, RutaDto } from '../../../core/models/logistica.models';
 import { ESTADO_RUTA, formatHoraEcuador, iniciales, puntualidadCorta, TONO_TEXTO, ventana } from '../../../core/utils/route-presentation';
@@ -108,7 +109,7 @@ export class RoutesMapView implements OnDestroy {
   private async iniciar() {
     if (this.destruido || this.map || !this.mapaEl) return;
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destruido || !this.mapaEl) return;
       this.map = this.L.map(this.mapaEl.nativeElement).setView([-1.2416, -78.6197], 13);
       this.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

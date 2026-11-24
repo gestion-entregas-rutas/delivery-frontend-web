@@ -2,6 +2,7 @@ import { Component, inject, signal, afterNextRender, effect, OnDestroy } from '@
 import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../../core/services/operations.service';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { mapPalette } from '../../../core/utils/map-palette';
 import { drawGpsMarkers } from '../../../core/utils/gps-markers';
 import { RouteOrderService } from '../../../core/services/route-order.service';
@@ -41,7 +42,7 @@ export class RouteWorkspace implements OnDestroy {
   }
   async initMap() {
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed) return;
       this.map = this.L.map('delivery-map', { zoomControl: false }).setView([-2.175, -79.9], 13);
       this.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -14,6 +14,7 @@ import {
   signal,
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { CommonModule } from '@angular/common';
 import { OperationsService } from '../../../core/services/operations.service';
 import { ParadaDto, PuntoDto, RutaDto } from '../../../core/models/logistica.models';
@@ -184,7 +185,7 @@ export class RouteDetailModal implements OnDestroy {
   private async iniciarMapa() {
     if (this.destruido || this.map || !this.mapaEl) return;
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destruido || !this.mapaEl) return;
       this.map = this.L.map(this.mapaEl.nativeElement, { zoomControl: true, attributionControl: true });
       this.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

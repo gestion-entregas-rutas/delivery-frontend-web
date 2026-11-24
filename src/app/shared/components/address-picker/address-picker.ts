@@ -15,6 +15,7 @@ import { AddressSearchService } from '../../../core/services/address-search.serv
 import { AddressResult } from '../../../core/models/address-result.model';
 import { Subscription } from 'rxjs';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { PuntoDto, ZonaDto } from '../../../core/models/logistica.models';
 import { LocalLocation } from '../../../core/models/local.models';
 import { deliveryCoverage } from '../../../core/utils/delivery-coverage';
@@ -194,7 +195,7 @@ export class AddressPicker implements OnChanges, OnDestroy {
   async init() {
     if (this.destroyed || this.map) return;
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed || this.map) return;
       this.map = this.L.map(this.host.nativeElement.querySelector('.picker-map')).setView(
         [-2.1894, -79.8891],

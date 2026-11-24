@@ -1,329 +1,133 @@
 @if (navigationOpen()) {
-  <button class="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 lg:hidden" aria-label="Cerrar navegación" (click)="navigationOpen.set(false)"></button>
+  <button class="fixed inset-0 bg-inverse-surface/30 backdrop-blur-xs z-40 lg:hidden" aria-label="Cerrar navegación" (click)="navigationOpen.set(false)"></button>
 }
 
-<div class="w-full h-screen bg-[#FAFAFC] flex flex-col overflow-hidden text-[#1C1C1E] antialiased">
-  <!-- BEGIN: Top Window Titlebar & Toolbar -->
-  <header class="h-12 bg-[#F6F6F8] border-b border-[#E5E5EA] flex items-center justify-between px-4 select-none flex-shrink-0 z-30" data-purpose="window-titlebar">
-    <!-- Left side: macOS Traffic Lights & Breadcrumb -->
-    <div class="flex items-center space-x-4">
-      <button class="lg:hidden p-1 rounded hover:bg-[#E5E5EA] text-[#636366]" type="button" aria-label="Abrir navegación" (click)="navigationOpen.set(!navigationOpen())">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-        </svg>
-      </button>
-
-      <!-- Traffic Light Buttons -->
-      <div class="hidden sm:flex items-center space-x-2 mr-2">
-        <span class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] inline-block shadow-sm"></span>
-        <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] inline-block shadow-sm"></span>
-        <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] inline-block shadow-sm"></span>
+<div class="w-full h-screen bg-surface flex overflow-hidden text-on-surface antialiased">
+  <!-- Barra lateral -->
+  <aside
+    class="w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between flex-shrink-0 select-none transition-transform duration-200 z-30"
+    [class.translate-x-0]="navigationOpen()"
+    [class.-translate-x-full]="!navigationOpen() && !desktop()"
+    [class.fixed]="!desktop()"
+    [class.inset-y-0]="!desktop()"
+    [class.left-0]="!desktop()"
+    [class.z-50]="!desktop()"
+    data-purpose="macos-sidebar"
+  >
+    <div class="flex flex-col min-h-0 flex-1">
+      <!-- Marca -->
+      <div class="h-16 px-4 flex items-center justify-between shrink-0">
+        <button type="button" class="flex items-center gap-2 cursor-pointer" (click)="navigate('Resumen')">
+          <span class="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">alt_route</span>
+          </span>
+          <span class="flex flex-col text-left">
+            <span class="text-base font-semibold tracking-tight text-on-surface leading-tight">RouteOS</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Logistics Core</span>
+          </span>
+        </button>
+        <span class="w-2 h-2 rounded-full" [class]="operations.live() ? 'bg-status-delivered' : 'bg-status-urgent'" [title]="operations.live() ? 'Conectado en vivo' : 'Sin conexión en vivo'"></span>
       </div>
 
-      <!-- Breadcrumb Navigation -->
-      <div class="flex items-center space-x-2 text-xs font-medium text-[#636366]">
-        <span class="hover:text-[#1C1C1E] transition-colors cursor-pointer" (click)="navigate('Resumen')">RouteOS</span>
-        <span class="text-[#AEAEB2]">/</span>
-        <span class="text-[#1C1C1E] font-semibold">{{ operations.view() === 'Resumen' ? 'Despacho Principal' : pageTitle() }}</span>
-        <!-- Sincronizado Pill -->
+      <!-- Buscar módulo -->
+      <div class="px-3 pb-2 shrink-0">
+        <div class="relative flex items-center bg-surface-container-low rounded-xl px-3 py-2 text-xs text-on-surface-variant focus-within:ring-1 focus-within:ring-primary">
+          <span class="material-symbols-outlined text-[16px] mr-2">search</span>
+          <input class="w-full p-0 text-xs bg-transparent border-0 focus:ring-0 placeholder:text-on-surface-variant text-on-surface outline-none" aria-label="Buscar módulo" placeholder="Buscar módulo..." type="text" [(ngModel)]="moduleSearch" />
+        </div>
+      </div>
+
+      <!-- Menú -->
+      <nav class="px-3 py-2 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+        @for (grupo of menu; track grupo.titulo) {
+          @if (menuVisible(grupo.items).length) {
+            <div class="space-y-0.5">
+              <span class="px-2 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant block mb-1">{{ grupo.titulo }}</span>
+              @for (item of menuVisible(grupo.items); track item.view) {
+                <a
+                  class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer nav-link"
+                  [class]="operations.view() === item.view ? 'bg-primary-container text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'"
+                  [attr.aria-current]="operations.view() === item.view ? 'page' : null"
+                  (click)="navigate(item.view)"
+                >
+                  <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
+                  <span class="truncate">{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        }
+      </nav>
+    </div>
+
+    <!-- Pie: estado real y usuario -->
+    <div class="p-3 space-y-2 shrink-0">
+      <div class="p-3 rounded-xl bg-surface-container-low space-y-1.5">
+        <div class="flex items-center justify-between text-[11px] font-semibold">
+          <span class="uppercase tracking-wider text-on-surface-variant">Flota disponible</span>
+          <span class="text-on-surface tabular-nums">{{ operations.availableDrivers }} / {{ operations.repartidores().length }}</span>
+        </div>
+        <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+          <div class="bg-status-delivered h-full rounded-full transition-all" [style.width.%]="operations.repartidores().length ? (operations.availableDrivers / operations.repartidores().length) * 100 : 0"></div>
+        </div>
+        <button type="button" class="flex items-center gap-1.5 text-[11px] text-on-surface-variant hover:text-on-surface cursor-pointer" (click)="operations.retryLive()">
+          <span class="w-1.5 h-1.5 rounded-full" [class]="operations.live() ? 'bg-status-delivered animate-pulse' : 'bg-status-urgent'"></span>
+          {{ operations.live() ? 'Actualización en vivo' : 'Sin conexión · reconectar' }}
+        </button>
+      </div>
+      <div class="flex items-center justify-between gap-2 px-1">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-8 h-8 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center text-[11px] font-bold">{{ iniciales() }}</span>
+          <span class="min-w-0">
+            <span class="block text-sm font-semibold text-on-surface truncate leading-tight">{{ auth.usuario()?.nombreUsuario || 'Admin' }}</span>
+            <span class="block text-[11px] text-on-surface-variant">Administrador</span>
+          </span>
+        </div>
+        <div class="flex items-center gap-0.5 shrink-0">
+          <button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center justify-center cursor-pointer" title="Cambiar credenciales" aria-label="Cambiar credenciales" type="button" (click)="changeCredentials()">
+            <span class="material-symbols-outlined text-[18px]">key</span>
+          </button>
+          <button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-status-urgent hover:bg-status-urgent/10 flex items-center justify-center cursor-pointer" title="Cerrar sesión" aria-label="Cerrar sesión" type="button" [disabled]="loggingOut()" (click)="logout()">
+            <span class="material-symbols-outlined text-[18px]">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Área principal -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <header class="h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between gap-3 px-4 md:px-6 shrink-0 z-20" data-purpose="window-titlebar">
+      <div class="flex items-center gap-2 min-w-0 text-xs font-semibold text-on-surface-variant">
+        <button class="lg:hidden w-8 h-8 rounded-lg hover:bg-surface-container-low flex items-center justify-center" type="button" aria-label="Abrir navegación" (click)="navigationOpen.set(!navigationOpen())">
+          <span class="material-symbols-outlined text-[20px]">menu</span>
+        </button>
+        <span class="hidden sm:inline cursor-pointer hover:text-on-surface" (click)="navigate('Resumen')">RouteOS</span>
+        <span class="hidden sm:inline">/</span>
+        <span class="text-sm text-on-surface truncate">{{ operations.view() === 'Resumen' ? 'Centro de Control' : pageTitle() }}</span>
         <span
-          class="inline-flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium border cursor-pointer"
-          [ngClass]="operations.live() ? 'bg-[#E8F8EE] text-[#1FA64B] border-[#C5EED0]' : 'bg-[#FF3B30]/10 text-[#FF3B30] border-[#FF3B30]/20'"
+          class="hidden md:inline-flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full text-[11px] cursor-pointer"
+          [class]="operations.live() ? 'bg-status-delivered/10 text-status-delivered' : 'bg-status-urgent/10 text-status-urgent'"
           (click)="operations.retryLive()"
         >
-          <span class="w-1.5 h-1.5 rounded-full" [ngClass]="operations.live() ? 'bg-[#24C355]' : 'bg-[#FF3B30]'"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
           {{ operations.live() ? 'Sincronizado' : 'Reconectar' }}
         </span>
       </div>
-    </div>
-
-    <!-- Right side: Date Picker, Action Buttons & User Profile -->
-    <div class="flex items-center space-x-3">
-      <!-- Date Selector Control -->
-      <div class="flex items-center bg-white border border-[#D1D1D6] rounded-lg px-2.5 py-1 text-xs text-[#1C1C1E] shadow-sm hover:border-[#B0B0B8] transition">
-        <svg class="w-3.5 h-3.5 text-[#636366] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-        </svg>
-        <input
-          class="bg-transparent border-0 outline-none text-xs text-[#1C1C1E] font-medium cursor-pointer"
-          aria-label="Fecha de operación"
-          type="date"
-          [(ngModel)]="operations.fecha"
-          (change)="operations.changeDate()"
-        />
-      </div>
-
-      <!-- Primary Action Button (Retirado de la barra superior para evitar duplicidad con las vistas individuales) -->
-      <div style="display: none !important;" aria-hidden="true">
-        <button
-          class="inline-flex items-center gap-1.5 bg-[#007AFF] hover:bg-[#0062CC] active:bg-[#0051A8] text-white hover:text-white active:text-white focus:text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm transition cursor-pointer"
-          type="button"
-        >
-          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
-          </svg>
-          <span class="text-white"></span>
+      <div class="flex items-center gap-2 shrink-0">
+        <label class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest rounded-xl shadow-sm text-xs text-on-surface">
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span>
+          <input class="bg-transparent border-0 outline-none text-xs font-semibold cursor-pointer p-0" aria-label="Fecha de operación" type="date" [(ngModel)]="operations.fecha" (change)="operations.changeDate()" />
+        </label>
+        <button class="w-9 h-9 rounded-xl bg-surface-container-lowest shadow-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low flex items-center justify-center cursor-pointer" title="Refrescar datos" aria-label="Refrescar datos" type="button" (click)="operations.refresh()">
+          <span class="material-symbols-outlined text-[18px]">sync</span>
         </button>
       </div>
+    </header>
 
-      <!-- Refresh Action Button -->
-      <button
-        class="p-1.5 text-[#636366] hover:text-[#1C1C1E] hover:bg-[#E5E5EA] rounded-full transition cursor-pointer"
-        title="Refrescar datos"
-        type="button"
-        (click)="operations.refresh()"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-        </svg>
-      </button>
-
-      <!-- Profile Avatar & Info -->
-      <div class="flex items-center space-x-2 pl-2 border-l border-[#E5E5EA]">
-        <div class="w-7 h-7 rounded-full bg-[#007AFF] text-white flex items-center justify-center font-bold text-[11px] ring-2 ring-white">
-          {{ auth.usuario()?.nombreUsuario?.slice(0, 2)?.toUpperCase() || 'AD' }}
-        </div>
-        <div class="text-left leading-tight hidden lg:block">
-          <p class="text-[12px] font-semibold text-[#1C1C1E]">{{ auth.usuario()?.nombreUsuario || 'Admin' }}</p>
-          <p class="text-[10px] text-[#8E8E93]">Administrador</p>
-        </div>
-      </div>
-    </div>
-  </header>
-  <!-- END: Top Window Titlebar & Toolbar -->
-
-  <!-- Main Workspace Split: Sidebar & Main Viewport -->
-  <div class="flex-1 flex overflow-hidden">
-    <!-- BEGIN: Sidebar Navigation -->
-    <aside
-      class="w-64 bg-[#F2F2F6] border-r border-[#E5E5EA] flex flex-col justify-between flex-shrink-0 select-none transition-transform duration-200"
-      [class.translate-x-0]="navigationOpen()"
-      [class.-translate-x-full]="!navigationOpen() && !desktop()"
-      [class.fixed]="!desktop()"
-      [class.inset-y-0]="!desktop()"
-      [class.left-0]="!desktop()"
-      [class.z-50]="!desktop()"
-      data-purpose="macos-sidebar"
-    >
-      <!-- Top Section: App Identity & Menus -->
-      <div class="p-3 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-        <!-- RouteOS Branding Header -->
-        <div class="px-2 pt-1 pb-1 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <div class="w-6 h-6 rounded-md bg-[#007AFF] flex items-center justify-center text-white">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
-              </svg>
-            </div>
-            <div>
-              <h2 class="text-sm font-bold tracking-tight text-[#1C1C1E] leading-none">RouteOS</h2>
-              <span class="text-[9px] text-[#8E8E93] font-semibold tracking-wider">LOGISTICS CORE</span>
-            </div>
-          </div>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 bg-[#E5E5EA] text-[#636366] rounded">v3.4</span>
-        </div>
-
-        <!-- Spotlight Search Bar -->
-        <div class="px-1">
-          <div class="relative flex items-center bg-white border border-[#D1D1D6] rounded-lg px-2.5 py-1 text-xs shadow-xs focus-within:border-[#007AFF] focus-within:ring-1 focus-within:ring-[#007AFF]">
-            <svg class="w-3.5 h-3.5 text-[#8E8E93] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-            </svg>
-            <input
-              class="w-full p-0 text-xs bg-transparent border-0 focus:ring-0 placeholder-[#8E8E93] text-[#1C1C1E] outline-none"
-              aria-label="Buscar módulo"
-              placeholder="Buscar módulo..."
-              type="text"
-              [(ngModel)]="moduleSearch"
-            />
-            <kbd class="text-[10px] bg-[#F2F2F6] border border-[#D1D1D6] text-[#8E8E93] rounded px-1 ml-1 font-mono">⌘K</kbd>
-          </div>
-        </div>
-
-        <!-- Section: PRINCIPAL -->
-        <div class="space-y-1">
-          <h3 class="px-2.5 text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Principal</h3>
-          <nav class="space-y-0.5">
-            @if (matchesModule('Resumen')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Resumen' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Resumen')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Resumen' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Centro de Control</span>
-              </a>
-            }
-            @if (matchesModule('Pedidos')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Pedidos' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Pedidos')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Pedidos' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Pedidos</span>
-              </a>
-            }
-          </nav>
-        </div>
-
-        <!-- Section: OPERACIONES -->
-        <div class="space-y-1">
-          <h3 class="px-2.5 text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Operaciones</h3>
-          <nav class="space-y-0.5">
-            @if (matchesModule('Rutas')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Rutas' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Rutas')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Rutas' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Armado y Optimización</span>
-              </a>
-            }
-            @if (matchesModule('Zonas')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Zonas' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Zonas')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Zonas' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Zonas Geográficas</span>
-              </a>
-            }
-            @if (matchesModule('Repartidores')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Repartidores' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Repartidores')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Repartidores' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Repartidores y Flota</span>
-              </a>
-            }
-            @if (matchesModule('Productos')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Productos' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Productos')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Productos' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Catálogo y Productos</span>
-              </a>
-            }
-            @if (matchesModule('RetirosTienda')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'RetirosTienda' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('RetirosTienda')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'RetirosTienda' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Retiros en Tienda</span>
-              </a>
-            }
-          </nav>
-        </div>
-
-        <!-- Section: ANÁLISIS & SEGURIDAD -->
-        <div class="space-y-1">
-          <h3 class="px-2.5 text-[10px] font-bold text-[#8E8E93] tracking-wider uppercase">Análisis &amp; Seguridad</h3>
-          <nav class="space-y-0.5">
-            @if (matchesModule('Usuarios')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Usuarios' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Usuarios')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Usuarios' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Cuentas y Acceso</span>
-              </a>
-            }
-            @if (matchesModule('Credenciales')) {
-              <a
-                class="flex items-center space-x-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer nav-link"
-                [ngClass]="operations.view() === 'Credenciales' ? 'bg-[#007AFF] text-white shadow-xs' : 'text-[#48484A] hover:bg-[#E5E5EA]'"
-                (click)="navigate('Credenciales')"
-              >
-                <svg class="w-4 h-4" [ngClass]="operations.view() === 'Credenciales' ? 'text-white' : 'text-[#636366]'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <span>Credenciales</span>
-              </a>
-            }
-          </nav>
-        </div>
-      </div>
-
-      <!-- Sidebar Bottom Footer Info -->
-      <div class="p-3 border-t border-[#E5E5EA] space-y-2 bg-[#F2F2F6]">
-        <!-- Hub Status Badge -->
-        <div class="flex items-center justify-between bg-white border border-[#E5E5EA] rounded-lg px-2.5 py-1.5 text-xs shadow-2xs">
-          <span class="flex items-center gap-1.5 text-[#1C1C1E] font-medium text-[11px]">
-            <span class="w-2 h-2 rounded-full bg-[#34C759]"></span>
-            Hub Metropolitano
-          </span>
-          <span class="text-[11px] font-semibold text-[#34C759]">
-            {{ operations.live() ? '99.8% SLA' : 'Reconectar' }}
-          </span>
-        </div>
-        <!-- Bottom User Row -->
-        <div class="flex items-center justify-between px-1">
-          <div class="flex items-center space-x-2">
-            <div class="w-6 h-6 rounded-full bg-[#007AFF] text-white flex items-center justify-center font-bold text-[10px]">
-              {{ auth.usuario()?.nombreUsuario?.slice(0, 2)?.toUpperCase() || 'AD' }}
-            </div>
-            <div class="leading-none">
-              <p class="text-[11px] font-semibold text-[#1C1C1E]">{{ auth.usuario()?.nombreUsuario || 'Admin' }}</p>
-              <p class="text-[9px] text-[#8E8E93]">Administrador</p>
-            </div>
-          </div>
-          <div class="flex items-center space-x-1">
-            <button
-              class="p-1 text-[#8E8E93] hover:text-[#1C1C1E] rounded hover:bg-[#E5E5EA] transition cursor-pointer"
-              title="Cambiar credenciales"
-              type="button"
-              (click)="changeCredentials()"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </button>
-            <button
-              class="p-1 text-[#8E8E93] hover:text-[#FF3B30] rounded hover:bg-[#E5E5EA] transition cursor-pointer"
-              title="Cerrar sesión"
-              type="button"
-              [disabled]="loggingOut()"
-              (click)="logout()"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </aside>
-    <!-- END: Sidebar Navigation -->
-
-    <!-- BEGIN: Main Content Surface Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-[#FAFAFC] relative">
-      <!-- Feedback Alerts -->
+    <main class="flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-surface relative">
+      <!-- Avisos globales: se muestran como toasts (abajo a la derecha) y se cierran solos -->
+      <div class="app-toast-stack" aria-live="polite">
       @if (operations.message()) {
         <div class="mx-4 mt-3 p-3 bg-[#EAF8EE] border border-[#C6EFD2] rounded-xl text-[#1E9E47] flex items-center justify-between text-xs shadow-xs" role="status">
           <div class="flex items-center gap-2">
@@ -343,11 +147,11 @@
           <button class="px-2 py-0.5 rounded bg-[#FF3B30] text-white text-xs font-medium border-0 cursor-pointer" (click)="operations.refresh()">Reintentar</button>
         </div>
       }
+      </div>
 
       <!-- Router View Slot -->
       <router-outlet />
     </main>
-    <!-- END: Main Content Surface Area -->
   </div>
 </div>
 

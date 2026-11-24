@@ -141,6 +141,7 @@ export class ZonasPage implements OnDestroy {
     );
   }
   showToast(title: string, message: string) {
+    this.operations.message.set(message); // toast global
     clearTimeout(this.timer);
     this.toastTitle.set(title);
     this.toastMessage.set(message);

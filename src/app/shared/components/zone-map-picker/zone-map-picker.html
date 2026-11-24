@@ -24,6 +24,21 @@
 }
 @if(boundaryNotice()){<p class="zone-status" role="status">{{boundaryNotice()}}</p>}
 @if(previousContour() !== null){<button type="button" class="button" [disabled]="disabled" (click)="restorePreviousContour()">Recuperar dibujo anterior a la importación</button>}
+@if(points.length > maxVertices){
+  <div class="flex flex-wrap items-center justify-between gap-2 p-3 my-2 rounded-xl bg-surface-container text-xs text-on-surface" role="status">
+    <span>Esta zona tiene <strong>{{ points.length }} vértices</strong>: es difícil de editar a mano. Puedes reducirla a {{ maxVertices }} o menos conservando la forma.</span>
+    <button type="button" class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold cursor-pointer disabled:opacity-50" [disabled]="disabled" (click)="simplify()">Simplificar contorno</button>
+  </div>
+}
+@if(pendingFar(); as far){
+  <div class="flex flex-wrap items-center justify-between gap-2 p-3 my-2 rounded-xl bg-surface-container text-xs text-on-surface" role="alert">
+    <span>El punto que marcaste está a <strong>{{ far.km }} km</strong> del contorno. ¿Fue a propósito?</span>
+    <span class="flex gap-2">
+      <button type="button" class="px-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface text-xs font-semibold cursor-pointer" (click)="pendingFar.set(null)">Descartar</button>
+      <button type="button" class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold cursor-pointer" (click)="confirmFar()">Agregar igual</button>
+    </span>
+  </div>
+}
 @if(local.location()){<button type="button" class="button" (click)="focusLocal()">⌂ Centrar en nuestro local</button>}
 <div class="zone-map" role="region" aria-label="Mapa para dibujar la zona de cobertura"></div>
 <div class="zone-tools">
@@ -34,7 +49,10 @@
     Limpiar dibujo
   </button>
 </div>
-@if (points.length) {
+@if (compacto) {
+  <p class="zone-hint">Con muchos vértices se muestran como puntos pequeños para que no se muevan al desplazar el mapa. Toca uno para seleccionarlo y arrástralo.</p>
+}
+@if (points.length && !compacto) {
   <div class="vertex-list" aria-label="Vértices de la zona">
     @for (point of points; track $index) {
       <button

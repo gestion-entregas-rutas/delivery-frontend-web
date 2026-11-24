@@ -1,0 +1,174 @@
+@let v = vista();
+<div class="fixed inset-0 z-[1500] flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="detalle-ruta-titulo">
+  <div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-md" (click)="cerrar.emit()"></div>
+
+  <div class="relative bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden z-10">
+    <!-- Cabecera -->
+    <div class="p-4 bg-surface-container-low flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center text-base font-semibold shadow-sm">{{ v.iniciales }}</div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 id="detalle-ruta-titulo" class="text-xl font-semibold text-on-surface truncate">{{ v.nombre }}</h3>
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold" [class]="v.estado.clase">{{ v.estado.texto }}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant">
+            Ruta {{ v.zona }} <span class="tabular-nums">#{{ v.corto }}</span> · Repartidor {{ v.estadoRepartidor.toLowerCase() }}
+            @if (v.gps) {
+              · GPS {{ v.gps.reciente ? 'activo' : 'sin señal' }} {{ v.gps.hora }}
+            }
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        @if (v.editable) {
+          <button type="button" class="w-9 h-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant hover:text-primary flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50" title="Recalcular estimaciones" aria-label="Recalcular estimaciones" [disabled]="saving()" (click)="recalcular.emit(ruta)">
+            <span class="material-symbols-outlined text-[20px]">refresh</span>
+          </button>
+        }
+        <button type="button" class="w-9 h-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer" aria-label="Cerrar" (click)="cerrar.emit()">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Métricas rápidas -->
+    <div class="px-4 py-2 flex flex-wrap items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs">
+        <span class="material-symbols-outlined text-[16px] text-primary">inventory_2</span>
+        <span><strong class="tabular-nums">{{ v.usados }}/{{ v.capacidad }}</strong> pedidos asignados</span>
+      </span>
+      @if (v.distancia) {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs" title="Línea recta ajustada; no considera tráfico.">
+          <span class="material-symbols-outlined text-[16px] text-status-delivered">distance</span>
+          <span><strong class="tabular-nums">{{ v.distancia }}</strong> recorrido{{ v.duracion ? ' · ' + v.duracion : '' }}</span>
+        </span>
+      }
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs">
+        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span>
+        <span>Ventana: <strong class="tabular-nums">{{ v.ventanaGeneral ?? 'flexible' }}</strong></span>
+      </span>
+      @if (v.salida) {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs">
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant">departure_board</span>
+          <span>Salida <strong class="tabular-nums">{{ v.salida }}</strong></span>
+        </span>
+      }
+    </div>
+
+    <!-- Cuerpo: mapa + itinerario -->
+    <div class="p-4 grid grid-cols-1 md:grid-cols-12 gap-4 overflow-y-auto flex-1">
+      <!-- Mapa -->
+      <div class="md:col-span-5 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">Trazado del recorrido</span>
+          @if (v.holgura != null) {
+            <span class="text-[11px] font-semibold" [class]="v.holgura >= 0 ? 'text-status-delivered' : 'text-status-urgent'">
+              {{ v.holgura >= 0 ? 'Compromisos cumplidos' : 'Compromiso en riesgo' }}
+            </span>
+          }
+        </div>
+        <div class="relative isolate w-full h-72 sm:h-80 rounded-xl overflow-hidden bg-surface-container-low">
+          <div #mapa class="absolute inset-0 z-0" aria-label="Mapa del recorrido"></div>
+          @if (mapaError()) {
+            <p class="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant">No se pudo cargar el mapa.</p>
+          }
+          <div class="absolute bottom-2 left-2 right-2 z-[500] bg-surface-container-lowest/90 backdrop-blur-sm p-2 rounded-lg flex items-center justify-between text-on-surface text-xs shadow-sm">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span>Orden de visita · línea recta</span>
+            <span class="text-on-surface-variant tabular-nums">{{ holguraTexto(v.holgura) }}</span>
+          </div>
+        </div>
+        <button type="button" class="self-end text-[11px] font-semibold text-primary hover:underline cursor-pointer" (click)="verEnMapa.emit(ruta)">Abrir en el mapa operativo</button>
+      </div>
+
+      <!-- Itinerario -->
+      <div class="md:col-span-7 flex flex-col gap-2">
+        <span class="text-sm font-semibold text-on-surface">Itinerario y ventanas de entrega</span>
+        <div class="flex flex-col gap-1">
+          <!-- Salida -->
+          <div class="flex items-start gap-3 p-2 rounded-xl bg-surface-container-low/40">
+            <div class="w-12 h-8 shrink-0 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center text-[11px] font-semibold tabular-nums">{{ v.salida || '—' }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold text-on-surface truncate">Salida: {{ v.origenNombre }}</span>
+              </div>
+              <p class="text-xs text-on-surface-variant truncate">{{ v.origenDireccion }}</p>
+            </div>
+          </div>
+
+          @for (p of v.paradas; track p.pedidoId) {
+            <!-- Conector -->
+            <div class="flex items-center gap-2 pl-6 py-0.5 text-on-surface-variant">
+              <div class="w-0.5 h-5 bg-outline-variant"></div>
+              @if (p.traslado != null) {
+                <span class="bg-surface-container px-2 py-0.5 rounded text-[11px] flex items-center gap-1 tabular-nums">
+                  <span class="material-symbols-outlined text-[13px]">two_wheeler</span>{{ p.traslado }} min de traslado
+                </span>
+              }
+            </div>
+            <!-- Parada -->
+            <div class="flex items-start gap-3 p-2 rounded-xl bg-surface-container-lowest shadow-sm border border-separator-hairline-light">
+              <div
+                class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[11px] font-bold"
+                [class]="p.entregada ? 'bg-status-delivered text-white' : p.enCamino ? 'bg-status-in-transit text-white' : 'bg-primary text-on-primary'"
+              >{{ p.orden }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="text-sm font-semibold text-on-surface">{{ p.direccion }}</span>
+                  <span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums" [class]="p.puntualidad.clase">
+                    {{ p.llegada ? p.llegada + ' · ' : '' }}{{ p.puntualidad.texto }}
+                  </span>
+                </div>
+                <p class="text-xs text-on-surface-variant mt-0.5">
+                  Ventana <span class="tabular-nums">{{ p.ventana ?? 'flexible' }}</span>{{ p.fin ? ' · termina ' + p.fin : '' }}{{ p.carga ? ' · ' + p.carga : '' }}
+                </p>
+                <div class="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-on-surface-variant">
+                  <span class="flex items-center gap-2 flex-wrap min-w-0">
+                    <span class="truncate">Receptor: {{ p.cliente }}</span>
+                    <span class="tabular-nums">{{ p.codigo }}</span>
+                    @if (p.espera) {
+                      <span class="text-status-in-transit font-semibold" [title]="'Llega antes del inicio de la ventana (' + p.inicioVentana + ')'">Espera {{ p.espera }} min</span>
+                    }
+                  </span>
+                  <a class="shrink-0 inline-flex items-center gap-1 text-primary hover:underline" [href]="'tel:' + p.telefono" [attr.aria-label]="'Llamar al receptor ' + p.telefono">
+                    <span class="material-symbols-outlined text-[14px]">call</span>{{ p.telefono }}
+                  </a>
+                </div>
+                @if (p.observaciones) {
+                  <p class="mt-1.5 text-[11px] text-on-surface bg-status-in-transit/5 rounded px-2 py-1">{{ p.observaciones }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie -->
+    <div class="p-4 bg-surface-container-low flex items-center justify-between gap-2 flex-wrap">
+      <div class="flex items-center gap-1">
+        @if (v.editable) {
+          <button type="button" class="px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest text-sm font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50" [disabled]="saving()" (click)="ordenar.emit(ruta)">
+            <span class="material-symbols-outlined text-[18px]">reorder</span>Ordenar
+          </button>
+          <button type="button" class="px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest text-sm font-semibold flex items-center gap-1 cursor-pointer" (click)="verEnMapa.emit(ruta)">
+            <span class="material-symbols-outlined text-[18px]">shuffle</span>Reasignar
+          </button>
+        }
+        @if (v.telefono) {
+          <a class="px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest text-sm font-semibold flex items-center gap-1" [href]="'tel:' + v.telefono">
+            <span class="material-symbols-outlined text-[18px]">call</span>Repartidor
+          </a>
+        }
+      </div>
+      <div class="flex items-center gap-3">
+        @if (ruta.estado === 'Planificada') {
+          <span class="hidden sm:flex items-center gap-1 text-xs text-on-surface-variant">
+            <span class="material-symbols-outlined text-[16px]">smartphone</span>El repartidor la inicia desde la app
+          </span>
+        }
+        <button type="button" class="px-5 py-2 rounded-xl bg-primary text-on-primary hover:bg-primary-container text-sm font-semibold shadow-sm transition-all cursor-pointer" (click)="cerrar.emit()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

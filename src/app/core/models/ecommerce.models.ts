@@ -1,5 +1,5 @@
 export interface CategoriaDto {
-  id: number;
+  id: string;
   nombre: string;
   activa?: boolean;
   orden?: number;
@@ -9,7 +9,7 @@ export interface CategoriaDto {
 
 export interface SubcategoriaDto {
   id?: number | string;
-  categoriaId?: number;
+  categoriaId?: string;
   nombre: string;
   activa?: boolean;
   orden?: number;
@@ -28,7 +28,7 @@ export interface FichaTecnicaItemDto {
 
 export interface ProductoDto {
   id: string;
-  categoriaId: number;
+  categoriaId: string;
   categoriaNombre?: string;
   subcategoria?: string | null;
   nombre: string;
@@ -48,7 +48,7 @@ export interface ProductoDto {
 }
 
 export interface GuardarProductoRequest {
-  categoriaId: number;
+  categoriaId: string;
   subcategoria?: string | null;
   nombre: string;
   marca?: string | null;
@@ -73,7 +73,7 @@ export interface PaginaProductosDto {
 
 export interface FiltroProductosAdmin {
   buscar?: string;
-  categoriaId?: number;
+  categoriaId?: string;
   incluirInactivos?: boolean;
   pagina?: number;
   tamanoPagina?: number;

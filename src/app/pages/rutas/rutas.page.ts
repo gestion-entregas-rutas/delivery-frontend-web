@@ -4,10 +4,53 @@ import { FormsModule } from '@angular/forms';
 import { OperationsService } from '../../core/services/operations.service';
 import { OperationFormsService } from '../../core/services/operation-forms.service';
 import { RouteAssignmentService } from '../../core/services/route-assignment.service';
-import { PedidoDto, RutaDto } from '../../core/models/logistica.models';
+import { PedidoDto, RutaDto, ResultadoPuntualidadDto } from '../../core/models/logistica.models';
 import { initialsAvatar } from '../../core/utils/presentation';
 import { RouteWorkspace } from '../../shared/components/route-workspace/route-workspace';
 import { RouteOrderService } from '../../core/services/route-order.service';
+
+export function formatHoraEcuador(iso?: string | null): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat('es-EC', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Guayaquil',
+      hour12: false,
+    }).format(d);
+  } catch {
+    return iso.length >= 16 ? iso.slice(11, 16) : iso;
+  }
+}
+
+export function puntualidadInfo(punt?: ResultadoPuntualidadDto | null): { texto: string; clase: string } {
+  if (!punt || !punt.estado) return { texto: 'Sin estimación', clase: 'bg-[#F2F2F7] text-[#8E8E93]' };
+  const n = punt.retrasoMinutos ?? 0;
+  switch (punt.estado) {
+    case 'SinCompromiso':
+      return { texto: 'Sin intervalo comprometido', clase: 'bg-[#F2F2F7] text-[#8E8E93]' };
+    case 'SinEstimacion':
+      return { texto: 'Sin estimación', clase: 'bg-[#F2F2F7] text-[#8E8E93]' };
+    case 'DentroDelPlazoPrevisto':
+      return { texto: 'A tiempo (estimado)', clase: 'bg-[#E8F8EE] text-[#34C759]' };
+    case 'RetrasoPrevisto':
+      return { texto: `Retraso previsto: +${n} min`, clase: 'bg-[#FFF9F2] text-[#FF9500]' };
+    case 'PlazoVencido':
+      return { texto: `Plazo vencido hace ${n} min`, clase: 'bg-[#FFF2F2] text-[#FF3B30]' };
+    case 'EntregadoEnIntervalo':
+      return { texto: 'Entregado a tiempo', clase: 'bg-[#E8F8EE] text-[#34C759]' };
+    case 'EntregadoConRetraso':
+      return { texto: `Entregado con ${n} min de retraso`, clase: 'bg-[#FFF2F2] text-[#FF3B30]' };
+    case 'EntregadoAntesDelIntervalo':
+      return { texto: 'Entregado antes del intervalo', clase: 'bg-[#E8F1FF] text-[#007AFF]' };
+    case 'NoAplica':
+      return { texto: 'No aplica (cancelado)', clase: 'bg-[#F2F2F7] text-[#8E8E93]' };
+    default:
+      return { texto: punt.estado, clase: 'bg-[#F2F2F7] text-[#8E8E93]' };
+  }
+}
+
 export interface PendingOrder {
   raw: PedidoDto;
   code: string;
@@ -43,8 +86,15 @@ export interface RouteStop {
   pedidoId: string;
   num: number;
   address: string;
+  client: string;
   time: string;
   status: 'delivered' | 'in_transit' | 'pending' | 'auto_inserted';
+  compromiso: string;
+  llegadaEstimada?: string | null;
+  esperaMinutos?: number | null;
+  finalizacionEstimada?: string | null;
+  puntualidadTexto: string;
+  puntualidadClase: string;
 }
 
 export interface RouteCardItem {
@@ -68,6 +118,19 @@ export interface RouteCardItem {
   hasDropPlaceholder?: boolean;
   distanceTime: string;
   actionButtonLabel: string;
+  alertasCount: number;
+  estimadoHora: string | null;
+  modeloEstimacion: string;
+}
+
+export interface GlobalAlertItem {
+  rutaId: string;
+  pedidoId: string;
+  orden: number;
+  estado: 'RetrasoPrevisto' | 'PlazoVencido';
+  retrasoMinutos: number | null;
+  rutaNumero: string;
+  clienteNombre: string;
 }
 
 @Component({
@@ -151,26 +214,90 @@ export class RutasPage implements OnDestroy {
           progressBarClass: 'bg-primary',
           stops: [...r.paradas]
             .sort((a, b) => a.orden - b.orden)
-            .map((p) => ({
-              num: p.orden,
-              pedidoId: p.pedido.id,
-              address: p.pedido.direccion,
-              time: p.pedido.horaEntrega.slice(0, 5),
-              status:
-                p.pedido.estado === 'Entregado'
-                  ? 'delivered'
-                  : p.pedido.estado === 'EnCamino'
-                    ? 'in_transit'
-                    : 'pending',
-            })),
+            .map((p) => {
+              let esperaMinutos: number | null = null;
+              if (p.inicioAtencionEstimadoEn && p.llegadaEstimadaEn) {
+                const diff = Math.round(
+                  (new Date(p.inicioAtencionEstimadoEn).getTime() -
+                    new Date(p.llegadaEstimadaEn).getTime()) /
+                    60000,
+                );
+                if (diff > 0) esperaMinutos = diff;
+              }
+              const punt = puntualidadInfo(p.pedido.puntualidad);
+              const compInicio = p.pedido.compromisoInicioEn
+                ? formatHoraEcuador(p.pedido.compromisoInicioEn)
+                : null;
+              const compFin = p.pedido.compromisoFinEn
+                ? formatHoraEcuador(p.pedido.compromisoFinEn)
+                : null;
+              const compromiso =
+                compInicio && compFin ? `${compInicio} – ${compFin}` : 'Sin compromiso';
+
+              return {
+                num: p.orden,
+                pedidoId: p.pedido.id,
+                address: p.pedido.direccion,
+                client: p.pedido.clienteNombre,
+                time: p.pedido.horaEntrega ? p.pedido.horaEntrega.slice(0, 5) : '',
+                compromiso,
+                llegadaEstimada: p.llegadaEstimadaEn
+                  ? formatHoraEcuador(p.llegadaEstimadaEn)
+                  : null,
+                esperaMinutos,
+                finalizacionEstimada: p.finalizacionEstimadaEn
+                  ? formatHoraEcuador(p.finalizacionEstimadaEn)
+                  : null,
+                puntualidadTexto: punt.texto,
+                puntualidadClase: punt.clase,
+                status:
+                  p.pedido.estado === 'Entregado'
+                    ? 'delivered'
+                    : p.pedido.estado === 'EnCamino'
+                      ? 'in_transit'
+                      : 'pending',
+              };
+            }),
           hasDropPlaceholder:
             (r.estado === 'Planificada' || r.estado === 'EnCurso') &&
             r.paradas.length < r.capacidad,
           distanceTime: 'Distancia y duración no informadas',
           actionButtonLabel: r.estado === 'Planificada' ? 'Iniciar ruta' : 'Ver detalle',
+          alertasCount: r.alertas?.length ?? 0,
+          estimadoHora: r.estimacionesActualizadasEn
+            ? 'Estimado a las ' + formatHoraEcuador(r.estimacionesActualizadasEn)
+            : null,
+          modeloEstimacion: 'Aproximado (Haversine)',
         };
       }),
   );
+  readonly globalAlerts = computed<GlobalAlertItem[]>(() => {
+    const list: GlobalAlertItem[] = [];
+    for (const r of this.operations.rutas()) {
+      if (r.alertas && r.alertas.length > 0) {
+        for (const a of r.alertas) {
+          const stop = r.paradas.find((s) => s.pedido.id === a.pedidoId);
+          list.push({
+            rutaId: r.id,
+            pedidoId: a.pedidoId,
+            orden: a.orden,
+            estado: a.estado,
+            retrasoMinutos: a.retrasoMinutos,
+            rutaNumero: 'Ruta #' + this.operations.short(r.id),
+            clienteNombre:
+              stop?.pedido.clienteNombre ||
+              this.operations.pedidos().find((p) => p.id === a.pedidoId)?.clienteNombre ||
+              'Pedido #' + this.operations.short(a.pedidoId),
+          });
+        }
+      }
+    }
+    return list.sort((a, b) => {
+      if (a.estado === 'PlazoVencido' && b.estado !== 'PlazoVencido') return -1;
+      if (a.estado !== 'PlazoVencido' && b.estado === 'PlazoVencido') return 1;
+      return (b.retrasoMinutos ?? 0) - (a.retrasoMinutos ?? 0);
+    });
+  });
   readonly liveEvents = computed<SimulationEvent[]>(() => {
     const registration = this.operations.lastRegistration();
     if (!registration || !registration.asignacion) return [];
@@ -274,6 +401,18 @@ export class RutasPage implements OnDestroy {
     const p=card.raw.paradas.find(s=>s.pedido.id===stop.pedidoId)?.pedido;
     if(p?.estado==='AsignadoARuta')event.dataTransfer?.setData('text/plain',p.id);
     else event.preventDefault();
+  }
+  focusAlert(alert: GlobalAlertItem) {
+    const route = this.operations.rutas().find((r) => r.id === alert.rutaId);
+    if (route) {
+      this.operations.selectRoute(route);
+    }
+  }
+  async recalcular(rutaId: string) {
+    const ok = await this.operations.recalcularEstimaciones(rutaId);
+    if (ok) {
+      this.showToast('Estimaciones recalculadas.');
+    }
   }
   showToast(message: string) {
     clearTimeout(this.timer);

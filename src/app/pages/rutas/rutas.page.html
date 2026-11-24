@@ -440,6 +440,41 @@
         </div>
       </div>
 
+      <!-- Panel Global de Alertas de Puntualidad del Día -->
+      @if (globalAlerts().length > 0) {
+        <div class="p-3 rounded-xl bg-[#FFF9F2] border border-[#FFE4C4] space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#FF3B30] animate-pulse"></span>
+              <span class="text-xs font-bold text-[#1C1C1E]">
+                Alertas de Puntualidad ({{ globalAlerts().length }})
+              </span>
+            </div>
+            <span class="text-[10px] text-[#8E8E93]">Priorizadas: Plazo vencido primero</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            @for (alert of globalAlerts(); track alert.pedidoId) {
+              <div
+                class="p-2 rounded-lg bg-white border border-[#FFE4C4] hover:border-[#FF9500] cursor-pointer transition flex items-center justify-between text-xs"
+                (click)="focusAlert(alert)"
+                title="Ir a la parada en la ruta"
+              >
+                <div class="truncate pr-2">
+                  <span class="font-semibold text-[#1C1C1E] truncate block">{{ alert.clienteNombre }}</span>
+                  <span class="text-[10px] text-[#8E8E93]">{{ alert.rutaNumero }} · Parada #{{ alert.orden }}</span>
+                </div>
+                <span
+                  class="px-2 py-0.5 rounded font-bold text-[10px] shrink-0"
+                  [ngClass]="alert.estado === 'PlazoVencido' ? 'bg-[#FFF2F2] text-[#FF3B30]' : 'bg-[#FFF9F2] text-[#FF9500]'"
+                >
+                  {{ alert.estado === 'PlazoVencido' ? ('Vencido hace ' + (alert.retrasoMinutos || 0) + ' min') : ('+ ' + (alert.retrasoMinutos || 0) + ' min') }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       <!-- VIEW MODE: MAPA OPERATIVO -->
       @if (viewMode() === 'mapa') {
         <div class="bg-[#FBFBFC] p-4 rounded-xl border border-[#E5E5EA]">
@@ -456,7 +491,9 @@
               Volver a Mosaico
             </button>
           </div>
-          <app-route-workspace />
+          <div class="legacy-ui">
+            <app-route-workspace />
+          </div>
         </div>
       }
 
@@ -514,6 +551,32 @@
                     </span>
                   </div>
 
+                  <!-- Estimaciones de Ruta, Alertas y Recálculo -->
+                  <div class="mt-2.5 px-2.5 py-1.5 rounded-lg bg-white border border-[#E5E5EA] flex flex-wrap items-center justify-between gap-1.5 text-[11px]">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      @if (card.alertasCount > 0) {
+                        <span class="px-1.5 py-0.5 rounded-md font-bold text-[10px] bg-[#FF3B30]/15 text-[#FF3B30] flex items-center gap-1">
+                          ⚠️ {{ card.alertasCount }} {{ card.alertasCount === 1 ? 'alerta' : 'alertas' }}
+                        </span>
+                      }
+                      <span class="font-semibold text-[#1C1C1E]">
+                        {{ card.estimadoHora || 'Sin estimación' }}
+                      </span>
+                      <span class="px-1.5 py-0.5 rounded text-[9px] font-medium bg-[#F2F2F7] text-[#8E8E93]">
+                        {{ card.modeloEstimacion }}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      class="px-2 py-0.5 rounded text-[10px] font-semibold text-[#007AFF] hover:bg-[#E8F1FF] transition cursor-pointer"
+                      (click)="recalcular(card.id)"
+                      [disabled]="operations.saving()"
+                      title="Recalcular estimaciones desde el avance real de la ruta"
+                    >
+                      ↻ Recalcular
+                    </button>
+                  </div>
+
                   <!-- Capacity Progress Indicator -->
                   <div class="mt-2.5 p-2 rounded-lg bg-white border border-[#E5E5EA]">
                     <div class="flex items-center justify-between text-xs">
@@ -542,6 +605,15 @@
                               <div class="flex flex-col">
                                 <span class="font-semibold text-[#1C1C1E]">{{ stop.num }}. {{ stop.address }}</span>
                                 <span class="text-[10px] text-[#34C759] font-medium">{{ stop.time }}</span>
+                                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span class="font-medium text-[#1C1C1E] bg-white px-1.5 py-0.5 rounded border border-[#E5E5EA]">⏱ {{ stop.compromiso }}</span>
+                                  <span class="text-[#636366]">Llegada: <strong>{{ stop.llegadaEstimada || '—' }}</strong></span>
+                                  @if (stop.esperaMinutos) {
+                                    <span class="text-[#FF9500] font-semibold">(Espera ~{{ stop.esperaMinutos }} min)</span>
+                                  }
+                                  <span class="text-[#636366]">Fin: <strong>{{ stop.finalizacionEstimada || '—' }}</strong></span>
+                                  <span class="px-1.5 py-0.5 rounded font-semibold" [ngClass]="stop.puntualidadClase">{{ stop.puntualidadTexto }}</span>
+                                </div>
                               </div>
                               <span class="text-[10px] text-[#34C759] font-bold">Entregado</span>
                             </div>
@@ -552,6 +624,15 @@
                               <div class="flex flex-col">
                                 <span class="font-semibold text-[#1C1C1E]">{{ stop.num }}. {{ stop.address }}</span>
                                 <span class="text-[10px] text-[#FF9500] font-medium">{{ stop.time }}</span>
+                                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span class="font-medium text-[#1C1C1E] bg-white px-1.5 py-0.5 rounded border border-[#E5E5EA]">⏱ {{ stop.compromiso }}</span>
+                                  <span class="text-[#636366]">Llegada: <strong>{{ stop.llegadaEstimada || '—' }}</strong></span>
+                                  @if (stop.esperaMinutos) {
+                                    <span class="text-[#FF9500] font-semibold">(Espera ~{{ stop.esperaMinutos }} min)</span>
+                                  }
+                                  <span class="text-[#636366]">Fin: <strong>{{ stop.finalizacionEstimada || '—' }}</strong></span>
+                                  <span class="px-1.5 py-0.5 rounded font-semibold" [ngClass]="stop.puntualidadClase">{{ stop.puntualidadTexto }}</span>
+                                </div>
                               </div>
                               <svg class="w-3.5 h-3.5 text-[#8E8E93] cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M4 8h16M4 16h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
@@ -560,8 +641,19 @@
                           } @else if (stop.status === 'auto_inserted') {
                             <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-[#007AFF] ring-4 ring-[#F9F9FB]"></span>
                             <div class="flex items-center justify-between bg-[#E8F1FF] p-1 rounded text-xs">
-                              <span class="font-semibold text-[#1C1C1E]">{{ stop.num }}. {{ stop.address }}</span>
-                              <span class="text-[10px] text-[#007AFF] font-bold">{{ stop.time }}</span>
+                              <div class="flex flex-col">
+                                <span class="font-semibold text-[#1C1C1E]">{{ stop.num }}. {{ stop.address }}</span>
+                                <span class="text-[10px] text-[#007AFF] font-bold">{{ stop.time }}</span>
+                                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span class="font-medium text-[#1C1C1E] bg-white px-1.5 py-0.5 rounded border border-[#E5E5EA]">⏱ {{ stop.compromiso }}</span>
+                                  <span class="text-[#636366]">Llegada: <strong>{{ stop.llegadaEstimada || '—' }}</strong></span>
+                                  @if (stop.esperaMinutos) {
+                                    <span class="text-[#FF9500] font-semibold">(Espera ~{{ stop.esperaMinutos }} min)</span>
+                                  }
+                                  <span class="text-[#636366]">Fin: <strong>{{ stop.finalizacionEstimada || '—' }}</strong></span>
+                                  <span class="px-1.5 py-0.5 rounded font-semibold" [ngClass]="stop.puntualidadClase">{{ stop.puntualidadTexto }}</span>
+                                </div>
+                              </div>
                             </div>
                           } @else {
                             <span class="absolute -left-5 top-1 w-2.5 h-2.5 rounded-full bg-[#8E8E93] ring-4 ring-[#F9F9FB]"></span>
@@ -569,6 +661,15 @@
                               <div class="flex flex-col">
                                 <span class="text-[#1C1C1E]">{{ stop.num }}. {{ stop.address }}</span>
                                 <span class="text-[10px] text-[#8E8E93]">{{ stop.time }}</span>
+                                <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span class="font-medium text-[#1C1C1E] bg-white px-1.5 py-0.5 rounded border border-[#E5E5EA]">⏱ {{ stop.compromiso }}</span>
+                                  <span class="text-[#636366]">Llegada: <strong>{{ stop.llegadaEstimada || '—' }}</strong></span>
+                                  @if (stop.esperaMinutos) {
+                                    <span class="text-[#FF9500] font-semibold">(Espera ~{{ stop.esperaMinutos }} min)</span>
+                                  }
+                                  <span class="text-[#636366]">Fin: <strong>{{ stop.finalizacionEstimada || '—' }}</strong></span>
+                                  <span class="px-1.5 py-0.5 rounded font-semibold" [ngClass]="stop.puntualidadClase">{{ stop.puntualidadTexto }}</span>
+                                </div>
                               </div>
                               <svg class="w-3.5 h-3.5 text-[#8E8E93] cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M4 8h16M4 16h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>

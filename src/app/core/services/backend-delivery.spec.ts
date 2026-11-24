@@ -6,6 +6,8 @@ import { OperationsService } from './operations.service';
 import { LOGISTICA_SERVER_URL, LogisticaApiService } from './logistica-api.service';
 import { RouteAssignmentService } from './route-assignment.service';
 import { RouteOrderService } from './route-order.service';
+import { LocalLocationService } from './local-location.service';
+import { puntualidadInfo } from '../../pages/rutas/rutas.page';
 import { PedidosPage } from '../../pages/pedidos/pedidos.page';
 import { PedidoDto, RutaDto, UbicacionRepartidorDto } from '../models/logistica.models';
 import { recentLocation } from '../utils/gps-markers';
@@ -300,5 +302,154 @@ describe('Entrega backend 1.1.0', () => {
     req.flush({ ...r, version: 82 });
     await task;
     expect(service.route()).toBeNull();
+  });
+  it('armarRutas envía origen desde LocalLocationService y maneja 422 sin local', async () => {
+    const localService = TestBed.inject(LocalLocationService);
+    localService.location.set({
+      nombre: 'Local Central',
+      direccion: 'Av. Cevallos 123',
+      ubicacion: { latitud: -1.245, longitud: -78.625 },
+    });
+    operations.fecha = '2027-01-01';
+    vi.spyOn(operations, 'refresh').mockResolvedValue();
+    const task = operations.buildRoutes();
+    const req = http.expectOne(base + '/rutas/armar');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      fecha: '2027-01-01',
+      origen: { latitud: -1.245, longitud: -78.625 },
+    });
+    req.flush({ fecha: '2027-01-01', rutas: [], pedidosSinAsignar: 0 });
+    await task;
+
+    localService.location.set(null);
+    const task422 = operations.buildRoutes();
+    const req422 = http.expectOne(base + '/rutas/armar');
+    req422.flush(
+      { detail: 'Falta ubicación del local para pedidos comprometidos' },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await task422;
+    expect(operations.error()).toBe(
+      'Configura la ubicación del local para armar rutas con horarios comprometidos.',
+    );
+  });
+  it('409 CAMBIO_PONE_EN_RIESGO abre el diálogo y reenvía con forzar: true al confirmar', async () => {
+    const service = TestBed.inject(RouteAssignmentService);
+    const assigned = { ...pedido, estado: 'AsignadoARuta' as const, rutaId: 'r1' };
+    const origin = { ...ruta, paradas: [{ orden: 1, pedido: assigned }] };
+    const dest = { ...ruta, id: 'r2', version: 91 };
+    const open = service.open(assigned, 'r2');
+    http.expectOne((r) => r.url === base + '/rutas').flush([origin, dest]);
+    await open;
+    vi.spyOn(operations, 'refresh').mockResolvedValue();
+
+    const savePromise = service.confirm();
+    const req1 = http.expectOne(base + '/rutas/r1/pedidos/p/transferir');
+    expect(req1.request.body).toEqual({
+      destinoRutaId: 'r2',
+      versionOrigen: 81,
+      versionDestino: 91,
+      posicion: null,
+    });
+    req1.flush(
+      {
+        codigo: 'CAMBIO_PONE_EN_RIESGO',
+        pedidosEnRiesgo: [
+          {
+            pedidoId: 'p',
+            rutaId: 'r2',
+            finalizacionEstimadaEn: '2027-01-01T16:00:00Z',
+            limiteEn: '2027-01-01T15:30:00Z',
+            retrasoMinutos: 30,
+          },
+        ],
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    await Promise.resolve();
+    expect(service.pedidosEnRiesgo()?.length).toBe(1);
+
+    service.responderRiesgo(true);
+    await Promise.resolve();
+
+    const req2 = http.expectOne(base + '/rutas/r1/pedidos/p/transferir');
+    expect(req2.request.body.forzar).toBe(true);
+    req2.flush({
+      origen: { ...origin, paradas: [], version: 82 },
+      destino: { ...dest, version: 92 },
+    });
+    await savePromise;
+    expect(service.pedido()).toBeNull();
+  });
+  it('409 CAMBIO_PONE_EN_RIESGO cancela la operación sin reenviar al rechazar', async () => {
+    const service = TestBed.inject(RouteAssignmentService);
+    const assigned = { ...pedido, estado: 'AsignadoARuta' as const, rutaId: 'r1' };
+    const origin = { ...ruta, paradas: [{ orden: 1, pedido: assigned }] };
+    const dest = { ...ruta, id: 'r2', version: 91 };
+    const open = service.open(assigned, 'r2');
+    http.expectOne((r) => r.url === base + '/rutas').flush([origin, dest]);
+    await open;
+
+    const savePromise = service.confirm();
+    const req = http.expectOne(base + '/rutas/r1/pedidos/p/transferir');
+    req.flush(
+      {
+        codigo: 'CAMBIO_PONE_EN_RIESGO',
+        pedidosEnRiesgo: [
+          {
+            pedidoId: 'p',
+            rutaId: 'r2',
+            finalizacionEstimadaEn: '2027-01-01T16:00:00Z',
+            limiteEn: null,
+            retrasoMinutos: 15,
+          },
+        ],
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    await Promise.resolve();
+    expect(service.pedidosEnRiesgo()?.length).toBe(1);
+
+    service.responderRiesgo(false);
+    await savePromise;
+
+    http.expectNone(base + '/rutas/r1/pedidos/p/transferir');
+    expect(service.pedidosEnRiesgo()).toBeNull();
+  });
+  it('replaceRoute reemplaza la ruta completa y sus alertas en operations.rutas', () => {
+    operations.fecha = ruta.fecha;
+    operations.rutas.set([ruta]);
+    operations.selected.set(ruta);
+    const updated: RutaDto = {
+      ...ruta,
+      distanciaEstimadaKm: 15.5,
+      alertas: [
+        {
+          pedidoId: 'p',
+          orden: 1,
+          estado: 'RetrasoPrevisto',
+          retrasoMinutos: 20,
+        },
+      ],
+    };
+    operations.replaceRoute(updated);
+    expect(operations.rutas()[0].distanciaEstimadaKm).toBe(15.5);
+    expect(operations.rutas()[0].alertas?.length).toBe(1);
+    expect(operations.selected()?.alertas?.length).toBe(1);
+  });
+  it('puntualidadInfo devuelve textos y clases correctas para cada estado y nulo', () => {
+    expect(puntualidadInfo(null).texto).toBe('Sin estimación');
+    expect(puntualidadInfo({ estado: 'SinEstimacion', retrasoMinutos: null }).texto).toBe('Sin estimación');
+    expect(puntualidadInfo({ estado: 'SinCompromiso', retrasoMinutos: null }).texto).toBe('Sin intervalo comprometido');
+    expect(puntualidadInfo({ estado: 'DentroDelPlazoPrevisto', retrasoMinutos: null }).texto).toBe('A tiempo (estimado)');
+    expect(puntualidadInfo({ estado: 'RetrasoPrevisto', retrasoMinutos: 15 }).texto).toBe('Retraso previsto: +15 min');
+    expect(puntualidadInfo({ estado: 'PlazoVencido', retrasoMinutos: 25 }).texto).toBe('Plazo vencido hace 25 min');
+    expect(puntualidadInfo({ estado: 'EntregadoEnIntervalo', retrasoMinutos: null }).texto).toBe('Entregado a tiempo');
+    expect(puntualidadInfo({ estado: 'EntregadoConRetraso', retrasoMinutos: 10 }).texto).toBe('Entregado con 10 min de retraso');
+    expect(puntualidadInfo({ estado: 'EntregadoAntesDelIntervalo', retrasoMinutos: null }).texto).toBe('Entregado antes del intervalo');
+    expect(puntualidadInfo({ estado: 'NoAplica', retrasoMinutos: null }).texto).toBe('No aplica (cancelado)');
   });
 });

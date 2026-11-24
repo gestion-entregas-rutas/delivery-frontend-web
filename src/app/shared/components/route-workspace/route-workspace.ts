@@ -10,6 +10,7 @@ import { RouteAssignmentService } from '../../../core/services/route-assignment.
   selector: 'app-route-workspace',
   imports: [FormsModule],
   templateUrl: './route-workspace.html',
+  host: { class: 'legacy-ui block' },
 })
 export class RouteWorkspace implements OnDestroy {
   readonly operations = inject(OperationsService);
@@ -52,6 +53,12 @@ export class RouteWorkspace implements OnDestroy {
       this.timer=setInterval(()=>this.draw(),30000);
 
       this.draw();
+      setTimeout(() => {
+        if (!this.destroyed && this.map) {
+          this.map.invalidateSize();
+          this.fitMap();
+        }
+      }, 100);
     } catch {
       this.mapError.set('No se pudo cargar el mapa. Puedes continuar con la gestión de datos.');
     }
@@ -82,7 +89,8 @@ export class RouteWorkspace implements OnDestroy {
     routes
       .filter((r) => r.estado !== 'Cancelada')
       .forEach((r, i) => {
-        const points = [...r.paradas]
+        const points = [...(r.paradas || [])]
+          .filter((p) => p?.pedido?.ubicacion?.latitud != null && p?.pedido?.ubicacion?.longitud != null)
           .sort((a, b) => a.orden - b.orden)
           .map(
             (p) => [p.pedido.ubicacion.latitud, p.pedido.ubicacion.longitud] as [number, number],
@@ -99,8 +107,11 @@ export class RouteWorkspace implements OnDestroy {
       .pedidos()
       .filter(
         (p) =>
+          p &&
           p.estado !== 'Cancelado' &&
-          (!this.operations.selected() || p.rutaId === this.operations.selected()?.id),
+          (!this.operations.selected() || p.rutaId === this.operations.selected()?.id) &&
+          p.ubicacion?.latitud != null &&
+          p.ubicacion?.longitud != null,
       )
       .forEach((p, i) => {
         const el = document.createElement('div');
@@ -122,6 +133,7 @@ export class RouteWorkspace implements OnDestroy {
   }
   fitMap() {
     if (!this.map || !this.L || !this.layers) return;
+    this.map.invalidateSize();
     const bounds = this.L.featureGroup(this.layers.getLayers()).getBounds();
     if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
   }

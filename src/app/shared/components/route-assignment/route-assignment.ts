@@ -1,10 +1,11 @@
 ﻿import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouteAssignmentService } from '../../../core/services/route-assignment.service';
 import { OperationsService } from '../../../core/services/operations.service';
 @Component({
   selector: 'app-route-assignment',
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   template: `@if (assignment.pedido()) {
     <div class="legacy-ui">
       <div class="modal-backdrop" (click)="assignment.close()">
@@ -79,6 +80,50 @@ import { OperationsService } from '../../../core/services/operations.service';
           </div>
         </section>
       </div>
+
+      @if (assignment.pedidosEnRiesgo()) {
+        <div class="modal-backdrop" style="z-index: 1050;" (click)="assignment.responderRiesgo(false)">
+          <section
+            class="modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="assign-risk-title"
+            (click)="$event.stopPropagation()"
+            style="max-width: 440px;"
+          >
+            <div class="panel-heading">
+              <h2 id="assign-risk-title" style="color: #b26a00;">⚠️ Entregas en riesgo</h2>
+            </div>
+            <div class="form-body">
+              <p style="margin: 0 0 10px; font-weight: 600;">
+                Este cambio pondría en riesgo {{ assignment.pedidosEnRiesgo()!.length }} {{ assignment.pedidosEnRiesgo()!.length === 1 ? 'entrega' : 'entregas' }}:
+              </p>
+              <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                @for (item of assignment.pedidosEnRiesgo(); track item.pedidoId) {
+                  <div style="padding: 8px 12px; background: #FFF9F2; border: 1px solid #FFE4C4; border-radius: 6px; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                      <span>{{ assignment.clienteNombre(item.pedidoId) }}</span>
+                      <span style="color: #c93b2b;">+{{ item.retrasoMinutos }} min</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: #636366; margin-top: 4px;">
+                      <span>Límite: {{ item.limiteEn ? (item.limiteEn | date:'HH:mm':'America/Guayaquil') : 'Fin de jornada' }}</span>
+                      <span>Estimado: {{ item.finalizacionEstimadaEn | date:'HH:mm':'America/Guayaquil' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="button" (click)="assignment.responderRiesgo(false)">
+                Cancelar
+              </button>
+              <button type="button" class="button danger" (click)="assignment.responderRiesgo(true)">
+                Aplicar de todos modos
+              </button>
+            </div>
+          </section>
+        </div>
+      }
     </div>
   }`,
 })

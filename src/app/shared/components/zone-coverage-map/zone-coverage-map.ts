@@ -12,6 +12,7 @@
   effect,
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { ZonaDto } from '../../../core/models/logistica.models';
 import { mapPalette } from '../../../core/utils/map-palette';
 import { LocalLocationService } from '../../../core/services/local-location.service';
@@ -105,7 +106,7 @@ export class ZoneCoverageMap implements OnChanges, OnDestroy {
   }
   async init() {
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed) return;
       const container = this.host.nativeElement.querySelector<HTMLElement>('.coverage-map')!;
       this.map = this.L.map(container).setView([-2.1894, -79.8891], 12);

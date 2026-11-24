@@ -13,6 +13,7 @@
   signal,
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
+import { cargarLeaflet } from '../../../core/utils/leaflet-loader';
 import { OperationsService } from '../../../core/services/operations.service';
 import { mapPalette } from '../../../core/utils/map-palette';
 import { drawGpsMarkers } from '../../../core/utils/gps-markers';
@@ -259,7 +260,7 @@ export class OperationsMap implements OnDestroy, OnChanges {
   }
   async init() {
     try {
-      this.L = await import('leaflet');
+      this.L = await cargarLeaflet();
       if (this.destroyed) return;
       const container = this.host.nativeElement.querySelector<HTMLElement>('.map-canvas')!;
       this.map = this.L.map(container, { zoomControl: false }).setView([-2.1894, -79.8891], 12);
